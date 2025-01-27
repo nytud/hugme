@@ -1,10 +1,8 @@
 
-import random
 import argparse
 
-import numpy
-import torch
-
+from src import helper
+from src.evaluate import evaluate
 
 
 __doc__ = """
@@ -19,7 +17,7 @@ def cli() -> None:
 
     parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
-    parser.add_argument('--task-names', type=str, default='all', metavar='S', help='task name(s)')
+    parser.add_argument('--tasks', type=str, default='all', metavar='S', help='task name(s)')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N', help='input batch size for training (default: 32)')
     parser.add_argument('--optimizer', type=str, default="adam", metavar='N', help='optimizer name (default: adam)')
     parser.add_argument('--n-epochs', type=int, default=5, help='-')
@@ -33,20 +31,10 @@ def cli() -> None:
 
     args = parser.parse_args()
 
-    use_cuda = args.use_cuda and torch.cuda.is_available()
+    helper.set_seeds(args)
+    helper.set_device(args)
 
-    random.seed(args.seed)
-    numpy.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
-
-    if use_cuda:
-        device = torch.device(f'cuda{args.cuda_id}') if args.cuda_id else torch.device('cuda')
-    else:
-        device = torch.device("cpu")
-
-    print(f"Using device: {device}")
-
+    evaluate(args)
 
 
 if __name__ == '__main__':
