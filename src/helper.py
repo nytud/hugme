@@ -1,6 +1,4 @@
-from typing import Any, List
-
-import logging
+import gc
 import random
 import pathlib
 import numpy
@@ -41,21 +39,13 @@ def read_file(file_path, readlines: bool = False):
         raise FileNotFoundError(f"File not found: {file_path}") from e
 
 
-def free_memory(self, vars: List[Any], device: str) -> None:
-    logging.warning(f"Freeing memory for {len(vars)} variables.")
-    del vars
-    if self.device.type == "cuda":
+def free_memory(device: torch.device) -> None:
+    print("Freeing memory.")
+    gc.collect()
+    if device.type == "cuda":
         torch.cuda.empty_cache()
-    elif self.device.type == "mps":
+    elif device.type == "mps":
         torch.mps.empty_cache()
-
-
-def log_startup_diagnostics() -> None:
-    print(f"Number of CPU Workers: {config.NUM_WORKERS}")
-    print(f"Number of GPUs available: {config.NUM_GPUS}")
-    print(f"Is CUDA available: {config.CUDA_AVAILABLE}")
-    print(f"Selected device: {config.DEVICE}")
-    print(f"Available devices: {config.DEVICES}")
 
 
 def get_memory_alloc(device: str, divisor: int = 1024 ** 3) -> float:

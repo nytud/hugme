@@ -1,5 +1,5 @@
 
 
 
-def compute_metric(args) -> None:
+def compute_metric(args, generate) -> None:
     return

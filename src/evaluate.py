@@ -1,4 +1,7 @@
 import time
+import json
+
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
 import metrics
 import benchmarks
@@ -25,19 +28,38 @@ def eval(args) -> None:
 
     eval_start_time = time.time()
 
-    for task in args.tasks:
+    for task_name in args.tasks:
 
-        print(f"Started evaluation on {task}.")
+        print(f"Started evaluation on {task_name}.")
 
         task_start_time = time.time()
 
-        if task not in TASKS:
-            raise ValueError(f"Task {task} is not among tasks: {list(TASKS.keys())}.")
+        if task_name not in TASKS:
+            raise ValueError(f"Task {task_name} is not among tasks: {list(TASKS.keys())}.")
 
-        # current_task = TASKS[task]
+        generate = get_model(args)
+
+        task = TASKS[task_name]
+
+        task(args, generate)
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
     return None
+
+
+def get_model(args):
+
+    parameters = json.load(args.config) if args.config else {}
+
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=args.hf_token)
+
+    model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=args.hf_token)
+
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
+
+    return pipe
+
+

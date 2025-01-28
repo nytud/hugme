@@ -19,15 +19,13 @@ def cli() -> None:
     parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
     parser.add_argument('--tasks', type=str, default=[], metavar='S', help='task name(s)')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N', help='input batch size for training (default: 32)')
-    parser.add_argument('--optimizer', type=str, default="adam", metavar='N', help='optimizer name (default: adam)')
     parser.add_argument('--n-epochs', type=int, default=5, help='-')
-    parser.add_argument('--lr', type=float, default=0.01, metavar='N', help='learning rate')
-    parser.add_argument('--gamma', type=float, default=0.7, metavar='M', help='learning rate step gamma (default: 0.7)')
-    parser.add_argument('--seed', type=int, default=42, metavar='S', help='random seed (default: 42)')
-    parser.add_argument('--num-workers', type=int, default=4, help='the number of CPUs workers')
     parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
     parser.add_argument('--cuda-id', type=int, default=0, metavar='S', help='gpu id')
     parser.add_argument('--save-model', action='store_true', default=False, help='save model')
+    parser.add_argument('--hf-token', type=str, action='store_true', default=None, help='hugginface acces token for private models')
+    parser.add_argument('--openai-key', type=str, action='store_true', default=None, help='openai acces token or key')
+    parser.add_argument("--parameters", type=argparse.FileType("r"), help="path to JSON config file for model params")
 
     args = parser.parse_args()
 
@@ -35,6 +33,8 @@ def cli() -> None:
     helper.set_device(args)
 
     evaluate.eval(args)
+
+    helper.free_memory(args.device)
 
 
 if __name__ == '__main__':
