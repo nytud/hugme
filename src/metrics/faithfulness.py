@@ -1,6 +1,5 @@
 
 
 
-def benchmark(args) -> None:
-
+def compute_metric(args) -> None:
     return

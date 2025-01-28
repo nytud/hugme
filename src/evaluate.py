@@ -1,28 +1,37 @@
+import logging
 
-
-from benchmarks import mmlu
-from metrics import faithfulness, nih
+from src import metrics
+from src import benchmarks
 
 
 TASKS = {
-    "bias": None,
-    "coherence": None,
-    "hallucination": None,
-    "faithfulness": faithfulness.benchmark,
-    "mmlu":  mmlu.benchmark,
-    "needinhaystack": nih.benchmark,
-    "relevancy": None,
-    "spell": None,
-    "summary": None,
-    "toxicity": None,
-    "truthfulqa": None,
+    "answer_relevancy": metrics.answer_relevancy.compute_metric,
+    "bias": metrics.bias.compute_metric,
+    "coherence": metrics.coherence.compute_metric,
+    "hallucination": metrics.hallucination.compute_metric,
+    "faithfulness": metrics.faithfulness.compute_metric,
+    "mmlu":  benchmarks.mmlu.benchmark,
+    "needleinhaystack": metrics.nih.compute_metric,
+    "relevancy": benchmarks.truthfulqa.benchmark,
+    "spell": metrics.spell.compute_metric,
+    "summarization": metrics.summerization.compute_metric,
+    "toxicity": metrics.toxicity.compute_metric,
+    "truthfulqa": benchmarks.truthfulqa.benchmark,
 }
 
 
 def evaluate(args) -> None:
 
-    print("Evaluation started.")
+    logging.info("Evaluation started.")
 
     for task in args.tasks:
 
-        print(f"Started evaluatiion on {task}.")
+        logging.info(f"Started evaluation on {task}.")
+
+        if task not in TASKS:
+            raise ValueError(f"Task {task} is not among tasks: {TASKS.keys()}.")
+
+
+
+
+    return None

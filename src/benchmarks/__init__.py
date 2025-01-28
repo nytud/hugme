@@ -1,3 +1,2 @@
-
-
-print("hello world")
+import mmlu
+import truthfulqa

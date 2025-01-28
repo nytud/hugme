@@ -1,3 +1,6 @@
+from typing import Any, List
+import lggging
+
 import random
 import pathlib
 import numpy
@@ -34,3 +37,12 @@ def read_file(file_path, readlines: bool = False):
             return file.readlines() if readlines else file.read()
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not found: {file_path}") from e
+
+
+def free_memory(self, vars: List[Any], device: str) -> None:
+    logging.warning(f"Freeing memory for {len(vars)} variables.")
+    del vars
+    if self.device.type == "cuda":
+        torch.cuda.empty_cache()
+    elif self.device.type == "mps":
+        torch.mps.empty_cache()
