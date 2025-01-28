@@ -61,6 +61,24 @@ def get_memory_alloc(device: str, divisor: int = 1024 ** 3) -> float:
 
 
 def get_free_device() -> str: # ~ device with lowest memory usage
+
     devices_memory_allocated = [(device, get_memory_alloc(device)) for device in config.DEVICES]
+
     devices_memory_allocated = sorted(devices_memory_allocated, key=lambda t: t[1])
+
     return devices_memory_allocated[0][0]
+
+
+def get_model_prompt(model_id: str, query: str, prompt: str = "Válaszolj a kérdésre!"):
+
+    model_prompts = {
+        "google/gemma-2-2b-it": [
+            {"role": "user", "content": query}
+        ],
+        "meta-llama/Meta-Llama-3.1-8B-Instruct":  [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": query}
+        ]
+    }
+    return model_prompts.get(model_id, query)
+

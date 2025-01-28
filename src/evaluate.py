@@ -37,11 +37,11 @@ def eval(args) -> None:
         if task_name not in TASKS:
             raise ValueError(f"Task {task_name} is not among tasks: {list(TASKS.keys())}.")
 
-        generate = get_model(args)
+        generation_pipeline = get_model(args)
 
         task = TASKS[task_name]
 
-        task(args, generate)
+        task(args, generation_pipeline)
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
@@ -61,5 +61,3 @@ def get_model(args):
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
 
     return pipe
-
-
