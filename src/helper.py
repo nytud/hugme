@@ -6,6 +6,8 @@ import pathlib
 import numpy
 import torch
 
+import config
+
 
 def set_seeds(args) -> None:
     random.seed(args.seed)
@@ -46,3 +48,29 @@ def free_memory(self, vars: List[Any], device: str) -> None:
         torch.cuda.empty_cache()
     elif self.device.type == "mps":
         torch.mps.empty_cache()
+
+
+def log_startup_diagnostics() -> None:
+    print(f"Number of CPU Workers: {config.NUM_WORKERS}")
+    print(f"Number of GPUs available: {config.NUM_GPUS}")
+    print(f"Is CUDA available: {config.CUDA_AVAILABLE}")
+    print(f"Selected device: {config.DEVICE}")
+    print(f"Available devices: {config.DEVICES}")
+
+
+def get_memory_alloc(device: str, divisor: int = 1024 ** 3) -> float:
+    free_memory, total_memory = torch.cuda.mem_get_info(device)
+    f_memory, t_memory = free_memory / divisor, total_memory / divisor
+    memory_allocated = t_memory - f_memory
+    print(
+        f"Memory statistics for {device} device: "
+        f"allocated: {memory_allocated:.2f}/ {t_memory:.2f} GB, "
+        f"free: {f_memory:.2f}/ {t_memory:.2f} GB"
+    )
+    return memory_allocated
+
+
+def get_free_device() -> str: # ~ device with lowest memory usage
+    devices_memory_allocated = [(device, get_memory_alloc(device)) for device in config.DEVICES]
+    devices_memory_allocated = sorted(devices_memory_allocated, key=lambda t: t[1])
+    return devices_memory_allocated[0][0]
