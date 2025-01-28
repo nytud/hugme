@@ -1,8 +1,8 @@
 
 import argparse
 
-from src import helper
-from src.evaluate import evaluate
+import helper
+from evaluate import evaluate
 
 
 __doc__ = """
@@ -17,7 +17,7 @@ def cli() -> None:
 
     parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
-    parser.add_argument('--tasks', type=str, default='all', metavar='S', help='task name(s)')
+    parser.add_argument('--tasks', type=str, nargs="+", default=[], help='task name(s)')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N', help='input batch size for training (default: 32)')
     parser.add_argument('--optimizer', type=str, default="adam", metavar='N', help='optimizer name (default: adam)')
     parser.add_argument('--n-epochs', type=int, default=5, help='-')

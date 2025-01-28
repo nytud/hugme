@@ -2,4 +2,4 @@
 
 
 def benchmark(args) -> None:
-    print("Running benchmark.")
+    print("Running HuMMLU benchmark.")
