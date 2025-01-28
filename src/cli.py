@@ -2,7 +2,7 @@
 import argparse
 
 import helper
-from evaluate import evaluate
+import evaluate
 
 
 __doc__ = """
@@ -34,7 +34,7 @@ def cli() -> None:
     helper.set_seeds(args)
     helper.set_device(args)
 
-    evaluate(args)
+    evaluate.eval(args)
 
 
 if __name__ == '__main__':
