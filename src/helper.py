@@ -1,8 +1,9 @@
 import gc
+import json
 import random
 import pathlib
-import numpy
 import torch
+import numpy
 
 import config
 
@@ -28,15 +29,35 @@ def set_device(args) -> None:
     args.device = device
 
 
-def read_file(file_path, readlines: bool = False):
-
+def read_file(file_path, readlines: bool = False) -> list[str] | str:
     file_path = pathlib.Path(file_path)
-
     try:
         with file_path.open("r") as file:
             return file.readlines() if readlines else file.read()
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not found: {file_path}") from e
+
+
+def read_json(file_path):
+    file_path = pathlib.Path(file_path)
+    try:
+        with file_path.open("r", encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"File not found: {file_path}") from e
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON format in file: {file_path}") from e
+
+
+def save_json(data, dir_path, file_name: str) -> None:
+    dir_path = pathlib.Path(dir_path)
+    file_path = dir_path / file_name
+    try:
+        dir_path.mkdir(parents=True, exist_ok=True)
+        with file_path.open("w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+    except OSError as e:
+        raise OSError(f"Could not save file: {file_path}") from e
 
 
 def free_memory(device: torch.device) -> None:

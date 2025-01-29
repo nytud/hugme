@@ -1,8 +1,5 @@
-thop
 tqdm
 torch
-numpy
 pandas
-torchtune
-torchvision
+deepeval
 transformers

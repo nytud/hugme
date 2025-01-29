@@ -18,7 +18,7 @@ def cli() -> None:
     parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
     parser.add_argument('--tasks', type=str, default=[], metavar='S', help='task name(s)')
-    parser.add_argument('--batch-size', type=int, default=32, metavar='N', help='input batch size for training (default: 32)')
+    parser.add_argument('--judge', type=str, default="gpt-3.5-turbo-1106", metavar='S', help='judge model name(s)')
     parser.add_argument('--n-epochs', type=int, default=5, help='-')
     parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
     parser.add_argument('--cuda-id', type=int, default=0, metavar='S', help='gpu id')
@@ -26,6 +26,7 @@ def cli() -> None:
     parser.add_argument('--hf-token', type=str, action='store_true', default=None, help='hugginface acces token for private models')
     parser.add_argument('--openai-key', type=str, action='store_true', default=None, help='openai acces token or key')
     parser.add_argument("--parameters", type=argparse.FileType("r"), help="path to JSON config file for model params")
+    parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, metavar='S', help='save results')
 
     args = parser.parse_args()
 
