@@ -1,11 +1,8 @@
 import os
-import gc
 import json
 import random
 import pathlib
 import torch
-
-import config
 
 
 def set_seeds(args) -> None:
@@ -62,36 +59,6 @@ def save_json(data, dir_path, file_name: str) -> None:
             json.dump(data, file, ensure_ascii=False, indent=4)
     except OSError as e:
         raise OSError(f"Could not save file: {file_path}") from e
-
-
-def free_memory(device: torch.device) -> None:
-    print("Freeing memory.")
-    gc.collect()
-    if device.type == "cuda":
-        torch.cuda.empty_cache()
-    elif device.type == "mps":
-        torch.mps.empty_cache()
-
-
-def get_memory_alloc(device: str, divisor: int = 1024 ** 3) -> float:
-    free_memory, total_memory = torch.cuda.mem_get_info(device)
-    f_memory, t_memory = free_memory / divisor, total_memory / divisor
-    memory_allocated = t_memory - f_memory
-    print(
-        f"Memory statistics for {device} device: "
-        f"allocated: {memory_allocated:.2f}/ {t_memory:.2f} GB, "
-        f"free: {f_memory:.2f}/ {t_memory:.2f} GB"
-    )
-    return memory_allocated
-
-
-def get_free_device() -> str: # ~ device with lowest memory usage
-
-    devices_memory_allocated = [(device, get_memory_alloc(device)) for device in config.DEVICES]
-
-    devices_memory_allocated = sorted(devices_memory_allocated, key=lambda t: t[1])
-
-    return devices_memory_allocated[0][0]
 
 
 def get_model_prompt(model_id: str, query: str, prompt: str = "Válaszolj a kérdésre!"):

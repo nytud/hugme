@@ -38,8 +38,6 @@ def cli() -> None:
 
     evaluate.evaluate(args)
 
-    helper.free_memory(args.device)
-
 
 if __name__ == '__main__':
     cli()
