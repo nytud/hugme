@@ -1,9 +1,9 @@
-from .answer_relevancy import compute_metric as compute_answer_relevancy
-from .faithfulness import compute_metric as compute_faithfulness
-from .nih import compute_metric as compute_nih
-from .bias import compute_metric as compute_bias
-from .toxicity import compute_metric as compute_toxicity
-from .coherence import compute_metric as compute_coherence
-from .summerization import compute_metric as compute_summarization
-from .spell import compute_metric as compute_spell
-from .hallucination import compute_metric as compute_hallucination
+from . import answer_relevancy
+from . import faithfulness
+from . import nih
+from . import bias
+from . import toxicity
+from . import coherence
+from . import summerization
+from . import spell
+from . import hallucination

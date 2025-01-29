@@ -1,5 +1,4 @@
 tqdm
 torch
-pandas
 deepeval
 transformers

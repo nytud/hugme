@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hugme"
+version = "0.0.1"
+description = "Library to evaluate models on HuGME benchmark."
+readme = "README.md"
+authors = [
+    {name = "HUN-REN Research Center for Linguistics", email = "osvathm.matyas@nytud.hun-ren.hu"}
+]
+keywords = ["models", "model-training", "fine-tuning", "natural-language-processing", "deep-learning", "evaluation", "benchmark"]
+requires-python = ">=3.8"
+license = {text = "MIT"} # Change if using another license
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+    "tqdm",
+    "torch",
+    "deepeval",
+    "transformers"
+]
+
+[project.urls]
+Homepage = "https://github.com/nytud/hugme"
+Repository = "https://github.com/nytud/hugme"
+
+[project.scripts]
+hugme = "cli:cli"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
