@@ -47,8 +47,6 @@ def eval(args) -> None:
 
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
-    return None
-
 
 def get_model(args):
 
