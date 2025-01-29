@@ -1,3 +1,4 @@
+import os
 import gc
 import json
 import random
@@ -25,6 +26,11 @@ def set_device(args) -> None:
     print(f"Using device: {device}")
 
     args.device = device
+
+
+def set_env_vars(args) -> None:
+    os.environ['OPENAI_API_KEY'] = args.openai_api_key
+    os.environ['RESULTS_DIR'] = args.results_path
 
 
 def read_file(file_path, readlines: bool = False):

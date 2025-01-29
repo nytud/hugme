@@ -26,20 +26,21 @@ def compute_metric(args, generation_pipeline) -> float:
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, "faithfulness-temp-results.json")
 
-    total_score = 0
+    total_score = 0.0
     measurement_results = []
 
     for i, entry in enumerate(results):
 
         test_case = LLMTestCase(
-            input = entry["input"], actual_output = entry["output"], retrieval_context= entry["context"]
+            input = entry["input"], actual_output = entry["output"], retrieval_context = [entry["context"]]
         )
         metric = FaithfulnessMetric(threshold=0.7, model=args.judge, include_reason=True)
 
         metric.measure(test_case)
-        total_score += metric.score
 
-        results.append({"index": i, "score": metric.score, "reason": metric.reason})
+        total_score += float(metric.score)
+
+        measurement_results.append({"index": i, "score": metric.score, "reason": metric.reason})
 
     faithfulness_score = total_score / len(dataset)
 

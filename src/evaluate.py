@@ -47,7 +47,7 @@ def eval(args) -> None:
 
         score = task(args, generation_pipeline)
 
-        score_results[task] = score
+        score_results[task_name] = score
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
@@ -59,9 +59,12 @@ def eval(args) -> None:
 
 def get_generation_pipeline(args):
 
-    parameters = json.load(args.config) if args.config else {}
+    parameters = helper.read_json(args.parameters) if args.parameters else {}
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=args.hf_token)
+    if args.tokenizer_name:
+        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, token=args.hf_token)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=args.hf_token)
 
     model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=args.hf_token)
 
