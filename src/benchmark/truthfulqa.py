@@ -1,5 +1,4 @@
 
 
-
 def benchmark(args) -> None:
-    print("Running benchmark.")
+    raise NotImplementedError
