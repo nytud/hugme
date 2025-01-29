@@ -10,6 +10,15 @@ def compute_metric(args, generation_pipeline) -> float:
 
     dataset = helper.read_json(config.DATASETS + "faithfulness.json")
 
+    results = generate_results(args, generation_pipeline, dataset)
+
+    faithfulness_score = compute_score(args, results)
+
+    return faithfulness_score
+
+
+def generate_results(args, generation_pipeline, dataset):
+
     results = []
 
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
@@ -25,6 +34,11 @@ def compute_metric(args, generation_pipeline) -> float:
 
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, "faithfulness-results.json")
+
+    return results
+
+
+def compute_score(args, results):
 
     total_score = 0.0
     measurement_results = []
@@ -42,7 +56,7 @@ def compute_metric(args, generation_pipeline) -> float:
 
         measurement_results.append({"index": i, "score": metric.score, "reason": metric.reason})
 
-    faithfulness_score = total_score / len(dataset)
+    faithfulness_score = total_score / len(results)
 
     print(f"Faithfulness score: {faithfulness_score}")
 
