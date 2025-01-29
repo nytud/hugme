@@ -8,7 +8,7 @@ import helper
 
 def compute_metric(args, generation_pipeline) -> float:
 
-    dataset = helper.read_json(config.FAITHFULNESS_DATASET)
+    dataset = helper.read_json(config.DATASETS + "faithfulness.json")
 
     results = []
 
@@ -24,7 +24,7 @@ def compute_metric(args, generation_pipeline) -> float:
         results.append({"input": query, "output": output, "context": context})
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, "faithfulness-temp-results.json")
+        helper.save_json(results, config.RESULTS_DIR, "faithfulness-results.json")
 
     total_score = 0.0
     measurement_results = []
@@ -47,6 +47,6 @@ def compute_metric(args, generation_pipeline) -> float:
     print(f"Faithfulness score: {faithfulness_score}")
 
     if args.save_results:
-        helper.save_json(measurement_results, config.RESULTS_DIR, "faithfulness-results.json")
+        helper.save_json(measurement_results, config.RESULTS_DIR, "faithfulness-eval-results.json")
 
     return faithfulness_score

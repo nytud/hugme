@@ -11,4 +11,4 @@ DEVICES = [f"cuda:{i}" for i in range(NUM_GPUS)] if NUM_GPUS else ["cpu"]
 
 RESULTS_DIR = os.getenv("RESULTS_DIR", "./results")
 
-FAITHFULNESS_DATASET = os.getenv("FAITHFULNESS_DATASET", "datasets/faithfulness.json")
+DATASETS = os.getenv("DATASETS", "./datasets/")

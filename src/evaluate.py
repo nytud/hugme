@@ -1,6 +1,4 @@
 import time
-import json
-
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
 import config
