@@ -22,7 +22,7 @@ TASKS = {
 }
 
 
-def eval(args) -> None:
+def evaluate(args) -> None:
 
     print("Evaluation started.")
 

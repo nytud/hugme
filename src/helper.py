@@ -36,7 +36,7 @@ def set_env_vars(args) -> None:
 def read_file(file_path, readlines: bool = False):
     file_path = pathlib.Path(file_path)
     try:
-        with file_path.open("r") as file:
+        with file_path.open("r", encoding="utf-8") as file:
             return file.readlines() if readlines else file.read()
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not found: {file_path}") from e
@@ -106,4 +106,3 @@ def get_model_prompt(model_id: str, query: str, prompt: str = "Válaszolj a kér
         ]
     }
     return model_prompts.get(model_id, query)
-

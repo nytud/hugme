@@ -36,7 +36,7 @@ def cli() -> None:
     helper.set_device(args)
     helper.set_env_vars(args)
 
-    evaluate.eval(args)
+    evaluate.evaluate(args)
 
     helper.free_memory(args.device)
 
