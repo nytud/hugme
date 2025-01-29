@@ -3,14 +3,12 @@ import json
 import random
 import pathlib
 import torch
-import numpy
 
 import config
 
 
 def set_seeds(args) -> None:
     random.seed(args.seed)
-    numpy.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
