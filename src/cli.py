@@ -27,7 +27,7 @@ def cli() -> None:
     parser.add_argument('--hf-token', type=str, default=None, help='hugginface acces token for private models')
     parser.add_argument('--openai-api-key', type=str, required=True, help='openai api key')
     parser.add_argument("--parameters", type=str, default=None, help="path to JSON config file for model params")
-    parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, metavar='S', help='save restuls')
+    parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save restuls')
     parser.add_argument("--results-path", type=str, default="./results", metavar='S', help='save results to path')
 
     args = parser.parse_args()
