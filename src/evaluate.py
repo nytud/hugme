@@ -37,7 +37,7 @@ def eval(args) -> None:
         if task_name not in TASKS:
             raise ValueError(f"Task {task_name} is not among tasks: {list(TASKS.keys())}.")
 
-        generation_pipeline = get_model(args)
+        generation_pipeline = get_generation_pipeline(args)
 
         task = TASKS[task_name]
 
@@ -48,7 +48,7 @@ def eval(args) -> None:
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
 
-def get_model(args):
+def get_generation_pipeline(args):
 
     parameters = json.load(args.config) if args.config else {}
 
