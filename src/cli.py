@@ -22,9 +22,10 @@ def cli() -> None:
     parser.add_argument('--n-epochs', type=int, default=5, help='-')
     parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
     parser.add_argument('--cuda-id', type=int, default=0, metavar='S', help='gpu id')
+    parser.add_argument('--seed', type=int, default=42, metavar='S', help='seed')
     parser.add_argument('--save-model', action='store_true', default=False, help='save model')
-    parser.add_argument('--hf-token', type=str, action='store_true', default=None, help='hugginface acces token for private models')
-    parser.add_argument('--openai-key', type=str, action='store_true', default=None, help='openai acces token or key')
+    parser.add_argument('--hf-token', type=str, default=None, help='hugginface acces token for private models')
+    parser.add_argument('--openai-key', type=str, default=None, help='openai acces token or key')
     parser.add_argument("--parameters", type=argparse.FileType("r"), help="path to JSON config file for model params")
     parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, metavar='S', help='save results')
 

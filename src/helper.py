@@ -29,7 +29,7 @@ def set_device(args) -> None:
     args.device = device
 
 
-def read_file(file_path, readlines: bool = False) -> list[str] | str:
+def read_file(file_path, readlines: bool = False):
     file_path = pathlib.Path(file_path)
     try:
         with file_path.open("r") as file:
