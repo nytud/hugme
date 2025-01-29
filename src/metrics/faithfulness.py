@@ -6,7 +6,7 @@ import config
 import helper
 
 
-def compute_metric(args, generation_pipeline) -> None:
+def compute_metric(args, generation_pipeline) -> float:
 
     dataset = helper.read_json(config.FAITHFULNESS_DATASET)
 
@@ -23,7 +23,7 @@ def compute_metric(args, generation_pipeline) -> None:
 
         results.append({"input": query, "output": output, "context": context})
 
-    if args.save_temp_results:
+    if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, "faithfulness-temp-results.json")
 
     total_score = 0
@@ -41,8 +41,11 @@ def compute_metric(args, generation_pipeline) -> None:
 
         results.append({"index": i, "score": metric.score, "reason": metric.reason})
 
-    faithfulness_score = f"{total_score} / {len(dataset)}"
+    faithfulness_score = total_score / len(dataset)
 
     print(f"Faithfulness score: {faithfulness_score}")
 
-    helper.save_json(measurement_results, config.RESULTS_DIR, "faithfulness-results.json")
+    if args.save_results:
+        helper.save_json(measurement_results, config.RESULTS_DIR, "faithfulness-results.json")
+
+    return faithfulness_score

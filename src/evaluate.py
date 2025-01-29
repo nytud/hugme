@@ -3,6 +3,8 @@ import json
 
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
+import config
+import helper
 import metrics
 import benchmarks
 
@@ -26,6 +28,8 @@ def eval(args) -> None:
 
     print("Evaluation started.")
 
+    score_results = {}
+
     eval_start_time = time.time()
 
     for task_name in args.tasks:
@@ -41,11 +45,16 @@ def eval(args) -> None:
 
         task = TASKS[task_name]
 
-        task(args, generation_pipeline)
+        score = task(args, generation_pipeline)
+
+        score_results[task] = score
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
+
+    if args.save_results:
+        helper.save_json(score_results, config.RESULTS_DIR, "hugme-results.json")
 
 
 def get_generation_pipeline(args):
