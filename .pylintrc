@@ -6,6 +6,7 @@ disable=
     C0116, # missing-function-docstring
     C0115, # missing-class-docstring
     W1508, # invalid-envvar-default
+    E0401, # import-error
 
 # Use multiple processes to speed up Pylint.
 jobs=4
