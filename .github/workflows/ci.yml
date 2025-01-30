@@ -27,42 +27,24 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
-# jobs:
-#   backend:
-#     name: CI pipeline
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd backend && pip install -r requirements.txt
+          pip install pylint ruff mypy
 
-#     steps:
+      - name: Linter
+        run: cd backend && ruff check .
 
-#       - name: Check out repository code
-#         uses: actions/checkout@v4
+      - name: Static code checker
+        run: |
+          mypy src --strict-equality --install-types
 
-#       - name: Set up Python
-#         uses: actions/setup-python@v5
-#         with:
-#           python-version: ${{ matrix.python-version }}
+      - name: Static code analysis
+        run: |
+          env PYTHONPATH="." python3 -m pylint src/
 
-#       - name: Install dependencies
-#         run: |
-#           python -m pip install --upgrade pip
-#           cd backend && pip install -r requirements.txt
-#           pip install pylint ruff mypy
-
-#       - name: Linter
-#         run: cd backend && ruff check .
-
-#       - name: Static code checker
-#         run: |
-#           mypy src --strict-equality --install-types
-
-#       - name: Static code analysis
-#         run: |
-#           env PYTHONPATH="." python3 -m pylint src/
-
-#       - name: Safety analysis
-#         run: |
-#           pip install safety
-#           safety check -r requirements.txt
+      - name: Safety analysis
+        run: |
+          pip install safety
+          safety check -r requirements.txt
