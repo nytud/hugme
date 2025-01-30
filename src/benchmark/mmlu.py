@@ -1,5 +1,5 @@
-from tqdm import tqdm
 from collections import defaultdict
+from tqdm import tqdm
 
 import config
 import helper
@@ -13,7 +13,6 @@ def benchmark(args, generation_pipeline) -> dict:
 
 
 def preprocess(dataset: list):
-    print(f"Dataset: {dataset}")
     for entry in dataset:
         entry["A"] = "A " + entry["A"]
         entry["B"] = "B " + entry["B"]
