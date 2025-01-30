@@ -33,7 +33,7 @@ jobs:
           pip install pylint ruff mypy
 
       - name: Linter
-        run: cd backend && ruff check .
+        run: ruff check .
 
       - name: Static code checker
         run: |
