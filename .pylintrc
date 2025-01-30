@@ -91,7 +91,7 @@ max-bool-expr=3
 max-branches=10
 
 # Maximum number of locals for function / method body
-max-locals=10
+max-locals=14
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7

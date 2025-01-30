@@ -43,9 +43,9 @@ def evaluate(args) -> None:
 
         task = TASKS[task_name]
 
-        score = task(args, generation_pipeline)
+        result = task(args, generation_pipeline)
 
-        score_results[task_name] = score
+        score_results[task_name] = result
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
