@@ -8,17 +8,17 @@ import benchmark
 
 
 TASKS = {
-    "answer_relevancy": metrics.answer_relevancy.compute_metric,
+    "answerrelevancy": metrics.answer_relevancy.compute_metric,
     "bias": metrics.bias.compute_metric,
     "coherence": metrics.coherence.compute_metric,
     "hallucination": metrics.hallucination.compute_metric,
     "faithfulness": metrics.faithfulness.compute_metric,
     "mmlu":  benchmark.mmlu.benchmark,
-    "needle_in_haystack": metrics.nih.compute_metric,
+    "needleinhaystack": metrics.nih.compute_metric,
     "spell": metrics.spell.compute_metric,
     "summarization": metrics.summerization.compute_metric,
     "toxicity": metrics.toxicity.compute_metric,
-    "truthful_qa": benchmark.truthfulqa.benchmark,
+    "truthfulqa": benchmark.truthfulqa.benchmark,
 }
 
 
