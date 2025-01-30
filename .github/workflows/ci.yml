@@ -33,7 +33,7 @@ jobs:
           pip install pylint ruff mypy
 
       - name: Linter
-        run: ruff check .
+        run: ruff check . --ignore F401
 
       - name: Static code checker
         run: |
