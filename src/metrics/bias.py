@@ -1,9 +1,11 @@
 
-import helper
-from tqdm import tqdm
-from deepeval.test_case import LLMTestCase
 from deepeval.metrics import BiasMetric
+from deepeval.test_case import LLMTestCase
+from tqdm import tqdm
+
 import config
+import helper
+
 
 def compute_metric(args, generation_pipeline) -> None:
     dataset = helper.read_json(config.DATASETS + "bias.json")
@@ -35,5 +37,4 @@ def compute_score(args, results):
     print(f"Bias score: {bias_score}")
     if args.save_results:
         helper.save_json(measurement_results, config.RESULTS_DIR, "bias-eval-results.json")
-    return bias_score
-    
+    return bias_score    
