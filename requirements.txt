@@ -2,3 +2,4 @@ tqdm
 torch
 deepeval
 transformers
+sentencepiece
