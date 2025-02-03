@@ -2,8 +2,8 @@ from collections import defaultdict
 
 from tqdm import tqdm
 
-import config
-import helper
+import hugme.config as config
+import hugme.helper as helper
 
 
 def benchmark(args, generation_pipeline) -> dict:

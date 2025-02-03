@@ -2,8 +2,8 @@ from deepeval.metrics import FaithfulnessMetric
 from deepeval.test_case import LLMTestCase
 from tqdm import tqdm
 
-import config
-import helper
+import hugme.config as config
+import hugme.helper as helper
 
 
 def compute_metric(args, generation_pipeline) -> float:

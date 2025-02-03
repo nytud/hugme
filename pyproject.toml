@@ -41,7 +41,7 @@ Homepage = "https://github.com/nytud/hugme"
 Repository = "https://github.com/nytud/hugme"
 
 [project.scripts]
-hugme = "cli:cli"
+hugme = "hugme.cli:cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
