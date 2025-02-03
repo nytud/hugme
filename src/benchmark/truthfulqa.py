@@ -1,4 +1,2 @@
-
-
-def benchmark(args, generation_pipeline) -> None:
+def benchmark(args) -> None:
     raise NotImplementedError

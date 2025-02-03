@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from tqdm import tqdm
 
 import config
@@ -24,26 +25,35 @@ def preprocess(dataset: list):
 def generate_results(args, generation_pipeline, dataset: list):
     results = []
     for entry in tqdm(dataset, desc="Generating responses", unit="query"):
-        question, target = entry['input'], entry['target']
-        a, b, c, d = entry['A'], entry['B'], entry['C'], entry['D']
+        question, target = entry["input"], entry["target"]
+        a, b, c, d = entry["A"], entry["B"], entry["C"], entry["D"]
         query = (
             "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza!"
             f"Kérdés: {question} Válaszok: {a}, {b}, {c}, {d}"
         )
         prompt = helper.get_model_prompt(args.model_name, query)
-        output = generation_pipeline(prompt)[0]['generated_text']
-        results.append({"query": question, "output": output, "target": target, "category": entry['category']})
+        output = generation_pipeline(prompt)[0]["generated_text"]
+        results.append(
+            {
+                "query": question,
+                "output": output,
+                "target": target,
+                "category": entry["category"],
+            }
+        )
     return results
 
 
 def compute_scores(args, results: list):
     score = 0.0
     for entry in tqdm(results, desc="Calculating scores", unit="query"):
-        if entry['output'].strip() == entry['target'] or entry['output'].startswith(entry['target']):
-            entry['score'] = 1.0
+        if entry["output"].strip() == entry["target"] or entry["output"].startswith(
+            entry["target"]
+        ):
+            entry["score"] = 1.0
             score += 1.0
         else:
-            entry['score'] = 0.0
+            entry["score"] = 0.0
     total_score = score / len(results)
 
     print(f"MMLU benchmark score: {score}")

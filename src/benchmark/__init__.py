@@ -1,2 +1,1 @@
-from . import mmlu
-from . import truthfulqa
+from . import mmlu, truthfulqa
