@@ -2,7 +2,7 @@ import random
 import re
 import torch
 from transformers import AutoTokenizer
-import hugme.config as config
+from hugme import config
 
 TEST_COMTEXT_LENGTH = 8192
 TURNS = 2

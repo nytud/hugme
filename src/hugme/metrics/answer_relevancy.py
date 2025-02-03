@@ -2,8 +2,8 @@ from deepeval.metrics import AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
 from tqdm import tqdm
 
-import hugme.config as config
-import hugme.helper as helper
+from hugme import config
+from hugme import helper
 
 
 def compute_metric(args, generation_pipeline) -> float:

@@ -1,7 +1,7 @@
 import argparse
 
-import hugme.evaluate as evaluate
-import hugme.helper as helper
+from hugme import evaluate
+from hugme import helper
 
 __doc__ = """
 This script is designed as a starting point for fine-tuning and evaluating your models using HuGME.

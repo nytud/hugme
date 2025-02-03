@@ -2,10 +2,10 @@ import time
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-import hugme.benchmark as benchmark
-import hugme.config as config
-import hugme.helper as helper
-import hugme.metrics as metrics
+from hugme import benchmark
+from hugme import config
+from hugme import helper
+from hugme import metrics
 
 TASKS = {
     "answerrelevancy": metrics.answer_relevancy.compute_metric,
