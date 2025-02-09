@@ -1,3 +1,5 @@
+from typing import Optional
+
 import json
 import random
 import pathlib
@@ -62,3 +64,16 @@ def get_model_prompt(model_id: str, query: str, prompt: str = "Válaszolj a kér
         ]
     }
     return model_prompts.get(model_id, query)
+
+
+def get_metric_prompt(
+    task_name: str,
+    query: str,
+    context: Optional[str] = None,
+    # prompt: str = "Válaszolj a kérdésre!"
+) -> str:
+    if task_name == "faithfulness":
+        return f"Válaszolj a kérdésre a megadott kontextus alapján! Kérdés: {query},\n Kontextus: {str(context)}"
+    if task_name == "hallucination":
+        return f"{str(context)} {query}"
+    return query

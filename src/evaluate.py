@@ -33,6 +33,7 @@ def evaluate(args) -> None:
             )
         score_results[task_name] = results
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
+
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
     if args.save_results:
         helper.save_json(score_results, config.RESULTS_DIR, "hugme-results.json")
