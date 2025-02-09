@@ -76,4 +76,6 @@ def get_metric_prompt(
         return f"Válaszolj a kérdésre a megadott kontextus alapján! Kérdés: {query},\n Kontextus: {str(context)}"
     if task_name == "hallucination":
         return f"{str(context)} {query}"
+    if task_name == "summarization":
+        return f"Foglald össze az alábbi szöveget! Szöveg: {query}"
     return query
