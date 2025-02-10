@@ -22,10 +22,6 @@ METRIC_DATASETES = {
     "summarization": SUMMARIZATION_DATASET,
     "answer-relevancy": ANSWER_RELEVANCY_DATASET,
 }
-BENCHMARK_DATASETES = {
-    "mmlu": None,
-    "truthfulqa": None,
-}
 
 MMLU = "mmlu"
 TRUTHFUL_QA = "truthfulqa"
