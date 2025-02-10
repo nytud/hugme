@@ -13,6 +13,8 @@ FAITHFULNESS_DATASET = DATASETS + os.getenv("FAITHFULNESS_DATASET", "faithfulnes
 SUMMARIZATION_DATASET = DATASETS + os.getenv("SUMMARIZATION_DATASET", "summarization.json")
 HALLUCINATION_DATASET = DATASETS + os.getenv("HALLUCINATION_DATASET", "hallucination.json")
 ANSWER_RELEVANCY_DATASET = DATASETS + os.getenv("ANSWER_RELEVANCY_DATASET", "answer-relevancy.json")
+SPELLING_DICT = DATASETS + os.getenv("SPELLING", "spell.json")
+SPELLING_DATASET = DATASETS + os.getenv("SPELLING_DATASET", "spelling.json")
 
 METRIC_DATASETES = {
     "bias": BIAS_DATASET,
@@ -24,5 +26,6 @@ METRIC_DATASETES = {
 }
 
 MMLU = "mmlu"
+SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"
 METRICS = list(METRIC_DATASETES.keys())
