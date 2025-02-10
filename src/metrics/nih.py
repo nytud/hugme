@@ -12,85 +12,83 @@ HUNDREDTH = 0.01
 GOOD_SOLUTION = 1.0
 BAD_SOLUTION = 0.0
 
-class NIHEvaluator:
-    def __init__(self, args, generation_pipeline):
-        self.args = args
-        self.generation_pipeline = generation_pipeline
-        self.tokenized_needle, self.city, self.anniversary = self._select_needle()
-        haystack = read_file(DATASET)
-        self.tokenized_haystack = self.tokenizer.tokenize(haystack)
-        self.answers = []
+def select_needle(generation_pipeline):
+    cities = read_file(config.NEEDLE_FILE ).split("\n")
+    random_city = random.choice(cities)
+    anniversary = random.randint(1, 100)
+    needle_text = f"Ezen a napon ünnepelte {random_city} város a {anniversary}. évfordulóját."
+    tokenized_needle = generation_pipeline.tokenizer.tokenize(needle_text)
+    return tokenized_needle, random_city, anniversary
 
-    def _select_needle(self):
-        cities = read_file(NEEDLE).split("\n")
-        random_city = random.choice(cities)
-        anniversary = random.randint(1, 100)
-        needle_text = f"Ezen a napon ünnepelte {random_city} város a {anniversary}. évfordulóját."
-        tokenized_needle = self.generation_pipeline.tokenizer.tokenize(needle_text)
-        return tokenized_needle, random_city, anniversary
+def cut_haystack(fraction, tokenized_haystack, tokenized_needle):
+    trimmed_length = int(MAX_CONTEXT_LENGTH * (fraction * HUNDREDTH)) - len(tokenized_needle)
+    return tokenized_haystack[:trimmed_length]
 
-    def _cut_haystack(self, fraction):
-        trimmed_length = int(MAX_CONTEXT_LENGTH * (fraction * HUNDREDTH)) - len(self.tokenized_needle)
-        return self.tokenized_haystack[:trimmed_length]
+def insert_needle(cutted_haystack, fraction, tokenized_needle):
+    lower_bound = int(len(cutted_haystack) * ((fraction - MAX_NEW_TOKENS) * HUNDREDTH))
+    upper_bound = int(len(cutted_haystack) * (fraction * HUNDREDTH))
+    insert_position = random.randint(lower_bound, upper_bound)
+    return (
+        cutted_haystack[:insert_position]
+        + tokenized_needle
+        + cutted_haystack[insert_position:]
+    )
 
-    def _insert_needle(self, cutted_haystack, fraction):
-        lower_bound = int(len(cutted_haystack) * ((fraction - MAX_NEW_TOKENS) * HUNDREDTH))
-        upper_bound = int(len(cutted_haystack) * (fraction * HUNDREDTH))
-        insert_position = random.randint(lower_bound, upper_bound)
-        return (
-            cutted_haystack[:insert_position]
-            + self.tokenized_needle
-            + cutted_haystack[insert_position:]
-        )
 
-    def _clean_answer(answer):
-        return re.sub(r"\D", "", str(answer))
+def _clean_answer(answer):
+    return re.sub(r"\D", "", str(answer))
 
-    def _generate_answer_scores(self, cutted_haystack):
-        system_prompt = (
-            f"Kizárólag a következő szöveg alapján, "
-            f"hanyadik évfordulóját ünnepelte {self.city} város?\n"
-            "Csak egy számot adj vissza!"
-        )
-        for j in range(MAX_NEW_TOKENS, 100 + MAX_NEW_TOKENS, MAX_NEW_TOKENS):
-            tokenized_haystack_with_needle = self._insert_needle(cutted_haystack, j)
-            full_stack_text = self.generation_pipeline.tokenizer.convert_tokens_to_string(tokenized_haystack_with_needle)
+def generate_answer_scores(cutted_haystack, city):
+    system_prompt = (
+        f"Kizárólag a következő szöveg alapján, "
+        f"hanyadik évfordulóját ünnepelte {city} város?\n"
+        "Csak egy számot adj vissza!"
+    )
+    new_rows = []
+    for j in range(MAX_NEW_TOKENS, 100 + MAX_NEW_TOKENS, MAX_NEW_TOKENS):
+        tokenized_haystack_with_needle = insert_needle(cutted_haystack, j, tokenized_needle)
+        full_stack_text = generation_pipeline.tokenizer.convert_tokens_to_string(tokenized_haystack_with_needle)
 
-            with torch.no_grad():
-                actual_answer = self.generation_pipeline(
-                    text_inputs=f"{system_prompt}\n {full_stack_text}", max_new_tokens=MAX_NEW_TOKENS
-                )
+        with torch.no_grad():
+            actual_answer = generation_pipeline(
+                text_inputs=f"{system_prompt}\n {full_stack_text}", max_new_tokens=MAX_NEW_TOKENS
+            )
 
-            answer = self._clean_answer(actual_answer)
-            if str(answer).strip() == str(self.anniversary):
-                goodness = 1.0
-            elif len(str(actual_answer)) >= 3 and str(self.anniversary) in str(actual_answer):
-                goodness = 0.5
-            else:
-                goodness = 0
+        answer = clean_answer(actual_answer)
+        if str(answer).strip() == str(self.anniversary):
+            goodness = 1.0
+        elif len(str(actual_answer)) >= 3 and str(self.anniversary) in str(actual_answer):
+            goodness = 0.5
+        else:
+            goodness = 0
 
-            new_row = {
-                "context_window": [len(tokenized_haystack_with_needle)],
-                "fraction": [j],
-                "answer": [answer],
-                "score": [goodness],
-                "actual_answer": [actual_answer],
-            }
-            self.answers.append(new_row)
-            torch.cuda.empty_cache()
+        new_row = {
+            "context_window": [len(tokenized_haystack_with_needle)],
+            "fraction": [j],
+            "answer": [answer],
+            "score": [goodness],
+            "actual_answer": [actual_answer],
+        }
+        torch.cuda.empty_cache()
+        new_rows.append(new_row)
+    return new_rows
 
-    def _evaluate_haystack_context(self):
-        for i in range(10, 110, 10):
-            cutted_haystack = self._cut_haystack(i)
-            self._generate_answer_scores(cutted_haystack)
 
-    def compute_metric(self):
-        for _ in range(TURNS):
-            self._evaluate_haystack_context()
-        return self.answers
+def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, anniversary):
+    results = []
+    for i in range(10, 110, 10):
+        cutted_haystack = cut_haystack(i, tokenized_haystack, tokenized_needle)
+        results.append(generate_answer_scores(cutted_haystack, city))
+    return results
 
 
 def compute_metric(args, generation_pipeline) -> None:
-    evaluator = NIHEvaluator(args, generation_pipeline)
-    answers = evaluator.compute_metric()
-    return answers
+    tokenized_needle, city, anniversary = select_needle()
+    haystack = read_file(DATASET)
+    tokenized_haystack = generation_pipeline.tokenizer.tokenize(haystack)
+    results = []
+    for _ in range(TURNS):
+        result = evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, anniversary)
+        results.append(result)
+
+    return results

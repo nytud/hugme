@@ -4,4 +4,4 @@ RESULTS_DIR = os.getenv("RESULTS_DIR", "./results")
 
 DATASETS = os.getenv("DATASETS", "./datasets/")
 
-NEEEDLE = 
+NEEEDLE_FILE = DATASETS + "nih_needle.txt"
