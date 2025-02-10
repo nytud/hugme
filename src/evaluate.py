@@ -2,10 +2,10 @@ import time
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-from hugme import benchmark
-from hugme import config
-from hugme import helper
-from hugme import metrics
+import benchmark
+import config
+import helper
+import metrics
 
 TASKS = {
     "answerrelevancy": metrics.answer_relevancy.compute_metric,
@@ -23,12 +23,12 @@ TASKS = {
 
 
 def evaluate(args) -> None:
-    print("Evaluation started...")
+    print("Evaluation started.")
+
     score_results = {}
     eval_start_time = time.time()
 
     for task_name in args.tasks:
-
         print(f"Started evaluation on {task_name}.")
 
         task_start_time = time.time()

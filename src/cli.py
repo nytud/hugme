@@ -10,7 +10,6 @@ It includes configurable options for model loading, training arguments and param
 
 
 def cli() -> None:
-
     parser = argparse.ArgumentParser(description="hugme cli tool")
 
     parser.add_argument(

@@ -7,7 +7,6 @@ from hugme import helper
 
 
 def compute_metric(args, generation_pipeline) -> float:
-
     dataset = helper.read_json(config.DATASETS + "faithfulness.json")
 
     results = generate_results(args, generation_pipeline, dataset)
@@ -18,11 +17,9 @@ def compute_metric(args, generation_pipeline) -> float:
 
 
 def generate_results(args, generation_pipeline, dataset):
-
     results = []
 
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-
         query, context = entry["query"], entry["context"]
         query = f"Válaszolj a kérdésre a megadott kontextus alapján! Kérdés: {query},\n Kontextus: {context}"
 
@@ -39,12 +36,10 @@ def generate_results(args, generation_pipeline, dataset):
 
 
 def compute_score(args, results):
-
     total_score = 0.0
     measurement_results = []
 
     for i, entry in enumerate(results):
-
         test_case = LLMTestCase(
             input=entry["input"],
             actual_output=entry["output"],
