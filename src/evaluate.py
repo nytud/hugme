@@ -4,6 +4,7 @@ from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import config
 import helper
 import metrics
+import spelling
 import benchmark
 
 
@@ -27,6 +28,8 @@ def evaluate(args) -> None:
             results = benchmark.mmlu.benchmark(args, generation_pipeline)
         elif task_name == config.TRUTHFUL_QA:
             results = benchmark.truthfulqa.benchmark(args, generation_pipeline)
+        elif task_name == config.SPELLING:
+            results = spelling.compute_metric(task_name, args, generation_pipeline)
         else:
             raise ValueError(
                 f"Task {task_name} is not among tasks: {config.METRICS + [config.MMLU, config.TRUTHFUL_QA]}."
