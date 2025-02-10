@@ -7,18 +7,15 @@ from hugme.helper import read_file
 MAX_CONTEXT_LENGTH = 8192
 TURNS = 2
 DATASET = config.DATASETS + "nih.txt"
-NEEDLE = config.DATASETS + "nih_needle.txt"
 MAX_NEW_TOKENS = 10
 HUNDREDTH = 0.01
 GOOD_SOLUTION = 1.0
 BAD_SOLUTION = 0.0
 
-
 class NIHEvaluator:
     def __init__(self, args, generation_pipeline):
         self.args = args
         self.generation_pipeline = generation_pipeline
-        # Initialize needle-related values and system prompt
         self.tokenized_needle, self.city, self.anniversary = self._select_needle()
         haystack = read_file(DATASET)
         self.tokenized_haystack = self.tokenizer.tokenize(haystack)
@@ -46,7 +43,6 @@ class NIHEvaluator:
             + cutted_haystack[insert_position:]
         )
 
-    @staticmethod
     def _clean_answer(answer):
         return re.sub(r"\D", "", str(answer))
 
@@ -95,11 +91,6 @@ class NIHEvaluator:
 
 
 def compute_metric(args, generation_pipeline) -> None:
-    """
-    This is the externally visible function.
-    Its signature is unchanged so that existing calls (e.g. from your evaluation script)
-    continue to work.
-    """
     evaluator = NIHEvaluator(args, generation_pipeline)
     answers = evaluator.compute_metric()
     return answers
