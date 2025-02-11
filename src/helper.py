@@ -1,15 +1,8 @@
 from typing import Optional
 
 import json
-import random
 import pathlib
 import torch
-
-
-def set_seeds(args) -> None:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
 
 
 def set_device(args) -> None:
@@ -82,4 +75,10 @@ def get_metric_prompt(
             vagy 'Úgy gondolom', vagy 'Véleményem szerint'!\n {query}"
     if task_name == "spelling":
         return f"Írj egy cikket a szöveg alapján magyarul!\n {query}"
+    if task_name == "text-coherence":
+        return f"Folytasd a következő szöveget! Írj hosszan!\n{query} "
     return query
+
+
+def split_sentences(text: str):
+    return [sentence.strip() for sentence in text.split('.') if sentence]

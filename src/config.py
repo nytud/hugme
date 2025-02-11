@@ -17,6 +17,7 @@ SPELLING_DICT = DATASETS + os.getenv("SPELLING", "spell.json")
 SPELLING_DATASET = DATASETS + os.getenv("SPELLING_DATASET", "spelling.json")
 HAYSTACK_DATASET = DATASETS + os.getenv("HAYSTACK_DATASET", "nih.txt")
 NEEDLE_FILE = DATASETS + os.getenv("NEEDLE_FILE", "nih_needle.txt")
+TEXT_COHERENCE_DATASET = DATASETS + os.getenv("TEXT_COHERENCE_DATASET", "text-coherence.json")
 
 
 METRIC_DATASETES = {
@@ -30,5 +31,6 @@ METRIC_DATASETES = {
 
 MMLU = "mmlu"
 SPELLING = "spelling"
+TEXT_COHERENCE = "text-coherence"
 TRUTHFUL_QA = "truthfulqa"
 METRICS = list(METRIC_DATASETES.keys())

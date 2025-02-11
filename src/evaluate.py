@@ -5,6 +5,7 @@ import config
 import helper
 import metrics
 import spelling
+import coherence
 import benchmark
 
 
@@ -30,6 +31,8 @@ def evaluate(args) -> None:
             results = benchmark.truthfulqa.benchmark(args, generation_pipeline)
         elif task_name == config.SPELLING:
             results = spelling.compute_metric(task_name, args, generation_pipeline)
+        elif task_name == config.TEXT_COHERENCE:
+            results = coherence.compute_metric(args, generation_pipeline)
         else:
             raise ValueError(
                 f"Task {task_name} is not among tasks: {config.METRICS + [config.MMLU, config.TRUTHFUL_QA]}."
