@@ -11,10 +11,10 @@ import metrics
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
 
 
-def compute_metric(task_name, args, generation_pipeline):
+def compute_metric(args, generation_pipeline):
     dataset = helper.read_json(config.SPELLING_DATASET)
-    results = metrics.generate_results(args, generation_pipeline, dataset, "spelling")
-    scores = compute_score(args, results, task_name)
+    results = metrics.generate_results(args, generation_pipeline, dataset, config.SPELLING)
+    scores = compute_score(args, results, config.SPELLING)
     return scores
 
 

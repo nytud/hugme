@@ -6,7 +6,6 @@ import evaluate
 
 __doc__ = """
 This script is designed as a starting point for fine-tuning and evaluating your models using HuGME.
-It includes configurable options for model loading, training arguments and parameters and model saving functionalities.
 """
 
 
@@ -25,7 +24,6 @@ def cli() -> None:
 
     args = parser.parse_args()
 
-    helper.set_seeds(args)
     helper.set_device(args)
 
     evaluate.evaluate(args)

@@ -5,8 +5,17 @@ import config
 import helper
 import metrics
 import spelling
+import coherence
 import benchmark
 
+
+TASK_HANDLERS = {
+    **{task: metrics.compute_metric for task in config.METRICS}, # deepeval-based metrics
+    config.MMLU: benchmark.mmlu.benchmark,
+    config.TRUTHFUL_QA: benchmark.truthfulqa.benchmark,
+    config.SPELLING: spelling.compute_metric,
+    config.TEXT_COHERENCE: coherence.compute_metric,
+}
 
 def evaluate(args) -> None:
     print("Evaluation started...")
@@ -22,19 +31,12 @@ def evaluate(args) -> None:
         print(f"Started evaluation on {task_name}.")
         task_start_time = time.time()
 
-        if task_name in config.METRICS:
-            results = metrics.compute_metric(task_name, args, generation_pipeline)
-        elif task_name == config.MMLU:
-            results = benchmark.mmlu.benchmark(args, generation_pipeline)
-        elif task_name == config.TRUTHFUL_QA:
-            results = benchmark.truthfulqa.benchmark(args, generation_pipeline)
-        elif task_name == config.SPELLING:
-            results = spelling.compute_metric(task_name, args, generation_pipeline)
-        else:
-            raise ValueError(
-                f"Task {task_name} is not among tasks: {config.METRICS + [config.MMLU, config.TRUTHFUL_QA]}."
-            )
+        if task_name not in TASK_HANDLERS:
+            raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
+
+        results = TASK_HANDLERS[task_name](args, generation_pipeline)
         score_results[task_name] = results
+
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
