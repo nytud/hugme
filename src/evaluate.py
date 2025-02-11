@@ -6,6 +6,7 @@ import helper
 import metrics
 import spelling
 import benchmark
+from benchmark import nih
 
 
 def evaluate(args) -> None:
@@ -30,9 +31,11 @@ def evaluate(args) -> None:
             results = benchmark.truthfulqa.benchmark(args, generation_pipeline)
         elif task_name == config.SPELLING:
             results = spelling.compute_metric(task_name, args, generation_pipeline)
+        elif task_name == config.NEEDLE_IN_THE_HAYSTACK:
+            results = nih.compute_metric(generation_pipeline)
         else:
             raise ValueError(
-                f"Task {task_name} is not among tasks: {config.METRICS + [config.MMLU, config.TRUTHFUL_QA]}."
+                f"Task {task_name} is not among tasks: {config.METRICS + [config.MMLU, config.TRUTHFUL_QA, config.NEEDLE_IN_THE_HAYSTACK ]}."
             )
         score_results[task_name] = results
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
