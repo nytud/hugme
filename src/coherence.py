@@ -27,17 +27,21 @@ def compute_score(args, results: list, task_name: str):
         print(f"Avg. probability for next sentence *not* follows previous sentences: {avg_prob_not_next:.5f}")
     if args.save_results:
         helper.save_json(scores, config.RESULTS_DIR, f"{task_name}-eval-results.json")
-    return None # TODO
+    return scores
 
 
 def calculate_nsp_probabilities(tokenizer, model, sentences):
     prob_next, prob_not_next = 0.0, 0.0
-    for i in range(len(sentences) - 1):
-        context_sentences, current_sentence = sentences[:i], sentences[i + 1]
+    for i in range(len(sentences)-1):
+        context_sentences, current_sentence = sentences[:i+1], sentences[i + 1]
         context_text = ""
-        for context_sentence in context_sentences:
-            if len(context_text) + len(context_sentence) + 1 < MAX_LENGTH:
-                context_text += " " + context_sentence
+        # collect all sentences that fit into the max length
+        for context_sentence in reversed(context_sentences):
+            tokens = tokenizer(
+                context_text, current_sentence, return_tensors='pt', max_length=MAX_LENGTH, truncation=False
+            )
+            if tokens["input_ids"].shape[1] <= MAX_LENGTH:
+                context_text = context_sentence + ". " + context_text
             else:
                 break
         inputs = tokenizer(
@@ -45,14 +49,8 @@ def calculate_nsp_probabilities(tokenizer, model, sentences):
             max_length=MAX_LENGTH, truncation=True, padding=True
         )
         with torch.no_grad():
-            outputs = model(**inputs)
-            logits = outputs.logits
+            logits = model(**inputs).logits
         probabilities = logits.softmax(dim=1)
         prob_next += probabilities[0][0].item()
         prob_not_next += probabilities[0][1].item()
-        print(f"{context_text} -> {current_sentence}")
-        print(f"Probability for next sentence follows previous sentences: {prob_next:.5f}")
-        print(f"Probability for next sentence *not* follows previous sentences: {prob_not_next:.5f}")
-    avg_prob_next = prob_next / len(sentences)
-    avg_prob_not_next = prob_not_next / len(sentences)
-    return avg_prob_next, avg_prob_not_next
+    return prob_next / len(sentences), prob_not_next / len(sentences)

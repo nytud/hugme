@@ -1,3 +1,4 @@
+from typing import Dict, List
 import random
 import re
 import torch
@@ -106,7 +107,7 @@ def evaluate_haystack_context(
     return results
 
 
-def compute_metric(generation_pipeline) -> list[dict[str, float]]:
+def compute_metric(generation_pipeline) -> List[Dict[str, float]]:
     tokenized_needle, city, anniversary = select_needle(generation_pipeline)
     haystack = read_file(config.HAYSTACK_DATASET)
     tokenized_haystack = generation_pipeline.tokenizer.tokenize(haystack)
