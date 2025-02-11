@@ -31,4 +31,5 @@ METRIC_DATASETES = {
 MMLU = "mmlu"
 SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"
+NEEDLE_IN_THE_HAYSTACK = "needle-in-the-haystack"
 METRICS = list(METRIC_DATASETES.keys())
