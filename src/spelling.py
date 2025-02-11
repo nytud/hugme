@@ -27,17 +27,25 @@ def compute_score(args, results: list, task_name: str):
         llm_score = check_spelling_with_llm(bad_words)
         spelling_results.append(
             {
-                "index": i, "output": output, "spelling": spelling,
-                "bad_words": bad_words, "score": score, "llm_score": llm_score
+                "index": i,
+                "output": output,
+                "spelling": spelling,
+                "bad_words": bad_words,
+                "score": score,
+                "llm_score": llm_score,
             }
         )
         spelling_score += score
         llm_spelling_score += llm_score
     if args.save_results:
-        helper.save_json(spelling_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
+        helper.save_json(
+            spelling_results, config.RESULTS_DIR, f"{task_name}-eval-results.json"
+        )
     spelling_score = spelling_score / len(results) * 100
     llm_spelling_score = llm_spelling_score / len(results) * 100
-    print(f"Spell checking results score: {spelling_score}, llm-score: {llm_spelling_score}")
+    print(
+        f"Spell checking results score: {spelling_score}, llm-score: {llm_spelling_score}"
+    )
     return {"score": spelling_score, "llm-score": llm_spelling_score}
 
 
@@ -65,7 +73,9 @@ def check_spelling_with_llm(words: list):
     return 0
 
 
-def generate_with_openai(query: str, temperature: float = 0.4, max_tokens: int = 128, **kwargs) -> str:
+def generate_with_openai(
+    query: str, temperature: float = 0.4, max_tokens: int = 128, **kwargs
+) -> str:
     headers = {
         "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
         "Content-Type": "application/json",
@@ -77,8 +87,8 @@ def generate_with_openai(query: str, temperature: float = 0.4, max_tokens: int =
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature,
-        **kwargs
+        **kwargs,
     }
     response = requests.post(endpoint, json=payload, headers=headers, timeout=60)
     data = response.json()
-    return data['choices'][0]['message']['content'] if data.get('choices') else ""
+    return data["choices"][0]["message"]["content"] if data.get("choices") else ""

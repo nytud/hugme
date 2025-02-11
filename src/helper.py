@@ -15,7 +15,11 @@ def set_seeds(args) -> None:
 def set_device(args) -> None:
     use_cuda = args.use_cuda and torch.cuda.is_available()
     if use_cuda:
-        device = torch.device(f'cuda:{args.cuda_id}') if args.cuda_id else torch.device('cuda')
+        device = (
+            torch.device(f"cuda:{args.cuda_id}")
+            if args.cuda_id
+            else torch.device("cuda")
+        )
     else:
         device = torch.device("cpu")
     print(f"Using device: {device}")
@@ -55,22 +59,16 @@ def save_json(data, dir_path, file_name: str) -> None:
 
 def get_model_prompt(model_id: str, query: str, prompt: str = "Válaszolj a kérdésre!"):
     model_prompts = {
-        "google/gemma-2-2b-it": [
-            {"role": "user", "content": query}
-        ],
-        "meta-llama/Meta-Llama-3.1-8B-Instruct":  [
+        "google/gemma-2-2b-it": [{"role": "user", "content": query}],
+        "meta-llama/Meta-Llama-3.1-8B-Instruct": [
             {"role": "system", "content": prompt},
-            {"role": "user", "content": query}
-        ]
+            {"role": "user", "content": query},
+        ],
     }
     return model_prompts.get(model_id, query)
 
 
-def get_metric_prompt(
-    task_name: str,
-    query: str,
-    context: Optional[str] = None
-) -> str:
+def get_metric_prompt(task_name: str, query: str, context: Optional[str] = None) -> str:
     if task_name == "faithfulness":
         return f"Válaszolj a kérdésre a megadott kontextus alapján! Kérdés: {query},\n Kontextus: {str(context)}"
     if task_name == "hallucination":
