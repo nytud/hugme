@@ -36,4 +36,5 @@ SPELLING = "spelling"
 TEXT_COHERENCE = "text-coherence"
 TRUTHFUL_QA = "truthfulqa"
 PROMPT_ALIGNMENT = "prompt-alignment"
+READABILITY = "readability"
 METRICS = list(METRIC_DATASETES.keys())
