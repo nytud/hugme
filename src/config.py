@@ -18,6 +18,7 @@ SPELLING_DATASET = DATASETS + os.getenv("SPELLING_DATASET", "spelling.json")
 HAYSTACK_DATASET = DATASETS + os.getenv("HAYSTACK_DATASET", "nih.txt")
 NEEDLE_FILE = DATASETS + os.getenv("NEEDLE_FILE", "nih_needle.txt")
 TEXT_COHERENCE_DATASET = DATASETS + os.getenv("TEXT_COHERENCE_DATASET", "text-coherence.json")
+TRUTHFUL_QA_DATASET = DATASETS + os.getenv("TRUTHFUL_QA_DATASET", "truthful-qa.json")
 
 
 METRIC_DATASETES = {
