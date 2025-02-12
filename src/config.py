@@ -20,6 +20,7 @@ NEEDLE_FILE = DATASETS + os.getenv("NEEDLE_FILE", "nih_needle.txt")
 TEXT_COHERENCE_DATASET = DATASETS + os.getenv("TEXT_COHERENCE_DATASET", "text-coherence.json")
 TRUTHFUL_QA_DATASET = DATASETS + os.getenv("TRUTHFUL_QA_DATASET", "truthful-qa.json")
 PROMPT_ALIGNMENT_DATASET = DATASETS + os.getenv("PROMPT_ALIGNMENT_DATASET", "prompt-alignment.json")
+READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.json")
 
 
 METRIC_DATASETES = {

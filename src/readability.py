@@ -6,16 +6,17 @@ from tqdm import tqdm
 import helper
 import config
 
-MAX_TOKENS = 256
 TEMPERATURE = 0.4
 
 
-def generate_similar_text(generation_pipeline, text):
+def generate_similar_text(generation_pipeline, text, args):
     try:
         prompt = f"Folytasd a szöveget azonos stílusban!\n{text}"
+        if "parameters" not in args:
+            args.parameters = {"max_new_tokens": 256}
         actual_output = generation_pipeline(text_inputs=prompt,
                                             temperature=TEMPERATURE,
-                                            max_new_tokens=MAX_TOKENS,
+                                            max_new_tokens=args.parameters.max_new_tokens,
                                             do_sample=True)[0]['generated_text']
     except RuntimeError as e:
         print(f"Error during text generation: {e}")
@@ -44,13 +45,13 @@ def calculate_similarity_score(original_coleman, original_std, generated_coleman
     return round(similarity_score, 2)
 
 
-def compute_metric(_, generation_pipeline):
-    dataset = helper.read_json(config.DATASETS + "readability.json")
-    texts = [entry["query"] for entry in dataset]
+def compute_metric(args, generation_pipeline):
+    dataset = helper.read_json(config.READABILITY_DATASET)
     similarity_scores = []
-    for text in tqdm(texts):
+    for item in tqdm(dataset):
+        text = item["query"]
         original_mean_coleman, original_mean_std = calculate_scores(text)
-        generated_text = generate_similar_text(generation_pipeline, text)
+        generated_text = generate_similar_text(generation_pipeline, text, args)
         generated_mean_coleman, generated_mean_std = calculate_scores(generated_text)
 
         similarity_score = calculate_similarity_score(
