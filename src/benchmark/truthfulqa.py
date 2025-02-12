@@ -35,7 +35,6 @@ def compute_scores(args, results: list):
             total_score += 1.0
         else:
             entry["score"] = 0.0
-        print(f"Entry: {entry}")
     score = total_score / len(results)
     print(f"{config.TRUTHFUL_QA} benchmark results score: {score}")
 
