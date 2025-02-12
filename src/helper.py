@@ -2,6 +2,7 @@ from typing import Optional
 
 import json
 import pathlib
+from collections import defaultdict
 import torch
 
 
@@ -78,3 +79,11 @@ def get_metric_prompt(
 
 def split_sentences(text: str):
     return [sentence.strip() for sentence in text.split('.') if sentence]
+
+
+def group_by_category(results: list, total_score: float) -> dict:
+    grouped_scores = defaultdict(float)
+    for entry in results:
+        grouped_scores[entry["category"]] += entry["score"]
+    grouped_scores["total"] = total_score
+    return dict(grouped_scores)

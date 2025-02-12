@@ -1,4 +1,3 @@
-from collections import defaultdict
 from tqdm import tqdm
 
 import config
@@ -50,8 +49,4 @@ def compute_scores(args, results: list):
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, "mmlu-results.json")
 
-    grouped_scores = defaultdict(float)
-    for entry in results:
-        grouped_scores[entry["category"]] += entry["score"]
-    grouped_scores["total"] = total_score
-    return dict(grouped_scores)
+    return helper.group_by_category(results, total_score)
