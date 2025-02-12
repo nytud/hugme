@@ -34,4 +34,3 @@ def compute_metric(args, generation_pipeline):
     if args.save_results:
         helper.save_json(result.test_results, config.RESULTS_DIR, f"{config.PROMPT_ALIGNMENT}-eval-results.json")
     return aggregate_metric_pass_rates(result.test_results)
-    
