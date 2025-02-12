@@ -1,9 +1,16 @@
 from typing import Optional
 
 import json
+import random
 import pathlib
 from collections import defaultdict
 import torch
+
+
+def set_seeds(args) -> None:
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
 
 
 def set_device(args) -> None:
