@@ -6,16 +6,16 @@ from tqdm import tqdm
 import helper
 import config
 
-TEMPERATURE = 0.4
-
 
 def generate_similar_text(generation_pipeline, text, args):
     try:
         prompt = f"Folytasd a szöveget azonos stílusban!\n{text}"
         if "parameters" not in args:
             args.parameters = {"max_new_tokens": 256}
+        if "temperature" not in args.parameters:
+            args.parameters["temperature"] = 0.4
         actual_output = generation_pipeline(text_inputs=prompt,
-                                            temperature=TEMPERATURE,
+                                            temperature=args.parameters.temperature,
                                             max_new_tokens=args.parameters.max_new_tokens,
                                             do_sample=True)[0]['generated_text']
     except RuntimeError as e:
