@@ -49,7 +49,7 @@ def save_json(data, dir_path, file_name: str) -> None:
     try:
         dir_path.mkdir(parents=True, exist_ok=True)
         with file_path.open("w", encoding="utf-8") as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
+            json.dump(data, file, ensure_ascii=False, indent=4, default=str)
     except OSError as e:
         raise OSError(f"Could not save file: {file_path}") from e
 

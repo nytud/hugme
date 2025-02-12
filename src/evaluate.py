@@ -15,6 +15,7 @@ TASK_HANDLERS = {
     config.TRUTHFUL_QA: benchmark.truthfulqa.benchmark,
     config.SPELLING: spelling.compute_metric,
     config.TEXT_COHERENCE: coherence.compute_metric,
+    config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
 }
 
 def evaluate(args) -> None:
