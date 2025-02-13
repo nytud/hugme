@@ -50,4 +50,3 @@ def compute_scores(args, results: list):
         helper.save_json(results, config.RESULTS_DIR, "mmlu-results.json")
 
     return helper.group_by_category(results, total_score)
-  
