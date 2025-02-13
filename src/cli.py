@@ -5,7 +5,7 @@ import evaluate
 
 
 __doc__ = """
-This script is designed as a starting point for fine-tuning and evaluating your models using HuGME.
+This script is designed as a starting point for evaluating your models using HuGME.
 """
 
 
