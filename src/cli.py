@@ -21,7 +21,7 @@ def cli() -> None:
     parser.add_argument('--cuda-id', type=int, default=0, metavar='S', help='gpu id')
     parser.add_argument('--seed', type=int, default=42, metavar='S', help='random seed')
     parser.add_argument("--parameters", type=str, default=None, help="path to JSON config file for model params")
-    parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save restuls')
+    parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save results')
 
     args = parser.parse_args()
 
