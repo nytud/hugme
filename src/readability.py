@@ -48,10 +48,12 @@ def calculate_similarity_score(original_coleman, original_std, generated_coleman
 def compute_metric(args, generation_pipeline):
     dataset = helper.read_json(config.READABILITY_DATASET)
     similarity_scores = []
+    generated_texts = []
     for item in tqdm(dataset):
         text = item["query"]
         original_mean_coleman, original_mean_std = calculate_scores(text)
         generated_text = generate_similar_text(generation_pipeline, text, args)
+        generated_texts.append(generated_text)
         generated_mean_coleman, generated_mean_std = calculate_scores(generated_text)
 
         similarity_score = calculate_similarity_score(
@@ -59,5 +61,9 @@ def compute_metric(args, generation_pipeline):
             generated_mean_coleman, generated_mean_std
         )
         similarity_scores.append(similarity_score)
+    
+    if args.save_results:
+        helper.save_json(similarity_scores, config.RESULTS_DIR, f"{config.READABILITY}-eval-results.json")
+        helper.save_json(generated_texts, config.RESULTS_DIR, f"{config.READABILITY}-model-results.json")
 
     return mean(similarity_scores)
