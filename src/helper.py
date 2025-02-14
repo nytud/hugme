@@ -5,7 +5,7 @@ import random
 import pathlib
 from collections import defaultdict
 import torch
-
+import quntoken
 
 def set_seeds(args) -> None:
     random.seed(args.seed)
