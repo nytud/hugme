@@ -16,7 +16,7 @@ def generate_results(args, generation_pipeline, dataset):
         prompt = (
             "Alább van egy kérdés, és két lista. "
             "Kizárólag a helyes választ tartalmazó lista előtti számot add vissza!"
-            f"Kérdés: {entry['question']}"
+            f"Kérdés: {entry['query']}"
             f"Válaszok: 1. {entry['correct_answers']} 2. {entry['incorrect_answers']}"
         )
         output = generation_pipeline(prompt)[0]["generated_text"]
