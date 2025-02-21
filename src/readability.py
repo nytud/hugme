@@ -61,7 +61,7 @@ def compute_metric(args, generation_pipeline):
             generated_mean_coleman, generated_mean_std
         )
         similarity_scores.append(similarity_score)
-    
+
     if args.save_results:
         helper.save_json(similarity_scores, config.RESULTS_DIR, f"{config.READABILITY}-eval-results.json")
         helper.save_json(generated_texts, config.RESULTS_DIR, f"{config.READABILITY}-model-results.json")
