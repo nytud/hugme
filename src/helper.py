@@ -4,6 +4,7 @@ import json
 import random
 import pathlib
 from collections import defaultdict
+import os
 import torch
 
 
@@ -16,7 +17,9 @@ def set_seeds(args) -> None:
 def set_device(args) -> None:
     use_cuda = args.use_cuda and torch.cuda.is_available()
     if use_cuda:
-        device = torch.device(f'cuda:{args.cuda_id}') if args.cuda_id else torch.device('cuda')
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, args.cuda_ids))
+        device = torch.device('cuda')
     else:
         device = torch.device("cpu")
     print(f"Using device: {device}")
