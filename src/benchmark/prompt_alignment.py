@@ -25,7 +25,7 @@ def compute_metric(args, generation_pipeline):
     cases = []
     for entry in dataset:
         prompt_instructions, query = entry['prompt_instructions'], entry['query']
-        output = generation_pipeline(query, max_new_tokens=20 )[0]['generated_text']
+        output = generation_pipeline(query, max_new_tokens=20, batch_size=args.batch_size)[0]['generated_text']
         metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions ,include_reason=True))
         cases.append(LLMTestCase(input=query,actual_output=output,))
 

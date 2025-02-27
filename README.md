@@ -34,6 +34,7 @@ hugme
 | `--seed`         | Sets a random seed for reproducibility. |
 | `--parameters`   | Path to a JSON configuration file for model parameters. |
 | `--save-results` | Default: `True`. Whether to save evaluation results. |
+| `--batch-size` | Default: `1`. The number of batches to run concurrently |
 
 #### 🛠 Configure datasets
 
