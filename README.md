@@ -30,7 +30,7 @@ hugme
 | `--tasks`        | Tasks to evaluate (`bias`, `toxicity`, `faithfulness`, `summarization`, `answer-relevancy`, `mmlu`, `spelling`, `text-coherence`, `truthfulqa`, `prompt-alignment`). |
 | `--judge`        | Default: `"gpt-3.5-turbo-1106"`. Specifies the judge model for evaluations. |
 | `--use-cuda`     | Default: `True`. Enables GPU acceleration. |
-| `--cuda-id`      | Default: `0`. Specifies which GPU to use. |
+| `--cuda-id`      | Default: `1`. Specifies which GPU to use. Indexing starts from 1 |
 | `--seed`         | Sets a random seed for reproducibility. |
 | `--parameters`   | Path to a JSON configuration file for model parameters. |
 | `--save-results` | Default: `True`. Whether to save evaluation results. |
