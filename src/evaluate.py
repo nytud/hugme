@@ -7,6 +7,7 @@ import metrics
 import spelling
 import coherence
 import benchmark
+import readability
 
 
 TASK_HANDLERS = {
@@ -16,6 +17,7 @@ TASK_HANDLERS = {
     config.SPELLING: spelling.compute_metric,
     config.TEXT_COHERENCE: coherence.compute_metric,
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
+    config.READABILITY: readability.compute_metric,
 }
 
 def evaluate(args) -> None:
