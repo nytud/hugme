@@ -17,7 +17,7 @@ def generate_similar_text(generation_pipeline, text, args):
         actual_output = generation_pipeline(text_inputs=prompt,
                                             temperature=args.parameters.temperature,
                                             max_new_tokens=args.parameters.max_new_tokens,
-                                            do_sample=True)[0]['generated_text']
+                                            do_sample=True, batch_size=args.batch_size)[0]['generated_text']
     except RuntimeError as e:
         print(f"Error during text generation: {e}")
         actual_output = None

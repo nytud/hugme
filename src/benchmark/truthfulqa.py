@@ -12,7 +12,6 @@ def benchmark(args, generation_pipeline) -> dict:
 def generate_results(args, generation_pipeline, dataset):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        # create a list of tuples with (index, answers)
         answer_options = [
             (1, entry["correct_answers"]),
             (2, entry["incorrect_answers"])
@@ -26,7 +25,7 @@ def generate_results(args, generation_pipeline, dataset):
             f"Válaszok: {answer_options[0][0]}. {answer_options[0][1]} {answer_options[1][0]}. {answer_options[1][1]}"
         )
 
-        output = generation_pipeline(prompt)[0]["generated_text"]
+        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]["generated_text"]
         results.append({
             "input": prompt,
             "output": output,
