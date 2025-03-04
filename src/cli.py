@@ -1,7 +1,7 @@
 import argparse
 
 import helper
-import evaluate
+import evaluate_hugme as evaluate
 
 
 __doc__ = """
