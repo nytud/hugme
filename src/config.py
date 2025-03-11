@@ -24,6 +24,7 @@ READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.j
 
 
 METRIC_DATASETES = {
+    "nih": HAYSTACK_DATASET,
     "bias": BIAS_DATASET,
     "toxicity": TOXICITY_DATASET,
     "faithfulness": FAITHFULNESS_DATASET,
@@ -38,4 +39,5 @@ TEXT_COHERENCE = "text-coherence"
 TRUTHFUL_QA = "truthfulqa"
 PROMPT_ALIGNMENT = "prompt-alignment"
 READABILITY = "readability"
+NEDLE_IN_THE_HAYSTACK = "nih"
 METRICS = list(METRIC_DATASETES.keys())

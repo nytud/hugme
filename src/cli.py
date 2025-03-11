@@ -17,7 +17,8 @@ def cli() -> None:
 
     parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
-    parser.add_argument('--tasks', type=str, nargs="+", default=[], help='task name(s)')
+    parser.add_argument('--tasks', type=str, nargs="+", default=["nih","bias","toxicity","faithfulness","hallucination","summarization",
+    "answer-relevancy"], help='task name(s)')
     parser.add_argument('--judge', type=str, default="gpt-3.5-turbo-1106", metavar='S', help='judge model name(s)')
     parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
     parser.add_argument('--cuda-ids', type=list, default=[0], metavar='S', help='gpu ids to use')
