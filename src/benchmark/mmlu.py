@@ -1,9 +1,9 @@
+import time
+
 from tqdm import tqdm
 
 import config
 import helper
-import time
-
 from answer_provider import AbstractGenerator
 
 

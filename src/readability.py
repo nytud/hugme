@@ -1,11 +1,12 @@
 import re
 from statistics import mean
+
 from textstat import textstat
 from tqdm import tqdm
-from answer_provider import AbstractGenerator
 
-import helper
 import config
+import helper
+from answer_provider import AbstractGenerator
 
 
 def generate_similar_text(generation_pipeline: AbstractGenerator, text, args):

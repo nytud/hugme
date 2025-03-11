@@ -1,10 +1,9 @@
 import argparse
-
-import helper
-import evaluate_hugme as evaluate
 from dataclasses import dataclass, field
-from typing import List, Optional, Union, Dict, Any
+from typing import Any, Dict, List, Optional, Union
 
+import evaluate_hugme as evaluate
+import helper
 
 __doc__ = """
 This script is designed as a starting point for evaluating your models using HuGME.
@@ -26,13 +25,13 @@ def cli() -> None:
     parser.add_argument("--parameters", type=str, default=None, help="path to JSON config file for model params")
     parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save results')
     parser.add_argument("--batch-size", type=int, default=1, help="batch size for generation")
-    parser.add_argument('--model-type', type=str, default='local', choices=['local', 'api'], 
+    parser.add_argument('--model-type', type=str, default='local', choices=['local', 'api'],
                         help='Model type: local (default) or api for external APIs')
-    parser.add_argument('--api-provider', type=str, default='openai', 
-                        choices=['openai', 'anthropic', 'cohere', 'custom'], 
+    parser.add_argument('--api-provider', type=str, default='openai',
+                        choices=['openai', 'anthropic', 'cohere', 'custom'],
                         help='API provider name when using model-type=api')
-    parser.add_argument('--api-config', type=str, default=None, 
-                        help='Path to JSON config file with additional API parameters')    
+    parser.add_argument('--api-config', type=str, default=None,
+                        help='Path to JSON config file with additional API parameters')
     parser.add_argument('--generated-file', type=str, default=None, metavar='S', help='File path for already generated answers')
     args = parser.parse_args()
 
@@ -53,17 +52,17 @@ class HuGMEArgs:
     seed: int = 42
     parameters: Optional[str] = None
     save_results: bool = True
-    
-    model_type: str = "local" 
-    api_provider: Optional[str] = None  
+
+    model_type: str = "local"
+    api_provider: Optional[str] = None
     api_key: Optional[str] = None
     api_config: Optional[str] = None
-    
+
     device: Union[str, List[str]] = "cpu"
-    
+
     model_params: Dict[str, Any] = field(default_factory=dict)
     api_params: Dict[str, Any] = field(default_factory=dict)
-    
+
 
 if __name__ == '__main__':
     cli()

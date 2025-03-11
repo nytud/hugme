@@ -1,12 +1,13 @@
-from tqdm import tqdm
-from transformers import pipeline
+import time
+
 from deepeval import metrics
 from deepeval.test_case import LLMTestCase
-from answer_provider import AbstractGenerator
+from tqdm import tqdm
+from transformers import pipeline
 
 import config
 import helper
-import time
+from answer_provider import AbstractGenerator
 
 
 def compute_metric(task_name, args, generation_pipeline: AbstractGenerator):
@@ -57,7 +58,8 @@ def compute_score(args, results: list, metric, task_name: str):
     final_score = total_score / len(results)
     print(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
-        helper.save_json(measurement_results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
+        helper.save_json(measurement_results, config.RESULTS_DIR,
+                         f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
     return final_score
 
 

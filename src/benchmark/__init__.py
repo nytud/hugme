@@ -1,3 +1,1 @@
-from . import mmlu
-from . import truthfulqa
-from . import prompt_alignment
+from . import mmlu, prompt_alignment, truthfulqa

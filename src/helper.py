@@ -1,8 +1,9 @@
 import json
-import random
-import pathlib
-from collections import defaultdict
 import os
+import pathlib
+import random
+from collections import defaultdict
+
 import torch
 
 

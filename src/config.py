@@ -1,6 +1,5 @@
 import os
 
-
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 RESULTS_DIR = os.getenv("RESULTS_DIR", "./results")

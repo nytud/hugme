@@ -1,10 +1,11 @@
+import time
+
 import torch
-from transformers import BertTokenizer, BertForNextSentencePrediction
+from transformers import BertForNextSentencePrediction, BertTokenizer
 
 import config
 import helper
 import metrics
-import time
 
 MAX_LENGTH = 512
 MODEL_NAME = 'SZTAKI-HLT/hubert-base-cc'

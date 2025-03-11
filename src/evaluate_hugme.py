@@ -1,14 +1,13 @@
 import time
 
+import benchmark
+import coherence
 import config
 import helper
 import metrics
-import spelling
-import coherence
-import benchmark
 import readability
+import spelling
 from answer_provider import AbstractGenerator
-
 
 TASK_HANDLERS = {
     **{task: metrics.compute_metric for task in config.METRICS},
@@ -47,6 +46,3 @@ def evaluate(args) -> None:
 
     if args.save_results:
         helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{args.model_name}-{int(time.time())}.json")
-
-
-

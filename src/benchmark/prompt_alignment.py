@@ -1,11 +1,11 @@
+import time
+
 from deepeval import evaluate
 from deepeval.metrics import PromptAlignmentMetric
 from deepeval.test_case import LLMTestCase
 
 import config
 import helper
-import time
-
 from answer_provider import AbstractGenerator
 
 

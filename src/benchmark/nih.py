@@ -1,10 +1,12 @@
-from typing import Dict, List
 import random
 import re
+from typing import Dict, List
+
 import torch
+
 import config
-from helper import read_file
 from answer_provider import AbstractGenerator
+from helper import read_file
 
 MAX_CONTEXT_LENGTH = 8192
 TURNS = 2
