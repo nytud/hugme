@@ -4,6 +4,7 @@ from transformers import BertTokenizer, BertForNextSentencePrediction
 import config
 import helper
 import metrics
+import time
 
 MAX_LENGTH = 512
 MODEL_NAME = 'SZTAKI-HLT/hubert-base-cc'
@@ -26,7 +27,7 @@ def compute_score(args, results: list, task_name: str):
         print(f"Avg. probability for next sentence follows previous sentences: {avg_prob_next:.5f}")
         print(f"Avg. probability for next sentence *not* follows previous sentences: {avg_prob_not_next:.5f}")
     if args.save_results:
-        helper.save_json(scores, config.RESULTS_DIR, f"{task_name}-eval-results.json")
+        helper.save_json(scores, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
     return scores
 
 

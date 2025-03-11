@@ -3,13 +3,16 @@ from tqdm import tqdm
 
 import config
 import helper
+import time
+
+from answer_provider import AbstractGenerator
 
 def benchmark(args, generation_pipeline) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     results = generate_results(args, generation_pipeline, dataset)
     return compute_scores(args, results)
 
-def generate_results(args, generation_pipeline, dataset):
+def generate_results(args, generation_pipeline: AbstractGenerator, dataset):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
         answer_options = [
@@ -17,15 +20,8 @@ def generate_results(args, generation_pipeline, dataset):
             (2, entry["incorrect_answers"])
         ]
         random.shuffle(answer_options)
-
-        prompt = (
-            "Alább van egy kérdés, és két lista. "
-            "Kizárólag a helyes választ tartalmazó lista előtti számot add vissza!"
-            f"Kérdés: {entry['question']}"
-            f"Válaszok: {answer_options[0][0]}. {answer_options[0][1]} {answer_options[1][0]}. {answer_options[1][1]}"
-        )
-
-        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]["generated_text"]
+        prompt = generation_pipeline.prepare_prompt(task_name=args.task_name, prompt=entry["question"], truthfulqa_answers=answer_options)
+        output = generation_pipeline.generate_for_task(task_name=args.task_name, query=entry["question"], truthfulqa_answers=answer_options)
         results.append({
             "input": prompt,
             "output": output,
@@ -65,8 +61,9 @@ def compute_scores(args, results: list):
             entry["score"] = 0.0
 
     score = total_score / len(results)
+    results.prepend("accuracy", score)
     print(f"{config.TRUTHFUL_QA} benchmark results score: {score}")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-eval-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-{args.model_name}-{int(time.time())}-eval-results.json")
 
     return helper.group_by_category(results, total_score)

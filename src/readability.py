@@ -2,22 +2,19 @@ import re
 from statistics import mean
 from textstat import textstat
 from tqdm import tqdm
+from answer_provider import AbstractGenerator
 
 import helper
 import config
 
 
-def generate_similar_text(generation_pipeline, text, args):
+def generate_similar_text(generation_pipeline: AbstractGenerator, text, args):
     try:
-        prompt = f"Folytasd a szöveget azonos stílusban!\n{text}"
         if "parameters" not in args:
             args.parameters = {"max_new_tokens": 256}
         if "temperature" not in args.parameters:
             args.parameters["temperature"] = 0.4
-        actual_output = generation_pipeline(text_inputs=prompt,
-                                            temperature=args.parameters.temperature,
-                                            max_new_tokens=args.parameters.max_new_tokens,
-                                            do_sample=True, batch_size=args.batch_size)[0]['generated_text']
+        actual_output = generation_pipeline.generate_for_task(args.task_name, text)
     except RuntimeError as e:
         print(f"Error during text generation: {e}")
         actual_output = None

@@ -4,6 +4,7 @@ import re
 import torch
 import config
 from helper import read_file
+from answer_provider import AbstractGenerator
 
 MAX_CONTEXT_LENGTH = 8192
 TURNS = 2
@@ -13,7 +14,7 @@ GOOD_SOLUTION = 1.0
 BAD_SOLUTION = 0.0
 
 
-def select_needle(generation_pipeline):
+def select_needle(generation_pipeline: AbstractGenerator):
     cities = read_file(config.NEEDLE_FILE).split("\n")
     random_city = random.choice(cities)
     anniversary = random.randint(1, 100)

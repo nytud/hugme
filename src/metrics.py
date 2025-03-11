@@ -2,12 +2,14 @@ from tqdm import tqdm
 from transformers import pipeline
 from deepeval import metrics
 from deepeval.test_case import LLMTestCase
+from answer_provider import AbstractGenerator
 
 import config
 import helper
+import time
 
 
-def compute_metric(task_name, args, generation_pipeline):
+def compute_metric(task_name, args, generation_pipeline: AbstractGenerator):
     _metrics = {
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
@@ -26,17 +28,16 @@ def compute_metric(task_name, args, generation_pipeline):
     return results
 
 
-def generate_results(args, generation_pipeline, dataset, task_name):
+def generate_results(args, generation_pipeline: AbstractGenerator, dataset, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        query = helper.get_metric_prompt(task_name, entry["query"], entry.get("context"))
-        prompt = helper.get_model_prompt(args.model_name, query)
-        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]['generated_text']
+        prompt = generation_pipeline.prepare_prompt(entry["query"], entry.get("context"))
+        output = generation_pipeline.generate_for_task(task_name, entry["query"], entry.get("context"))
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{int(time.time())}-results.json")
     return results
 
 
@@ -56,7 +57,7 @@ def compute_score(args, results: list, metric, task_name: str):
     final_score = total_score / len(results)
     print(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
-        helper.save_json(measurement_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
+        helper.save_json(measurement_results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
     return final_score
 
 

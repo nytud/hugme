@@ -6,6 +6,7 @@ from spellchecker import SpellChecker
 import config
 import helper
 import metrics
+import time
 
 
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
@@ -34,7 +35,7 @@ def compute_score(args, results: list, task_name: str):
         spelling_score += score
         llm_spelling_score += llm_score
     if args.save_results:
-        helper.save_json(spelling_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
+        helper.save_json(spelling_results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
     spelling_score = spelling_score / len(results) * 100
     llm_spelling_score = llm_spelling_score / len(results) * 100
     print(f"Spell checking results score: {spelling_score}, llm-score: {llm_spelling_score}")

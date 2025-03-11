@@ -6,6 +6,18 @@
 
 ### Installation
 
+First, install the required packages for the API providers if you want to use one:
+```bash
+# For OpenAI models (GPT-4, GPT-4o)
+pip install openai
+
+# For Anthropic models (Claude)
+pip install anthropic
+
+# For Cohere models
+pip install cohere
+```
+
 To install **HuGME**, use the following command:
 
 ```bash
@@ -35,6 +47,10 @@ hugme
 | `--parameters`   | Path to a JSON configuration file for model parameters. |
 | `--save-results` | Default: `True`. Whether to save evaluation results. |
 | `--batch-size` | Default: `1`. The number of batches to run concurrently |
+| `--model-type` | Model type: local (default) or api for external APIs |
+| `--api-provider` | API provider name when using model-type=api choices ('openai', 'anthropic', 'cohere', 'custom') |
+| `--api-config` | Path to JSON config file with additional API parameters |
+| `--generated-file` | Path to a JSON file with already generated answers for evaluation |
 
 #### 🛠 Configure datasets
 
@@ -59,7 +75,21 @@ HuGME allows model parameters to be configured via a JSON file for the Hugginfac
   "repetition_penalty": 0.98,
   "diversity_penalty": 0,
   "do_sample": true,
-  "return_full_text": false
+  "return_full_text": false,
+  "instruct-model": true,
+}
+```
+
+### Generated JSON file
+
+If you have already ran the generation part you can provide a JSON file to run the evaluation part.
+```JSON
+{
+  "task-name" : {
+    "id" : "1",
+    "query" : "Example text",
+    "answer" : "generated text",
+  }
 }
 ```
 

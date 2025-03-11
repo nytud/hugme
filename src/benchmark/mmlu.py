@@ -2,6 +2,9 @@ from tqdm import tqdm
 
 import config
 import helper
+import time
+
+from answer_provider import AbstractGenerator
 
 
 def benchmark(args, generation_pipeline) -> dict:
@@ -20,17 +23,12 @@ def preprocess(dataset: list):
     return dataset
 
 
-def generate_results(args, generation_pipeline, dataset: list):
+def generate_results(args, generation_pipeline: AbstractGenerator, dataset: list):
     results = []
     for entry in tqdm(dataset, desc="Generating responses", unit="query"):
         question, target = entry['input'], entry['target']
-        a, b, c, d = entry['A'], entry['B'], entry['C'], entry['D']
-        query = (
-            "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza!"
-            f"Kérdés: {question} Válaszok: {a}, {b}, {c}, {d}"
-        )
-        prompt = helper.get_model_prompt(args.model_name, query)
-        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]['generated_text']
+        mmlu_answers = {'a': entry['A'], 'b': entry['B'], 'c': entry['C'], 'd': entry['D']}
+        output = generation_pipeline.generate_for_task(args, question, mmlu_answers=mmlu_answers)
         results.append({"query": question, "output": output, "target": target, "category": entry['category']})
     return results
 
@@ -47,6 +45,6 @@ def compute_scores(args, results: list):
 
     print(f"MMLU benchmark score: {score}")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, "mmlu-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-{args.model_name}-{int(time.time())}-results.json")
 
     return helper.group_by_category(results, total_score)
