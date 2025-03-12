@@ -7,7 +7,7 @@ from transformers import pipeline
 
 import config
 import helper
-from answer_provider import AbstractGenerator
+from answer_provider import AbstractGenerator, GenerationInput
 
 
 def compute_metric(task_name, args, generation_pipeline: AbstractGenerator):
@@ -32,8 +32,9 @@ def compute_metric(task_name, args, generation_pipeline: AbstractGenerator):
 def generate_results(args, generation_pipeline: AbstractGenerator, dataset, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        prompt = generation_pipeline.prepare_prompt(entry["query"], entry.get("context"))
-        output = generation_pipeline.generate_for_task(task_name, entry["query"], entry.get("context"))
+        generation_input = GenerationInput(prompt=entry["query"], context=entry.get("context"), task_name=task_name)
+        prompt = generation_pipeline.prepare_prompt(generation_input)
+        output = generation_pipeline.generate_for_task(generation_input)
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )

@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 import config
 import helper
-from answer_provider import AbstractGenerator
+from answer_provider import AbstractGenerator, GenerationInput
 
 
 def benchmark(args, generation_pipeline) -> dict:
@@ -28,7 +28,8 @@ def generate_results(args, generation_pipeline: AbstractGenerator, dataset: list
     for entry in tqdm(dataset, desc="Generating responses", unit="query"):
         question, target = entry['input'], entry['target']
         mmlu_answers = {'a': entry['A'], 'b': entry['B'], 'c': entry['C'], 'd': entry['D']}
-        output = generation_pipeline.generate_for_task(args, question, mmlu_answers=mmlu_answers)
+        generation_input = GenerationInput(prompt=question, mmlu_answers=mmlu_answers, task_name=args.task_name)
+        output = generation_pipeline.generate_for_task(generation_input)
         results.append({"query": question, "output": output, "target": target, "category": entry['category']})
     return results
 

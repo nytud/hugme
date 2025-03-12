@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 import config
 import helper
-from answer_provider import AbstractGenerator
+from answer_provider import AbstractGenerator, GenerationInput
 
 
 def benchmark(args, generation_pipeline) -> dict:
@@ -21,10 +21,9 @@ def generate_results(args, generation_pipeline: AbstractGenerator, dataset):
             (2, entry["incorrect_answers"])
         ]
         random.shuffle(answer_options)
-        prompt = generation_pipeline.prepare_prompt(task_name=args.task_name, 
-                                                    prompt=entry["question"], truthfulqa_answers=answer_options)
-        output = generation_pipeline.generate_for_task(task_name=args.task_name, 
-                                                       query=entry["question"], truthfulqa_answers=answer_options)
+        generation_input = GenerationInput(prompt=entry["question"], truthfulqa_answers=answer_options, task_name=args.task_name)
+        prompt = generation_pipeline.prepare_prompt(generation_input)
+        output = generation_pipeline.generate_for_task(generation_input)
         results.append({
             "input": prompt,
             "output": output,
@@ -64,7 +63,7 @@ def compute_scores(args, results: list):
             entry["score"] = 0.0
 
     score = total_score / len(results)
-    results.append("accuracy", score)
+    results.append({"accuracy": score})
     print(f"{config.TRUTHFUL_QA} benchmark results score: {score}")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-\

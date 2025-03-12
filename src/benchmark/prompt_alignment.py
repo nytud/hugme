@@ -7,6 +7,7 @@ from deepeval.test_case import LLMTestCase
 import config
 import helper
 from answer_provider import AbstractGenerator
+from answer_provider import GenerationInput
 
 
 def aggregate_metric_pass_rates(test_results) -> float:
@@ -28,7 +29,8 @@ def compute_metric(args, generation_pipeline: AbstractGenerator):
     cases = []
     for entry in dataset:
         prompt_instructions, query = entry['prompt_instructions'], entry['query']
-        output = generation_pipeline.generate_for_task(args.task_name, query=query, context=prompt_instructions)
+        generation_input = GenerationInput(prompt=entry['query'], prompt_instructions=entry['prompt_instructions'], task_name=args.task_name)
+        output = generation_pipeline.generate_for_task(generation_input) 
         metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions ,include_reason=True))
         cases.append(LLMTestCase(input=query,actual_output=output,))
 

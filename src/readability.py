@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 import config
 import helper
-from answer_provider import AbstractGenerator
+from answer_provider import AbstractGenerator, GenerationInput
 
 
 def generate_similar_text(generation_pipeline: AbstractGenerator, text, args):
@@ -15,7 +15,8 @@ def generate_similar_text(generation_pipeline: AbstractGenerator, text, args):
             args.parameters = {"max_new_tokens": 256}
         if "temperature" not in args.parameters:
             args.parameters["temperature"] = 0.4
-        actual_output = generation_pipeline.generate_for_task(args.task_name, text)
+        generation_input = GenerationInput(task_name=args.task_name, prompt=text, generation_parameters=args.parameters)
+        actual_output = generation_pipeline.generate_for_task(generation_input)
     except RuntimeError as e:
         print(f"Error during text generation: {e}")
         actual_output = None
