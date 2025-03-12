@@ -2,6 +2,7 @@ tqdm
 torch
 deepeval
 accelerate
+openai
 transformers
 sentencepiece
 pyspellchecker
