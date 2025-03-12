@@ -16,12 +16,15 @@ from openai.types.chat import (
 )
 
 @dataclass
-class GenerationInput:
+class ElderGenerationInput:
     prompt: str
     task_name: Optional[str] = None
     context: Optional[str] = None
     mmlu_answers: Optional[Dict[str, str]] = None
     truthfulqa_answers: Optional[List[List[str]]] = None
+
+@dataclass
+class GenerationInput(ElderGenerationInput):
     generation_parameters: Any = None
 
 
@@ -49,11 +52,13 @@ def get_metric_prompt(
         "spelling": f"Írj egy cikket a szöveg alapján magyarul!\n {generation_input.prompt}",
         "text-coherence": f"Folytasd a következő szöveget! Írj hosszan!\n{generation_input.prompt}",
         "mmlu": (f"Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ \
-                előtti betűt add vissza!\nKérdés: {generation_input.prompt} Válaszok: {generation_input.mmlu_answers['a'] if generation_input.mmlu_answers else ''}, \
+                előtti betűt add vissza!\nKérdés: {generation_input.prompt} Válaszok: \
+                    {generation_input.mmlu_answers['a'] if generation_input.mmlu_answers else ''}, \
                     {generation_input.mmlu_answers['b'] if generation_input.mmlu_answers else ''}, \
                     {generation_input.mmlu_answers['c'] if generation_input.mmlu_answers else ''}, \
                     {generation_input.mmlu_answers['d'] if generation_input.mmlu_answers else ''}"),
-        "nih": f"Kizárólag a következő szöveg alapján, hanyadik évfordulóját ünnepelte {generation_input.context or ''} város?\n \
+        "nih": f"Kizárólag a következő szöveg alapján, \
+            hanyadik évfordulóját ünnepelte {generation_input.context or ''} város?\n \
             Csak egy számot adj vissza!",
         "truthfulqa": (f"Alább van egy kérdés, és két lista. \
                 Kizárólag a helyes választ tartalmazó lista előtti számot add vissza!\n\
