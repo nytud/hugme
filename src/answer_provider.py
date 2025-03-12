@@ -10,6 +10,11 @@ from dataclasses import dataclass
 
 from openai import OpenAI
 
+from openai.types.chat import (
+    ChatCompletionUserMessageParam,
+    ChatCompletionSystemMessageParam
+)
+
 @dataclass
 class GenerationInput:
     prompt: str
@@ -118,6 +123,7 @@ class LocalGenerator(AbstractGenerator):
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": metric_prompt}
             ]
+
             return self.tokenizer.apply_chat_template(
                 messages,
                 tokenize=False,
@@ -126,13 +132,7 @@ class LocalGenerator(AbstractGenerator):
             )
 
         elif self.parameters.get('instruct_model', False):
-            return prepare_alpaca_instruct(
-                generation_input.task_name or "",
-                generation_input.prompt,
-                generation_input.context or "",
-                generation_input.mmlu_answers,
-                generation_input.truthfulqa_answers
-            )
+            return prepare_alpaca_instruct(generation_input)
 
         return generation_input.prompt
 
@@ -151,7 +151,7 @@ class LocalGenerator(AbstractGenerator):
         self,
         generation_input: GenerationInput
     ) -> str:
-        formatted_prompt = self.prepare_prompt(generation_input.prompt, generation_input.task_name, generation_input.context)
+        formatted_prompt = self.prepare_prompt(generation_input)
 
         gen_params = {}
         if generation_input.generation_parameters:
@@ -169,8 +169,6 @@ class LocalGenerator(AbstractGenerator):
         self,
         generation_input: GenerationInput
     ) -> str:
-        task_prompt = get_metric_prompt(generation_input)
-
         return self.generate(generation_input)
 
 class OpenAIGenerator(AbstractGenerator):
@@ -182,13 +180,13 @@ class OpenAIGenerator(AbstractGenerator):
     def prepare_prompt(
         self,
         generation_input:GenerationInput
-    ) -> List[Dict[str, Any]]:
+    ):
         system_message = self.parameters.get('system_message', "Te egy segítőkész asszisztens vagy.")
         metric_prompt = get_metric_prompt(generation_input)
 
         messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": metric_prompt}
+            ChatCompletionSystemMessageParam(role='system', content=system_message),
+            ChatCompletionUserMessageParam(role='user', content=metric_prompt)
         ]
         return messages
 
@@ -196,7 +194,7 @@ class OpenAIGenerator(AbstractGenerator):
         self,
         generation_input: GenerationInput
     ) -> str:
-        messages = self.prepare_prompt(generation_input.prompt, generation_input.task_name, generation_input.context)
+        messages = self.prepare_prompt(generation_input)
 
         params = {
             "model": self.args.model_name,
@@ -215,8 +213,6 @@ class OpenAIGenerator(AbstractGenerator):
         self,
         generation_input: GenerationInput
     ) -> str:
-        task_prompt = get_metric_prompt(generation_input)
-
         return self.generate(generation_input)
 
 class CustomGenerator(AbstractGenerator):
@@ -228,19 +224,13 @@ class CustomGenerator(AbstractGenerator):
     def prepare_prompt(
         self,
         generation_input: GenerationInput
-    ) -> List[Dict[str, Any]]:
+    ):
         system_message = self.parameters.get('system_message', "Te egy segítőkész asszisztens vagy.")
-        metric_prompt = get_metric_prompt(
-            generation_input.task_name or "",
-            generation_input.prompt,
-            generation_input.context,
-            generation_input.mmlu_answers,
-            generation_input.truthfulqa_answers
-        )
+        metric_prompt = get_metric_prompt(generation_input)
 
         messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": metric_prompt}
+            ChatCompletionSystemMessageParam(role='system', content=system_message),
+            ChatCompletionUserMessageParam(role='user', content=metric_prompt)
         ]
         return messages
 
@@ -248,7 +238,7 @@ class CustomGenerator(AbstractGenerator):
         self,
         generation_input: GenerationInput
     ) -> str:
-        messages = self.prepare_prompt(generation_input.prompt, generation_input.task_name, generation_input.context)
+        messages = self.prepare_prompt(generation_input)
 
         params = {
             "model": self.args.model_name,
@@ -267,15 +257,7 @@ class CustomGenerator(AbstractGenerator):
         self,
         generation_input: GenerationInput
     ) -> str:
-        task_prompt = get_metric_prompt(
-            task_name=generation_input.task_name,
-            prompt=generation_input.prompt,
-            context=generation_input.context,
-            mmlu_answers=generation_input.mmlu_answers,
-            truthfulqa_answers=generation_input.truthfulqa_answers
-        )
-
-        return self.generate(task_prompt, generation_input.task_name, generation_input.context, generation_input.generation_parameters)
+        return self.generate(generation_input)
  
 class TextGenerator(AbstractGenerator):
     def __init__(self, args: HuGMEArgs):
