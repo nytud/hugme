@@ -1,19 +1,16 @@
 import abc
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 
+from openai import OpenAI
+from openai.types.chat import (ChatCompletionSystemMessageParam,
+                               ChatCompletionUserMessageParam)
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import config
 import helper
-from cli import HuGMEArgs
-from dataclasses import dataclass
+from src.cli import HuGMEArgs
 
-from openai import OpenAI
-
-from openai.types.chat import (
-    ChatCompletionUserMessageParam,
-    ChatCompletionSystemMessageParam
-)
 
 @dataclass
 class ElderGenerationInput:
@@ -136,7 +133,7 @@ class LocalGenerator(AbstractGenerator):
                 chat_template=self.chat_template_style
             )
 
-        elif self.parameters.get('instruct_model', False):
+        if self.parameters.get('instruct_model', False):
             return prepare_alpaca_instruct(generation_input)
 
         return generation_input.prompt
@@ -263,7 +260,7 @@ class CustomGenerator(AbstractGenerator):
         generation_input: GenerationInput
     ) -> str:
         return self.generate(generation_input)
- 
+
 class TextGenerator(AbstractGenerator):
     def __init__(self, args: HuGMEArgs):
         self.args = args

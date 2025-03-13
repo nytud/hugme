@@ -7,7 +7,7 @@ from transformers import pipeline
 
 import config
 import helper
-from answer_provider import AbstractGenerator, GenerationInput
+from src.answer_provider import AbstractGenerator, GenerationInput
 
 
 def compute_metric(task_name, args, generation_pipeline: AbstractGenerator):

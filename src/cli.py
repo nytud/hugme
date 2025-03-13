@@ -1,6 +1,6 @@
 import argparse
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
+from typing import List, Optional, Literal
 
 import evaluate_hugme as evaluate
 import helper
@@ -16,8 +16,8 @@ def cli() -> None:
 
     parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
-    parser.add_argument('--tasks', type=str, nargs="+", default=["nih","bias","toxicity","faithfulness","hallucination","summarization",
-    "answer-relevancy"], help='task name(s)')
+    parser.add_argument('--tasks', type=str, nargs="+", default=["nih","bias","toxicity","faithfulness",
+    "hallucination","summarization","answer-relevancy"], help='task name(s)')
     parser.add_argument('--judge', type=str, default="gpt-3.5-turbo-1106", metavar='S', help='judge model name(s)')
     parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
     parser.add_argument('--cuda-ids', type=list, default=[0], metavar='S', help='gpu ids to use')
@@ -45,24 +45,26 @@ def cli() -> None:
 class HuGMEArgs:
     model_name: str
     tokenizer_name: Optional[str] = None
-    tasks: List[str] = field(default_factory=list)
+    tasks: List[str] = []
     judge: str = "gpt-3.5-turbo-1106"
     use_cuda: bool = True
-    cuda_ids: List[int] = field(default_factory=lambda: [0])
+    cuda_ids: List[int] = []
     seed: int = 42
     parameters: Optional[str] = None
     save_results: bool = True
-
-    model_type: str = "local"
-    api_provider: Optional[str] = None
-    api_key: Optional[str] = None
+    batch_size: int = 1
+    model_type: Literal["local", "api"] = "local"
+    api_provider: Literal["openai", "anthropic", "cohere", "custom"] = "openai"
     api_config: Optional[str] = None
-
-    device: Union[str, List[str]] = "cpu"
-
-    model_params: Dict[str, Any] = field(default_factory=dict)
-    api_params: Dict[str, Any] = field(default_factory=dict)
-
+    generated_file: Optional[str] = None
+    device : Optional[str] = None
+    
+    def __post_init__(self):
+        if self.tasks == []:
+            self.tasks = ["nih", "bias", "toxicity", "faithfulness", 
+                          "hallucination", "summarization", "answer-relevancy"]
+        if self.cuda_ids == []:
+            self.cuda_ids = [0]    
 
 if __name__ == '__main__':
     cli()

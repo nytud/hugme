@@ -6,8 +6,7 @@ from deepeval.test_case import LLMTestCase
 
 import config
 import helper
-from answer_provider import AbstractGenerator
-from answer_provider import GenerationInput
+from answer_provider import AbstractGenerator, GenerationInput
 
 
 def aggregate_metric_pass_rates(test_results) -> float:

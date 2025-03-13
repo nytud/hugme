@@ -7,7 +7,8 @@ import helper
 import metrics
 import readability
 import spelling
-from answer_provider import AbstractGenerator
+from src.cli import HuGMEArgs
+from answer_provider import AbstractGenerator, LocalGenerator, OpenAIGenerator, CustomGenerator, TextGenerator
 
 TASK_HANDLERS = {
     **{task: metrics.compute_metric for task in config.METRICS},
@@ -19,7 +20,16 @@ TASK_HANDLERS = {
     config.READABILITY: readability.compute_metric,
 }
 
-def evaluate(args) -> None:
+def get_generator(args: HuGMEArgs) -> AbstractGenerator:
+    if args.generated_file:
+        return TextGenerator(args)
+    elif args.api_provider and args.api_provider == 'openai':
+        return OpenAIGenerator(args)
+    elif args.api_provider:
+        return CustomGenerator(args)
+    return LocalGenerator(args)
+
+def evaluate(args: HuGMEArgs) -> None:
     print("Evaluation started...")
     score_results = {}
     eval_start_time = time.time()
