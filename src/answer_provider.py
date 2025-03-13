@@ -9,7 +9,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 import config
 import helper
-from src.cli import HuGMEArgs
+from args import HuGMEArgs
 
 
 @dataclass

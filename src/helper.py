@@ -17,7 +17,7 @@ def set_device(args) -> None:
     use_cuda = args.use_cuda and torch.cuda.is_available()
     if use_cuda:
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = ''.join(args.cuda_ids)
+        os.environ["CUDA_VISIBLE_DEVICES"] = ''.join([str(item) for item in args.cuda_ids])
         device = torch.device('cuda')
     else:
         device = torch.device("cpu")

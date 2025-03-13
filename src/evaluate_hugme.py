@@ -7,7 +7,7 @@ import helper
 import metrics
 import readability
 import spelling
-from src.cli import HuGMEArgs
+from args import HuGMEArgs
 from answer_provider import AbstractGenerator, LocalGenerator, OpenAIGenerator, CustomGenerator, TextGenerator
 
 TASK_HANDLERS = {
@@ -38,11 +38,12 @@ def evaluate(args: HuGMEArgs) -> None:
 
         print("Loading model and tokenizer...")
 
-        generation_pipeline = AbstractGenerator(args)
+        generation_pipeline = get_generator(args)
         print("Finished loading model and tokenizer...")
 
         print(f"Started evaluation on {task_name}.")
         task_start_time = time.time()
+        print(f"Generator pipeline: {generation_pipeline}")
 
         if task_name not in TASK_HANDLERS:
             raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
