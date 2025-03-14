@@ -6,7 +6,6 @@ from openai import OpenAI
 from openai.types.chat import (ChatCompletionSystemMessageParam,
                                ChatCompletionUserMessageParam)
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-import requests
 
 import config
 import helper
@@ -259,20 +258,22 @@ class TextGenerator(AbstractGenerator):
         self.args = args
         self.generated_data = helper.read_json(args.generated_file)
         try:
-            self.tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name or args.model_name, token=config.HF_TOKEN)
+            self.tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name
+                                                           or args.model_name, token=config.HF_TOKEN)
         except OSError:
             self.tokenizer = AutoTokenizer.from_pretrained("NYTK/PULI-GPTrio")
 
     def prepare_prompt(
         self,
         generation_input: GenerationInput
-    ) -> str:
-        return generation_input.prompt
+    ) -> Union[str, List[Dict[str, Any]]]:
+        return "magic" + generation_input.prompt
 
     def generate_for_task(
         self,
         generation_input: GenerationInput
     ) -> str:
+        self.prepare_prompt(generation_input)
         for item in self.generated_data.get(generation_input.task_name, []):
             if item['input'] == generation_input.prompt:
                 return item['output']

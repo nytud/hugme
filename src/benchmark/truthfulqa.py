@@ -5,11 +5,11 @@ from tqdm import tqdm
 
 import config
 import helper
-from args import HuGMEArgs
 from answer_provider import AbstractGenerator, GenerationInput
+from args import HuGMEArgs
 
 
-def benchmark(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str) -> dict:
+def benchmark(args: HuGMEArgs, generation_pipeline: AbstractGenerator, _ : str) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     results = generate_results(args, generation_pipeline, dataset)
     return compute_scores(args, results)
@@ -22,7 +22,8 @@ def generate_results(args, generation_pipeline: AbstractGenerator, dataset):
             (2, entry["incorrect_answers"])
         ]
         random.shuffle(answer_options)
-        generation_input = GenerationInput(prompt=entry["question"], truthfulqa_answers=answer_options, task_name=args.task_name)
+        generation_input = GenerationInput(prompt=entry["question"],
+                                           truthfulqa_answers=answer_options, task_name=args.task_name)
         prompt = generation_pipeline.prepare_prompt(generation_input)
         output = generation_pipeline.generate_for_task(generation_input)
         results.append({
@@ -32,7 +33,8 @@ def generate_results(args, generation_pipeline: AbstractGenerator, dataset):
             "correct_index": [x[0] for x in answer_options if x[1] == entry["correct_answers"]][0]
         })
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-{args.model_name.replace('/', '-')}-{int(time.time())}-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-\
+                         {args.model_name.replace('/', '-')}-{int(time.time())}-results.json")
     return results
 
 

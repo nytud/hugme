@@ -46,6 +46,7 @@ def compute_scores(args, results: list):
 
     print(f"MMLU benchmark score: {score}")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-{args.model_name.replace('/', '-')}-{int(time.time())}-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-\
+                         {args.model_name.replace('/', '-')}-{int(time.time())}-results.json")
 
     return helper.group_by_category(results, total_score)

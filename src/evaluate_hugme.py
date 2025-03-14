@@ -1,6 +1,7 @@
 import time
 
 import torch
+
 import benchmark
 import benchmark.nih
 import coherence
@@ -9,8 +10,9 @@ import helper
 import metrics
 import readability
 import spelling
+from answer_provider import (AbstractGenerator, CustomGenerator,
+                             LocalGenerator, OpenAIGenerator, TextGenerator)
 from args import HuGMEArgs
-from answer_provider import AbstractGenerator, LocalGenerator, OpenAIGenerator, CustomGenerator, TextGenerator
 
 TASK_HANDLERS = {
     **{task: metrics.compute_metric for task in config.METRICS},
@@ -25,10 +27,11 @@ TASK_HANDLERS = {
 
 def get_generator(args: HuGMEArgs) -> AbstractGenerator:
     if args.generated_file:
+        # pylint: disable=abstract-class-instantiated
         return TextGenerator(args)
-    elif args.api_config and args.api_provider == 'openai':
+    if args.api_config and args.api_provider == 'openai':
         return OpenAIGenerator(args)
-    elif args.api_config:
+    if args.api_config:
         return CustomGenerator(args)
     return LocalGenerator(args)
 
@@ -58,4 +61,5 @@ def evaluate(args: HuGMEArgs) -> None:
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
     if args.save_results:
-        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{args.model_name.replace('/', '-')}-{int(time.time())}.json")
+        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-\
+                         {args.model_name.replace('/', '-')}-{int(time.time())}.json")

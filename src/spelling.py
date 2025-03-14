@@ -8,13 +8,13 @@ from spellchecker import SpellChecker
 import config
 import helper
 import metrics
-from args import HuGMEArgs
 from answer_provider import AbstractGenerator
+from args import HuGMEArgs
 
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
 
 
-def compute_metric(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str):
+def compute_metric(args: HuGMEArgs, generation_pipeline: AbstractGenerator, _: str):
     dataset = helper.read_json(config.SPELLING_DATASET)
     results = metrics.generate_results(args, generation_pipeline, dataset, config.SPELLING)
     scores = compute_score(args, results, config.SPELLING)

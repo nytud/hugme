@@ -1,15 +1,15 @@
 import random
 import re
+import time
 from typing import Dict, List
 
 import torch
 
 import config
-from answer_provider import AbstractGenerator, GenerationInput
-from helper import read_file
-from args import HuGMEArgs
 import helper
-import time
+from answer_provider import AbstractGenerator, GenerationInput
+from args import HuGMEArgs
+from helper import read_file
 
 MAX_CONTEXT_LENGTH = 1024
 TURNS = 2
@@ -74,11 +74,10 @@ def generate_answer_scores(
         )
         with torch.no_grad():
             actual_answer = generation_pipeline.generate_for_task(generation_input)
-        
+
         torch.cuda.empty_cache()
 
-        answer = clean_answer(actual_answer)
-        if str(answer).strip() == str(anniversary):
+        if str(clean_answer(actual_answer)).strip() == str(anniversary):
             goodness = 1.0
         elif len(str(actual_answer)) >= 3 and str(anniversary) in str(actual_answer):
             goodness = 0.5
@@ -88,7 +87,7 @@ def generate_answer_scores(
         new_row = {
             "context_window": [len(tokenized_haystack_with_needle)],
             "fraction": [j],
-            "answer": [answer],
+            "answer": [clean_answer(actual_answer)],
             "score": [goodness],
             "actual_answer": [actual_answer],
         }

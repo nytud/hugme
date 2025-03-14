@@ -7,7 +7,7 @@ disable=
     C0115, # missing-class-docstring
     W1508, # invalid-envvar-default
     E0401, # import-error
-    R0917, # too-many-positional-arguments
+    E0611, # no-name-in-module
 
 # Use multiple processes to speed up Pylint.
 jobs=4

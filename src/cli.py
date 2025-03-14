@@ -1,4 +1,5 @@
 import argparse
+
 import evaluate_hugme as evaluate
 import helper
 
@@ -29,7 +30,8 @@ def cli() -> None:
                         help='API provider name when using model-type=api')
     parser.add_argument('--api-config', type=str, default=None,
                         help='Path to JSON config file with additional API parameters')
-    parser.add_argument('--generated-file', type=str, default=None, metavar='S', help='File path for already generated answers')
+    parser.add_argument('--generated-file', type=str, default=None, metavar='S',
+                        help='File path for already generated answers')
     args = parser.parse_args()
 
     helper.set_seeds(args)
