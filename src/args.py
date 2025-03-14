@@ -14,7 +14,7 @@ class HuGMEArgs:
     save_results: bool = True
     batch_size: int = 1
     model_type: Literal["local", "api"] = "local"
-    api_provider: Literal["openai", "anthropic", "cohere", "custom"] = "openai"
+    api_provider: Literal["openai", "anthropic", "cohere", "custom"] = "custom"
     api_config: Optional[str] = None
     generated_file: Optional[str] = None
     device : Optional[str] = None

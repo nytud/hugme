@@ -1,6 +1,8 @@
 import time
 
+import torch
 import benchmark
+import benchmark.nih
 import coherence
 import config
 import helper
@@ -18,14 +20,15 @@ TASK_HANDLERS = {
     config.TEXT_COHERENCE: coherence.compute_metric,
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
     config.READABILITY: readability.compute_metric,
+    config.NEDLE_IN_THE_HAYSTACK: benchmark.nih.compute_metric,
 }
 
 def get_generator(args: HuGMEArgs) -> AbstractGenerator:
     if args.generated_file:
         return TextGenerator(args)
-    elif args.api_provider and args.api_provider == 'openai':
+    elif args.api_config and args.api_provider == 'openai':
         return OpenAIGenerator(args)
-    elif args.api_provider:
+    elif args.api_config:
         return CustomGenerator(args)
     return LocalGenerator(args)
 
@@ -34,13 +37,11 @@ def evaluate(args: HuGMEArgs) -> None:
     score_results = {}
     eval_start_time = time.time()
 
+    print("Loading model and tokenizer...")
+    generation_pipeline = get_generator(args)
+    print("Finished loading model and tokenizer...")
+
     for task_name in args.tasks:
-
-        print("Loading model and tokenizer...")
-
-        generation_pipeline = get_generator(args)
-        print("Finished loading model and tokenizer...")
-
         print(f"Started evaluation on {task_name}.")
         task_start_time = time.time()
         print(f"Generator pipeline: {generation_pipeline}")
@@ -48,12 +49,13 @@ def evaluate(args: HuGMEArgs) -> None:
         if task_name not in TASK_HANDLERS:
             raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
 
-        results = TASK_HANDLERS[task_name](args, generation_pipeline)
+        results = TASK_HANDLERS[task_name](args, generation_pipeline, task_name)
         score_results[task_name] = results
+        torch.cuda.empty_cache()
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
     if args.save_results:
-        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{args.model_name}-{int(time.time())}.json")
+        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{args.model_name.replace('/', '-')}-{int(time.time())}.json")

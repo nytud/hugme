@@ -8,11 +8,13 @@ from spellchecker import SpellChecker
 import config
 import helper
 import metrics
+from args import HuGMEArgs
+from answer_provider import AbstractGenerator
 
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
 
 
-def compute_metric(args, generation_pipeline):
+def compute_metric(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str):
     dataset = helper.read_json(config.SPELLING_DATASET)
     results = metrics.generate_results(args, generation_pipeline, dataset, config.SPELLING)
     scores = compute_score(args, results, config.SPELLING)
@@ -36,7 +38,7 @@ def compute_score(args, results: list, task_name: str):
         llm_spelling_score += llm_score
     if args.save_results:
         helper.save_json(spelling_results, config.RESULTS_DIR,
-                         f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
+                         f"{task_name}-{args.model_name.replace('/', '-')}-{int(time.time())}-eval-results.json")
     spelling_score = spelling_score / len(results) * 100
     llm_spelling_score = llm_spelling_score / len(results) * 100
     print(f"Spell checking results score: {spelling_score}, llm-score: {llm_spelling_score}")

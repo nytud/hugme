@@ -47,7 +47,7 @@ def read_json(file_path):
 
 def save_json(data, dir_path, file_name: str) -> None:
     dir_path = pathlib.Path(dir_path)
-    file_path = dir_path / file_name
+    file_path = pathlib.Path(dir_path, file_name)
     try:
         dir_path.mkdir(parents=True, exist_ok=True)
         with file_path.open("w", encoding="utf-8") as file:

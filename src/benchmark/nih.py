@@ -5,10 +5,13 @@ from typing import Dict, List
 import torch
 
 import config
-from answer_provider import AbstractGenerator
+from answer_provider import AbstractGenerator, GenerationInput
 from helper import read_file
+from args import HuGMEArgs
+import helper
+import time
 
-MAX_CONTEXT_LENGTH = 8192
+MAX_CONTEXT_LENGTH = 1024
 TURNS = 2
 MAX_NEW_TOKENS = 10
 HUNDREDTH = 0.01
@@ -65,12 +68,14 @@ def generate_answer_scores(
         full_stack_text = generation_pipeline.tokenizer.convert_tokens_to_string(
             tokenized_haystack_with_needle
         )
-
+        generation_input = GenerationInput(
+            prompt=f"{system_prompt}\n {full_stack_text}",
+            task_name="nih",
+        )
         with torch.no_grad():
-            actual_answer = generation_pipeline(
-                text_inputs=f"{system_prompt}\n {full_stack_text}",
-                max_new_tokens=MAX_NEW_TOKENS,
-            )
+            actual_answer = generation_pipeline.generate_for_task(generation_input)
+        
+        torch.cuda.empty_cache()
 
         answer = clean_answer(actual_answer)
         if str(answer).strip() == str(anniversary):
@@ -87,7 +92,6 @@ def generate_answer_scores(
             "score": [goodness],
             "actual_answer": [actual_answer],
         }
-        torch.cuda.empty_cache()
         new_rows.append(new_row)
     return new_rows
 
@@ -110,7 +114,7 @@ def evaluate_haystack_context(
     return results
 
 
-def compute_metric(generation_pipeline: AbstractGenerator) -> List[Dict[str, float]]:
+def compute_metric(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str) -> List[Dict[str, float]]:
     tokenized_needle, city, anniversary = select_needle(generation_pipeline)
     haystack = read_file(config.HAYSTACK_DATASET)
     tokenized_haystack = generation_pipeline.tokenizer.tokenize(haystack)
@@ -120,5 +124,10 @@ def compute_metric(generation_pipeline: AbstractGenerator) -> List[Dict[str, flo
             tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline
         )
         results.append(result)
+
+    if args.save_results:
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name.replace('/', '-')}-\
+                         {int(time.time())}-eval-results.json")
+
 
     return results

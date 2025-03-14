@@ -7,10 +7,11 @@ from transformers import pipeline
 
 import config
 import helper
+from args import HuGMEArgs
 from answer_provider import AbstractGenerator, GenerationInput
 
 
-def compute_metric(task_name, args, generation_pipeline: AbstractGenerator):
+def compute_metric(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str):
     _metrics = {
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
@@ -39,7 +40,7 @@ def generate_results(args, generation_pipeline: AbstractGenerator, dataset, task
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{int(time.time())}-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name.replace('/', '-')}-{int(time.time())}-results.json")
     return results
 
 
@@ -49,7 +50,7 @@ def compute_score(args, results: list, metric, task_name: str):
     for i, entry in enumerate(results):
         test_case = LLMTestCase(
             input = entry["input"], actual_output = entry["output"],
-            retrieval_context = entry.get("context"), context = entry.get("context")
+            retrieval_context = entry.get("context").split() if entry.get('context') else None , context = entry.get("context").split() if entry.get("context") else None
         )
         if task_name == "summarization":
             metric.assessment_questions = entry["questions"]
@@ -60,7 +61,7 @@ def compute_score(args, results: list, metric, task_name: str):
     print(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
         helper.save_json(measurement_results, config.RESULTS_DIR,
-                         f"{task_name}-{args.model_name}-{int(time.time())}-eval-results.json")
+                         f"{task_name}-{args.model_name.replace('/', '-')}-{int(time.time())}-eval-results.json")
     return final_score
 
 

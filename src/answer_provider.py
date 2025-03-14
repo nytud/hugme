@@ -6,6 +6,7 @@ from openai import OpenAI
 from openai.types.chat import (ChatCompletionSystemMessageParam,
                                ChatCompletionUserMessageParam)
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+import requests
 
 import config
 import helper
@@ -23,17 +24,6 @@ class ElderGenerationInput:
 @dataclass
 class GenerationInput(ElderGenerationInput):
     generation_parameters: Any = None
-
-
-def get_generation_pipeline(args: HuGMEArgs):
-    parameters = helper.read_json(args.parameters) if args.parameters else {}
-    if args.tokenizer_name:
-        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, token=config.HF_TOKEN)
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=config.HF_TOKEN)
-    model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=config.HF_TOKEN)
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
-    return pipe
 
 
 def get_metric_prompt(
@@ -96,6 +86,7 @@ class AbstractGenerator(abc.ABC):
         generation_input: GenerationInput
     ) -> str:
         pass
+
 
 class LocalGenerator(AbstractGenerator):
     def __init__(self, args: HuGMEArgs):
@@ -178,6 +169,7 @@ class OpenAIGenerator(AbstractGenerator):
         self.api = OpenAI()
         self.args = args
         self.parameters = helper.read_json(args.parameters) if args.parameters else {}
+        self.tokenizer = AutoTokenizer.from_pretrained("Xenova/gpt-4", token=config.HF_TOKEN, truncation=True)
 
     def prepare_prompt(
         self,
@@ -222,6 +214,7 @@ class CustomGenerator(AbstractGenerator):
         self.api = OpenAI(base_url=args.parameters.get('base_url'))
         self.args = args
         self.parameters = helper.read_json(args.parameters) if args.parameters else {}
+        self.tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name or args.model_name, token=config.HF_TOKEN)
 
     def prepare_prompt(
         self,
@@ -265,6 +258,10 @@ class TextGenerator(AbstractGenerator):
     def __init__(self, args: HuGMEArgs):
         self.args = args
         self.generated_data = helper.read_json(args.generated_file)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name or args.model_name, token=config.HF_TOKEN)
+        except OSError:
+            self.tokenizer = AutoTokenizer.from_pretrained("NYTK/PULI-GPTrio")
 
     def prepare_prompt(
         self,
@@ -277,8 +274,10 @@ class TextGenerator(AbstractGenerator):
         generation_input: GenerationInput
     ) -> str:
         for item in self.generated_data.get(generation_input.task_name, []):
-            if item['prompt'] == generation_input.prompt:
-                return item['answer']
+            if item['input'] == generation_input.prompt:
+                return item['output']
+            if len( item['input']) > 1 and item['input'][1]['content'] == generation_input.prompt:
+                return item['output']
 
         raise ValueError(f"Could not find generated answer for prompt: \
                          {generation_input.prompt}, this means your prompt set is different from the generated data.")

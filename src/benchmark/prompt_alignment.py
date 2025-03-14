@@ -22,7 +22,7 @@ def aggregate_metric_pass_rates(test_results) -> float:
     return total_successes / total_metrics if total_metrics > 0 else 0.0
 
 
-def compute_metric(args, generation_pipeline: AbstractGenerator):
+def compute_metric(args, generation_pipeline: AbstractGenerator, task_name: str):
     dataset = helper.read_json(config.PROMPT_ALIGNMENT_DATASET)
     metrics = []
     cases = []
@@ -36,5 +36,5 @@ def compute_metric(args, generation_pipeline: AbstractGenerator):
     result = evaluate(cases, metrics)
 
     if args.save_results:
-        helper.save_json(result.test_results, config.RESULTS_DIR, f"{config.PROMPT_ALIGNMENT}-{args.model_name}-{int(time.time())}-eval-results.json")
+        helper.save_json(result.test_results, config.RESULTS_DIR, f"{config.PROMPT_ALIGNMENT}-{args.model_name.replace('/', '-')}-{int(time.time())}-eval-results.json")
     return aggregate_metric_pass_rates(result.test_results)

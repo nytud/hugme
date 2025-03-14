@@ -1,5 +1,6 @@
 import re
 from statistics import mean
+import time
 
 from textstat import textstat
 from tqdm import tqdm
@@ -7,6 +8,7 @@ from tqdm import tqdm
 import config
 import helper
 from answer_provider import AbstractGenerator, GenerationInput
+from args import HuGMEArgs
 
 
 def generate_similar_text(generation_pipeline: AbstractGenerator, text, args):
@@ -44,7 +46,7 @@ def calculate_similarity_score(original_coleman, original_std, generated_coleman
     return round(similarity_score, 2)
 
 
-def compute_metric(args, generation_pipeline):
+def compute_metric(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str) -> float:
     dataset = helper.read_json(config.READABILITY_DATASET)
     similarity_scores = []
     generated_texts = []
@@ -62,7 +64,7 @@ def compute_metric(args, generation_pipeline):
         similarity_scores.append(similarity_score)
 
     if args.save_results:
-        helper.save_json(similarity_scores, config.RESULTS_DIR, f"{config.READABILITY}-eval-results.json")
-        helper.save_json(generated_texts, config.RESULTS_DIR, f"{config.READABILITY}-model-results.json")
+        helper.save_json(similarity_scores, config.RESULTS_DIR, f"{config.READABILITY}-{args.model_name.replace('/', '-')}-{int(time.time())}-eval-results.json")
+        helper.save_json(generated_texts, config.RESULTS_DIR, f"{config.READABILITY}-{args.model_name.replace('/', '-')}-{int(time.time())}-model-results.json")
 
     return mean(similarity_scores)

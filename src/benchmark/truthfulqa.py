@@ -5,10 +5,11 @@ from tqdm import tqdm
 
 import config
 import helper
+from args import HuGMEArgs
 from answer_provider import AbstractGenerator, GenerationInput
 
 
-def benchmark(args, generation_pipeline) -> dict:
+def benchmark(args: HuGMEArgs, generation_pipeline: AbstractGenerator, task_name: str) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     results = generate_results(args, generation_pipeline, dataset)
     return compute_scores(args, results)
@@ -31,7 +32,7 @@ def generate_results(args, generation_pipeline: AbstractGenerator, dataset):
             "correct_index": [x[0] for x in answer_options if x[1] == entry["correct_answers"]][0]
         })
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-{args.model_name.replace('/', '-')}-{int(time.time())}-results.json")
     return results
 
 
@@ -67,6 +68,6 @@ def compute_scores(args, results: list):
     print(f"{config.TRUTHFUL_QA} benchmark results score: {score}")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-\
-                         {args.model_name}-{int(time.time())}-eval-results.json")
+                         {args.model_name.replace('/', '-')}-{int(time.time())}-eval-results.json")
 
     return helper.group_by_category(results, total_score)
