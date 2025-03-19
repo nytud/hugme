@@ -136,7 +136,7 @@ class LocalGenerator(AbstractGenerator):
 
         return generated_text
 
-    def generate(
+    def generate_for_task(
         self,
         generation_input: GenerationInput
     ) -> str:
@@ -146,30 +146,30 @@ class LocalGenerator(AbstractGenerator):
         if generation_input.generation_parameters:
             gen_params.update(generation_input.generation_parameters)
 
-        if generation_input.task_name in ["mmlu", "truthfulqa", "nih"]:
-            gen_params["max_new_tokens"] = gen_params.get("max_new_tokens", 20)
-
         response = self.pipe(formatted_prompt, **gen_params)
         generated_text = response[0]['generated_text']
 
         return self.extract_response(generated_text, formatted_prompt)
 
-    def generate_for_task(
-        self,
-        generation_input: GenerationInput
-    ) -> str:
-        return self.generate(generation_input)
 
-class OpenAIGenerator(AbstractGenerator):
+class BaseOpenAIGenerator(AbstractGenerator):
     def __init__(self, args: HuGMEArgs):
+        self.args = args
+        self.parameters = helper.read_json(args.parameters) if args.parameters else {}
+        self._setup_api()
+        self._setup_tokenizer()
+
+    def _setup_api(self):
         self.api = OpenAI()
-        self.args = args
-        self.parameters = helper.read_json(args.parameters) if args.parameters else {}
-        self.tokenizer = AutoTokenizer.from_pretrained("Xenova/gpt-4", token=config.HF_TOKEN, truncation=True)
+
+    def _setup_tokenizer(self):
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            "Xenova/gpt-4", token=config.HF_TOKEN, truncation=True
+        )
 
     def prepare_prompt(
         self,
-        generation_input:GenerationInput
+        generation_input: GenerationInput
     ):
         system_message = self.parameters.get('system_message', "Te egy segítőkész asszisztens vagy.")
         metric_prompt = get_metric_prompt(generation_input)
@@ -180,7 +180,7 @@ class OpenAIGenerator(AbstractGenerator):
         ]
         return messages
 
-    def generate(
+    def generate_for_task(
         self,
         generation_input: GenerationInput
     ) -> str:
@@ -199,56 +199,20 @@ class OpenAIGenerator(AbstractGenerator):
         )
         return chat_completion.choices[0].message.content or ""
 
-    def generate_for_task(
-        self,
-        generation_input: GenerationInput
-    ) -> str:
-        return self.generate(generation_input)
 
-class CustomGenerator(AbstractGenerator):
-    def __init__(self, args: HuGMEArgs):
-        self.api = OpenAI(base_url=args.parameters.get('base_url'))
-        self.args = args
-        self.parameters = helper.read_json(args.parameters) if args.parameters else {}
-        self.tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name or args.model_name, token=config.HF_TOKEN)
+class OpenAIGenerator(BaseOpenAIGenerator):
+    pass
 
-    def prepare_prompt(
-        self,
-        generation_input: GenerationInput
-    ):
-        system_message = self.parameters.get('system_message', "Te egy segítőkész asszisztens vagy.")
-        metric_prompt = get_metric_prompt(generation_input)
 
-        messages = [
-            ChatCompletionSystemMessageParam(role='system', content=system_message),
-            ChatCompletionUserMessageParam(role='user', content=metric_prompt)
-        ]
-        return messages
+class CustomGenerator(BaseOpenAIGenerator):
+    def _setup_api(self):
+        self.api = OpenAI(base_url=self.args.parameters.get('base_url'))
 
-    def generate(
-        self,
-        generation_input: GenerationInput
-    ) -> str:
-        messages = self.prepare_prompt(generation_input)
-
-        params = {
-            "model": self.args.model_name,
-        }
-
-        if generation_input.generation_parameters:
-            params.update(generation_input.generation_parameters)
-
-        chat_completion = self.api.chat.completions.create(
-            messages=messages,
-            **params
+    def _setup_tokenizer(self):
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.args.tokenizer_name or self.args.model_name,
+            token=config.HF_TOKEN
         )
-        return chat_completion.choices[0].message.content or ""
-
-    def generate_for_task(
-        self,
-        generation_input: GenerationInput
-    ) -> str:
-        return self.generate(generation_input)
 
 class TextGenerator(AbstractGenerator):
     def __init__(self, args: HuGMEArgs):
@@ -260,17 +224,11 @@ class TextGenerator(AbstractGenerator):
         except OSError:
             self.tokenizer = AutoTokenizer.from_pretrained("NYTK/PULI-GPTrio")
 
-    def prepare_prompt(
-        self,
-        generation_input: GenerationInput
-    ) -> Union[str, List[Dict[str, Any]]]:
-        return "magic" + generation_input.prompt
 
     def generate_for_task(
         self,
         generation_input: GenerationInput
     ) -> str:
-        self.prepare_prompt(generation_input)
         for item in self.generated_data.get(generation_input.task_name, []):
             if item['input'] == generation_input.prompt:
                 return item['output']
