@@ -76,7 +76,8 @@ HuGME allows model parameters to be configured via a JSON file for the Hugginfac
   "diversity_penalty": 0,
   "do_sample": true,
   "return_full_text": false,
-  "instruct-model": true,
+  "instruct_model": true,
+  "chat_template_style": "alpaca",
 }
 ```
 

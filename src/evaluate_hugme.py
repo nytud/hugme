@@ -22,7 +22,6 @@ TASK_HANDLERS = {
     config.TEXT_COHERENCE: coherence.compute_metric,
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
     config.READABILITY: readability.compute_metric,
-    config.NEDLE_IN_THE_HAYSTACK: benchmark.nih.compute_metric,
 }
 
 def get_generator(args: HuGMEArgs) -> AbstractGenerator:

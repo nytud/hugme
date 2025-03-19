@@ -13,15 +13,12 @@ from args import HuGMEArgs
 
 
 @dataclass
-class ElderGenerationInput:
+class GenerationInput:
     prompt: str
     task_name: Optional[str] = None
     context: Optional[str] = None
     mmlu_answers: Optional[Dict[str, str]] = None
     truthfulqa_answers: Optional[List[List[str]]] = None
-
-@dataclass
-class GenerationInput(ElderGenerationInput):
     generation_parameters: Any = None
 
 

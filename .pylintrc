@@ -8,7 +8,7 @@ disable=
     W1508, # invalid-envvar-default
     E0401, # import-error
     E0611, # no-name-in-module
-
+    R0902, # too-many-instance-attributes
 # Use multiple processes to speed up Pylint.
 jobs=4
 
