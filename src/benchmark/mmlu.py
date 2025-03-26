@@ -4,6 +4,9 @@ import config
 import helper
 
 
+MAX_NEW_TOKENS = 20
+
+
 def benchmark(args, generation_pipeline) -> dict:
     dataset = helper.read_json(config.DATASETS + "mmlu.json")
     dataset = preprocess(dataset)
@@ -30,7 +33,9 @@ def generate_results(args, generation_pipeline, dataset: list):
             f"Kérdés: {question} Válaszok: {a}, {b}, {c}, {d}"
         )
         prompt = helper.get_model_prompt(args.model_name, query)
-        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]['generated_text']
+        output = generation_pipeline(
+            prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
+        )[0]['generated_text']
         results.append({"query": question, "output": output, "target": target, "category": entry['category']})
     return results
 
