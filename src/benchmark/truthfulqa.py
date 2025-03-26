@@ -4,6 +4,10 @@ from tqdm import tqdm
 import config
 import helper
 
+
+MAX_NEW_TOKENS = 20
+
+
 def benchmark(args, generation_pipeline) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     results = generate_results(args, generation_pipeline, dataset)
@@ -25,7 +29,7 @@ def generate_results(args, generation_pipeline, dataset):
             f"Válaszok: {answer_options[0][0]}. {answer_options[0][1]} {answer_options[1][0]}. {answer_options[1][1]}"
         )
 
-        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]["generated_text"]
+        output = generation_pipeline(prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS)[0]["generated_text"]
         results.append({
             "input": prompt,
             "output": output,
