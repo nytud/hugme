@@ -33,6 +33,7 @@ METRIC_DATASETES = {
 }
 
 MMLU = "mmlu"
+NIH = "needle-in-haystack"
 SPELLING = "spelling"
 TEXT_COHERENCE = "text-coherence"
 TRUTHFUL_QA = "truthfulqa"

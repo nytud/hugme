@@ -5,7 +5,7 @@ import torch
 import config
 from helper import read_file
 
-MAX_CONTEXT_LENGTH = 8192
+MAX_CONTEXT_LENGTH = 1024
 TURNS = 2
 MAX_NEW_TOKENS = 10
 HUNDREDTH = 0.01
