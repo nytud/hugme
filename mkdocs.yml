@@ -1,0 +1,10 @@
+site_name: HuGME
+theme:
+  name: material
+  language: hu
+
+site_url: https://hugme.nytud.hu/
+repo_url: https://github.com/nytud/hugme
+
+extra_css:
+  - stylesheets/extra.css
