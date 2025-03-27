@@ -5,11 +5,12 @@ from tqdm import tqdm
 
 import helper
 import config
+import template
 
 
-def generate_similar_text(generation_pipeline, text, args):
+def generate_similar_text(generation_pipeline, item, args):
     try:
-        prompt = f"Folytasd a szöveget azonos stílusban!\n{text}"
+        prompt = template.get_prompt(args.task_name, entry=item)
         if "parameters" not in args:
             args.parameters = {"max_new_tokens": 256}
         if "temperature" not in args.parameters:
@@ -52,7 +53,7 @@ def compute_metric(args, generation_pipeline):
     for item in tqdm(dataset):
         text = item["query"]
         original_mean_coleman, original_mean_std = calculate_scores(text)
-        generated_text = generate_similar_text(generation_pipeline, text, args)
+        generated_text = generate_similar_text(generation_pipeline, item, args)
         generated_texts.append(generated_text)
         generated_mean_coleman, generated_mean_std = calculate_scores(generated_text)
 

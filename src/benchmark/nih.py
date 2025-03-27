@@ -2,8 +2,11 @@ from typing import Dict, List
 import random
 import re
 import torch
+
 import config
 from helper import read_file
+import template
+
 
 MAX_CONTEXT_LENGTH = 1024
 TURNS = 2
@@ -62,10 +65,12 @@ def generate_answer_scores(
         full_stack_text = generation_pipeline.tokenizer.convert_tokens_to_string(
             tokenized_haystack_with_needle
         )
+        entry = {"system_prompt": system_prompt, "full_stack_text": full_stack_text}
+        prompt = template.get_prompt("needle-in-haystack", entry)
 
         with torch.no_grad():
             actual_answer = generation_pipeline(
-                text_inputs=f"{system_prompt}\n {full_stack_text}",
+                text_inputs=prompt,
                 max_new_tokens=MAX_NEW_TOKENS,
             )
 

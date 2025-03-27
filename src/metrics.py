@@ -5,6 +5,7 @@ from deepeval.test_case import LLMTestCase
 
 import config
 import helper
+import template
 
 
 def compute_metric(task_name, args, generation_pipeline):
@@ -29,8 +30,7 @@ def compute_metric(task_name, args, generation_pipeline):
 def generate_results(args, generation_pipeline, dataset, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        query = helper.get_metric_prompt(task_name, entry["query"], entry.get("context"))
-        prompt = helper.get_model_prompt(args.model_name, query)
+        prompt = template.get_prompt(task_name, entry = entry)
         output = generation_pipeline(prompt, batch_size=args.batch_size)[0]['generated_text']
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}

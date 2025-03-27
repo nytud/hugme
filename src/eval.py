@@ -28,9 +28,9 @@ def evaluate(args) -> None:
 
     for task_name in args.tasks:
 
-        print("Loading model and tokenizer...")
+        print(f"Loading {args.model_name} model and tokenizer...")
         generation_pipeline = get_generation_pipeline(args)
-        print("Finished loading model and tokenizer...")
+        print(f"Finished loading {args.model_name} model and tokenizer...")
 
         print(f"Started evaluation on {task_name}.")
         task_start_time = time.time()

@@ -3,6 +3,7 @@ from tqdm import tqdm
 
 import config
 import helper
+import template
 
 
 MAX_NEW_TOKENS = 20
@@ -21,17 +22,14 @@ def generate_results(args, generation_pipeline, dataset):
             (2, entry["incorrect_answers"])
         ]
         random.shuffle(answer_options)
+        entry["answer_options"] = answer_options
 
-        prompt = (
-            "Alább van egy kérdés, és két lista. "
-            "Kizárólag a helyes választ tartalmazó lista előtti számot add vissza!"
-            f"Kérdés: {entry['question']}"
-            f"Válaszok: {answer_options[0][0]}. {answer_options[0][1]} {answer_options[1][0]}. {answer_options[1][1]}"
-        )
+        prompt = template.get_prompt(args.task_name, entry)
 
         output = generation_pipeline(
             prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
         )[0]["generated_text"]
+
         results.append({
             "input": prompt,
             "output": output,

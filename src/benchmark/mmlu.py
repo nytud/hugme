@@ -2,6 +2,7 @@ from tqdm import tqdm
 
 import config
 import helper
+import template
 
 
 MAX_NEW_TOKENS = 20
@@ -26,17 +27,13 @@ def preprocess(dataset: list):
 def generate_results(args, generation_pipeline, dataset: list):
     results = []
     for entry in tqdm(dataset, desc="Generating responses", unit="query"):
-        question, target = entry['input'], entry['target']
-        a, b, c, d = entry['A'], entry['B'], entry['C'], entry['D']
-        query = (
-            "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza!"
-            f"Kérdés: {question} Válaszok: {a}, {b}, {c}, {d}"
+        prompt = template.get_prompt(args.task_name, entry=entry)
+        output = generation_pipeline(prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
         )
-        prompt = helper.get_model_prompt(args.model_name, query)
-        output = generation_pipeline(
-            prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
-        )[0]['generated_text']
-        results.append({"query": question, "output": output, "target": target, "category": entry['category']})
+        output = output[0]['generated_text']
+        results.append(
+            {"query": entry['input'], "output": output, "target": entry['target'], "category": entry['category']}
+        )
     return results
 
 
