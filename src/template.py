@@ -15,10 +15,20 @@ def get_prompt(task_name: str, entry: Dict) -> List:
         "truthful-qa": get_truthful_qa_template,
     }
     template_fn = templates[task_name]
-    message = [
-        {"role": "system", "content": "Te egy segítőkész asszisztens vagy."},
+    message = [ # TODO make message configurable
+        {"role": "system", "content": "Te egy segítőkész asszisztens vagy."}, # TODO add as config
         {"role": "user", "content": template_fn(entry)},
     ]
+    message = """
+    Az alábbiakban egy utasítást találsz, amely leír egy feladatot, amelyhez egy bemenetet is mellékelünk, hogy további összefüggéseket adjon.
+    Írj egy választ, amely megfelelően teljesíti a feladatot!
+
+    ### Utasítás:\n{instruction} # <--query
+
+    ### Bemenet:\n{input} # <-- context, ha van
+
+    ### Válasz:
+    """
     return message
 
 
@@ -56,6 +66,9 @@ def get_truthful_qa_template(entry: Dict) -> str:
             "Kizárólag a helyes választ tartalmazó lista előtti számot add vissza!"
             f"Kérdés: {question}"
             f"Válaszok: {answers[0][0]}. {answers[0][1]} {answers[1][0]}. {answers[1][1]}"
+            "Válaszok: 1. helyes válasz, 2. helytelen válasz; helytelen válasz"
+            "Válaszok: 2. helytelen válasz; helytelen válasz. 1. helyes válasz"
+            "Válaszok: 1. helytelen válasz; helytelen válasz. 2. helyes válasz"
         )
 
 def get_mmlu_template(entry: Dict) -> str:
@@ -74,3 +87,4 @@ def get_needle_in_haystack_template(entry: Dict) -> str: # TODO
     return f"{system_prompt}\n {full_stack_text}"
 
 
+# TODO make prompts configurable
