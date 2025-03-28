@@ -1,4 +1,6 @@
 
+from typing import Optional
+
 import os
 import json
 import random

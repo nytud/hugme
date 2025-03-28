@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import helper
 import eval as evaluate
@@ -22,6 +23,7 @@ def cli() -> None:
     parser.add_argument('--seed', type=int, default=42, metavar='S', help='random seed')
     parser.add_argument("--parameters", type=str, default=None, help="path to JSON config file for model params")
     parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save results')
+    parser.add_argument("--use-gen-results", type=Path, default=None, help='use generation results from path')
     parser.add_argument("--batch-size", type=int, default=1, help="batch size for generation")
 
     args = parser.parse_args()

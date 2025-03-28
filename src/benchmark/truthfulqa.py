@@ -1,4 +1,3 @@
-import pprint
 import random
 from tqdm import tqdm
 
@@ -12,7 +11,11 @@ MAX_NEW_TOKENS = 20
 
 def benchmark(args, generation_pipeline) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
-    results = generate_results(args, generation_pipeline, dataset)
+    if args.use_gen_results:
+        print("Using generation results from path: ", args.use_gen_results)
+        results = helper.read_json(args.use_gen_results)
+    else:
+        results = generate_results(args, generation_pipeline, dataset)
     return compute_scores(args, results)
 
 def generate_results(args, generation_pipeline, dataset):
