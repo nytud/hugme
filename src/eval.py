@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
 import config
@@ -46,7 +47,8 @@ def evaluate(args) -> None:
     print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
     if args.save_results:
-        helper.save_json(score_results, config.RESULTS_DIR, "hugme-results.json")
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{current_time}.json")
 
 
 def get_generation_pipeline(args):
