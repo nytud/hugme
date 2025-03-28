@@ -15,7 +15,6 @@ def cli() -> None:
     parser = argparse.ArgumentParser(description='hugme cli tool')
 
     parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
-    parser.add_argument('--tokenizer-name', type=str, default=None, metavar='S', help='tokenizer name or path')
     parser.add_argument('--tasks', type=str, nargs="+", default=[], help='task name(s)')
     parser.add_argument('--judge', type=str, default="gpt-3.5-turbo-1106", metavar='S', help='judge model name(s)')
     parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
@@ -25,6 +24,7 @@ def cli() -> None:
     parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save results')
     parser.add_argument("--use-gen-results", type=Path, default=None, help='use generation results from path')
     parser.add_argument("--batch-size", type=int, default=1, help="batch size for generation")
+    parser.add_argument("--provider", type=str, default=None, choices=['openai'])
 
     args = parser.parse_args()
 

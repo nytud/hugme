@@ -9,16 +9,16 @@ import template
 MAX_NEW_TOKENS = 20
 
 
-def benchmark(args, generation_pipeline) -> dict:
+def benchmark(args, generate) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         results = helper.read_json(args.use_gen_results)
     else:
-        results = generate_results(args, generation_pipeline, dataset)
+        results = generate_results(args, generate, dataset)
     return compute_scores(args, results)
 
-def generate_results(args, generation_pipeline, dataset):
+def generate_results(args, generate, dataset):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
         answer_options = [
@@ -30,10 +30,7 @@ def generate_results(args, generation_pipeline, dataset):
 
         prompt = template.get_prompt("truthfulqa", entry)
 
-        generated_text = generation_pipeline(
-            prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
-        )[0]["generated_text"]
-        output = generated_text[len(prompt):].strip()
+        output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS)
 
         results.append({
             "input": prompt,

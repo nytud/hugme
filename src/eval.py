@@ -1,4 +1,7 @@
+from typing import Callable
+
 import time
+import openai
 from datetime import datetime
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
@@ -30,7 +33,7 @@ def evaluate(args) -> None:
     for task_name in args.tasks:
 
         print(f"Loading {args.model_name} model and tokenizer...")
-        generation_pipeline = get_generation_pipeline(args)
+        generate = get_generation(args)
         print(f"Finished loading {args.model_name} model and tokenizer...")
 
         print(f"Started evaluation on {task_name}.")
@@ -39,7 +42,7 @@ def evaluate(args) -> None:
         if task_name not in TASK_HANDLERS:
             raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
 
-        results = TASK_HANDLERS[task_name](args, generation_pipeline)
+        results = TASK_HANDLERS[task_name](args, generate)
         score_results[task_name] = results
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
@@ -51,12 +54,30 @@ def evaluate(args) -> None:
         helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{current_time}.json")
 
 
-def get_generation_pipeline(args):
+def get_generation(args) -> Callable[..., str]:
+
     parameters = helper.read_json(args.parameters) if args.parameters else {}
-    if args.tokenizer_name:
-        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, token=config.HF_TOKEN)
-    else:
+
+    if args.model_name and not args.provider:
         tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=config.HF_TOKEN)
-    model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=config.HF_TOKEN)
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
-    return pipe
+        model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=config.HF_TOKEN)
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
+
+    def generate(prompt, **parameters) -> str:
+        result: list = pipe(prompt, **parameters)
+        generated_text: str = result[0]["generated_text"]
+        output = generated_text[len(prompt):].strip()
+        return output
+
+    def generate_with_openai(prompt, **parameters) -> str:
+        if "max_new_tokens" in parameters:
+            parameters["max_tokens"] = parameters.pop("max_new_tokens")
+        client = openai.OpenAI()
+        completion = client.chat.completions.create(
+            model=args.model_name,
+            messages=prompt,
+            **parameters
+        )
+        return completion.choices[0].message.content
+
+    return generate if args.provider is None else generate_with_openai
