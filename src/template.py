@@ -12,7 +12,7 @@ def get_prompt(task_name: str, entry: Dict) -> List:
         "summarization": get_summarization_template,
         "text-coherence": get_text_coherence_template,
         "toxicity": get_toxicity_template,
-        "truthful-qa": get_truthful_qa_template,
+        "truthfulqa": get_truthful_qa_template,
     }
     template_fn = templates[task_name]
     message = [ # TODO make templates configurable
@@ -50,7 +50,7 @@ def get_text_coherence_template(entry: Dict) -> str:
 
 
 def get_truthful_qa_template(entry: Dict) -> str:
-    question = entry['question']
+    question = entry['query']
     answers = entry['answer_options']
     return (
             "Alább van egy kérdés, és két lista. "
