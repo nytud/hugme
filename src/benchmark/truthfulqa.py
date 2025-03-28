@@ -1,3 +1,4 @@
+import pprint
 import random
 from tqdm import tqdm
 
@@ -26,9 +27,10 @@ def generate_results(args, generation_pipeline, dataset):
 
         prompt = template.get_prompt("truthfulqa", entry)
 
-        output = generation_pipeline(
+        generated_text = generation_pipeline(
             prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
         )[0]["generated_text"]
+        output = generated_text[len(prompt):].strip()
 
         results.append({
             "input": prompt,
@@ -68,9 +70,8 @@ def compute_scores(args, results: list):
         else:
             entry["score"] = 0.0
 
-    score = total_score / len(results)
-    print(f"{config.TRUTHFUL_QA} benchmark results score: {score}")
+    acc = total_score / len(results)
+    print(f"{config.TRUTHFUL_QA} benchmark results accuracy: {acc}")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-eval-results.json")
-
-    return helper.group_by_category(results, total_score)
+    return helper.group_by_category(results, acc)

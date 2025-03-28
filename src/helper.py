@@ -1,10 +1,9 @@
-from typing import Optional
 
+import os
 import json
 import random
 import pathlib
 from collections import defaultdict
-import os
 import torch
 
 
@@ -18,7 +17,7 @@ def set_device(args) -> None:
     use_cuda = args.use_cuda and torch.cuda.is_available()
     if use_cuda:
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = ''.join(args.cuda_ids)
+        # os.environ["CUDA_VISIBLE_DEVICES"] = ''.join(args.cuda_ids)
         device = torch.device('cuda')
     else:
         device = torch.device("cpu")
@@ -91,9 +90,20 @@ def split_sentences(text: str):
     return [sentence.strip() for sentence in text.split('.') if sentence]
 
 
-def group_by_category(results: list, total_score: float) -> dict:
-    grouped_scores = defaultdict(float)
+def group_by_category(results: list, acc: float) -> dict:
+    score_sums = defaultdict(float)
+    counts = defaultdict(int)
+
     for entry in results:
-        grouped_scores[entry["category"]] += entry["score"]
-    grouped_scores["total"] = total_score
-    return dict(grouped_scores)
+        category = entry["category"]
+        score_sums[category] += entry["score"]
+        counts[category] += 1
+
+    percentages = {}
+    for category in score_sums:
+        avg = score_sums[category] / counts[category] if counts[category] else 0
+        percentages[category] = round(avg * 100, 2)
+
+    percentages["total"] = round(acc * 100, 2)
+
+    return percentages
