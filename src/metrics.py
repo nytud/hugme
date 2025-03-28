@@ -36,6 +36,7 @@ def generate_results(args, generation_pipeline, dataset, task_name):
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
         prompt = template.get_prompt(task_name, entry = entry)
         output = generation_pipeline(prompt, batch_size=args.batch_size)[0]['generated_text']
+        output = output[len(prompt):].strip()
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )
