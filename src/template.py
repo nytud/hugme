@@ -1,7 +1,8 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 
 
-def get_prompt(task_name: str, entry: Dict) -> List:
+def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union[List, str]:
+    # TODO make metric prompt templates configurable
     templates = {
         "faithfulness": get_faithfulness_template,
         "hallucination": get_hallucination_template,
@@ -15,11 +16,19 @@ def get_prompt(task_name: str, entry: Dict) -> List:
         "truthfulqa": get_truthful_qa_template,
     }
     template_fn = templates[task_name]
-    message = [ # TODO make templates configurable
-        {"role": "system", "content": "Te egy segítőkész asszisztens vagy."},
-        {"role": "user", "content": template_fn(entry)},
-    ]
-    # TODO add alpace template
+    # TODO make model prompt templates configurable
+    if alpaca_prompt:
+        message = (
+            "Az alábbiakban egy utasítást találsz, amely leír egy feladatot. "
+            "Írj egy választ, amely megfelelően teljesíti a feladatot!\n"
+            f"### Utasítás: \n{template_fn(entry)}\n"
+            "### Válasz:\n"
+        )
+    else:
+        message = [
+            {"role": "system", "content": "Te egy segítőkész asszisztens vagy."},
+            {"role": "user", "content": template_fn(entry)},
+        ]
     return message
 
 

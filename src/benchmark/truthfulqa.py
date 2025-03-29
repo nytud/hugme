@@ -28,9 +28,9 @@ def generate_results(args, generate, dataset):
         random.shuffle(answer_options)
         entry["answer_options"] = answer_options
 
-        prompt = template.get_prompt("truthfulqa", entry)
+        prompt = template.get_prompt("truthfulqa", entry, args.use_alpaca_prompt)
 
-        output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS)
+        output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
 
         results.append({
             "input": prompt,
