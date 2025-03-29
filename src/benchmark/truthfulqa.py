@@ -38,8 +38,6 @@ def generate_results(args, generate, dataset):
             "category": entry["category"],
             "correct_index": [x[0] for x in answer_options if x[1] == entry["correct_answers"]][0]
         })
-    if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-results.json")
     return results
 
 

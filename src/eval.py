@@ -64,9 +64,14 @@ def get_generation(args) -> Callable[..., str]:
         pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
 
     def generate(prompt, **parameters) -> str:
+
+        if "alpaca_prompt" in parameters:
+            alpaca_prompt = parameters.pop("alpaca_prompt")
+
         result: list = pipe(prompt, **parameters)
         generated_text: str = result[0]["generated_text"]
-        if parameters.get("use_alpaca_prompt"):
+
+        if alpaca_prompt:
             output = generated_text.split("### Válasz:")[1]
         else:
             output = generated_text[len(prompt):].strip()
@@ -75,8 +80,8 @@ def get_generation(args) -> Callable[..., str]:
     def generate_with_openai(prompt, **parameters) -> str:
         if "max_new_tokens" in parameters:
             parameters["max_tokens"] = parameters.pop("max_new_tokens")
-        if "use_alpaca_prompt" in parameters:
-            parameters.pop("use_alpaca_prompt")
+        if "alpaca_prompt" in parameters:
+            parameters.pop("alpaca_prompt")
         client = openai.OpenAI()
         completion = client.chat.completions.create(
             model=args.model_name,
