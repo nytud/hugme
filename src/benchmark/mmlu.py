@@ -8,14 +8,14 @@ import template
 MAX_NEW_TOKENS = 20
 
 
-def benchmark(args, generation_pipeline) -> dict:
+def benchmark(task_name, args, generate) -> dict:
     dataset = helper.read_json(config.DATASETS + "mmlu.json")
     dataset = preprocess(dataset)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         results = helper.read_json(args.use_gen_results)
     else:
-        results = generate_results(args, generation_pipeline, dataset)
+        results = generate_results(args, generate, dataset, task_name)
     return compute_scores(args, results)
 
 
@@ -28,13 +28,11 @@ def preprocess(dataset: list):
     return dataset
 
 
-def generate_results(args, generation_pipeline, dataset: list):
+def generate_results(args, generate, dataset: list, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses", unit="query"):
-        prompt = template.get_prompt(args.task_name, entry=entry)
-        output = generation_pipeline(prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
-        )
-        output = output[0]['generated_text']
+        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
+        output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
         results.append(
             {"query": entry['input'], "output": output, "target": entry['target'], "category": entry['category']}
         )

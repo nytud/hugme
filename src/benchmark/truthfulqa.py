@@ -9,16 +9,16 @@ import template
 MAX_NEW_TOKENS = 20
 
 
-def benchmark(args, generate) -> dict:
+def benchmark(task_name, args, generate) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         results = helper.read_json(args.use_gen_results)
     else:
-        results = generate_results(args, generate, dataset)
+        results = generate_results(args, generate, dataset, task_name)
     return compute_scores(args, results)
 
-def generate_results(args, generate, dataset):
+def generate_results(args, generate, dataset, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
         answer_options = [
@@ -28,7 +28,7 @@ def generate_results(args, generate, dataset):
         random.shuffle(answer_options)
         entry["answer_options"] = answer_options
 
-        prompt = template.get_prompt("truthfulqa", entry, args.use_alpaca_prompt)
+        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
 
         output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
 

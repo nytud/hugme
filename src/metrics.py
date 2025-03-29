@@ -8,7 +8,7 @@ import helper
 import template
 
 
-def compute_metric(task_name, args, generation_pipeline):
+def compute_metric(task_name, args, generate):
     _metrics = {
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
@@ -24,19 +24,18 @@ def compute_metric(task_name, args, generation_pipeline):
         print("Using generation results from path: ", args.use_gen_results)
         gen_results = helper.read_json(args.use_gen_results)
     else:
-        gen_results = generate_results(args, generation_pipeline, dataset, task_name)
+        gen_results = generate_results(args, generate, dataset, task_name)
     results = compute_score(args, gen_results, metric, task_name)
     if task_name == "toxicity":
         evaluate_toxicity_with_bert(args, gen_results)
     return results
 
 
-def generate_results(args, generation_pipeline, dataset, task_name):
+def generate_results(args, generate, dataset, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        prompt = template.get_prompt(task_name, entry = entry)
-        output = generation_pipeline(prompt, batch_size=args.batch_size)[0]['generated_text']
-        output = output[len(prompt):].strip()
+        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
+        output = generate(prompt, alpaca_prompt=args.use_alpaca_prompt)
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )

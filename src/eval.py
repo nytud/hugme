@@ -42,7 +42,7 @@ def evaluate(args) -> None:
         if task_name not in TASK_HANDLERS:
             raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
 
-        results = TASK_HANDLERS[task_name](args, generate)
+        results = TASK_HANDLERS[task_name](task_name, args, generate)
         score_results[task_name] = results
 
         print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
