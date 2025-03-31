@@ -78,10 +78,14 @@ def get_generation(args) -> Callable[..., str]:
         return output
 
     def generate_with_openai(prompt, **parameters) -> str:
-        if "max_new_tokens" in parameters:
+
+        if parameters.get("max_new_tokens"):
             parameters["max_tokens"] = parameters.pop("max_new_tokens")
-        if "alpaca_prompt" in parameters:
+        if parameters.get("alpaca_prompt"):
             parameters.pop("alpaca_prompt")
+        if parameters.get("do_sample"):
+            parameters.pop("do_sample")
+
         client = openai.OpenAI()
         completion = client.chat.completions.create(
             model=args.model_name,
