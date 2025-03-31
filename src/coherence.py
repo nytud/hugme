@@ -8,13 +8,13 @@ import metrics
 MAX_LENGTH = 512
 MODEL_NAME = 'SZTAKI-HLT/hubert-base-cc'
 
-def compute_metric(args, generation_pipeline):
+def compute_metric(task_name, args, generate):
     dataset = helper.read_json(config.TEXT_COHERENCE_DATASET)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         results = helper.read_json(args.use_gen_results)
     else:
-        results = metrics.generate_results(args, generation_pipeline, dataset, config.TEXT_COHERENCE)
+        results = metrics.generate_results(args, generate, dataset, config.TEXT_COHERENCE)
     scores = compute_score(args, results, config.TEXT_COHERENCE)
     return scores
 
