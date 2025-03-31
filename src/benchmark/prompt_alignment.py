@@ -5,6 +5,7 @@ from deepeval.test_case import LLMTestCase
 import config
 import helper
 
+MAX_NEW_TOKENS = 20
 
 def aggregate_metric_pass_rates(test_results) -> float:
     total_metrics = 0
@@ -19,13 +20,13 @@ def aggregate_metric_pass_rates(test_results) -> float:
     return total_successes / total_metrics if total_metrics > 0 else 0.0
 
 
-def compute_metric(args, generation_pipeline):
+def compute_metric(task_name, args, generate):
     dataset = helper.read_json(config.PROMPT_ALIGNMENT_DATASET)
     metrics = []
     cases = []
     for entry in dataset:
         prompt_instructions, query = entry['prompt_instructions'], entry['query']
-        output = generation_pipeline(query, max_new_tokens=20, batch_size=args.batch_size)[0]['generated_text']
+        output = generate(query, max_new_tokens=MAX_NEW_TOKENS)
         metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions ,include_reason=True))
         cases.append(LLMTestCase(input=query,actual_output=output,))
 
