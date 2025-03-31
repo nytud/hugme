@@ -2,6 +2,7 @@
 from typing import Optional
 
 import os
+import re
 import json
 import random
 import pathlib
@@ -109,3 +110,7 @@ def group_by_category(results: list, acc: float) -> dict:
     percentages["total"] = round(acc * 100, 2)
 
     return percentages
+
+
+def clean_answer(answer):
+    return re.sub(r"\D", "", str(answer))
