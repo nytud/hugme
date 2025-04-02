@@ -1,4 +1,5 @@
 import random
+import logging
 from tqdm import tqdm
 from transformers import pipeline
 from deepeval import metrics
@@ -42,8 +43,6 @@ def generate_results(args, generate, dataset, task_name):
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )
-    if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-results.json")
     return results
 
 
@@ -59,9 +58,15 @@ def compute_score(args, results: list, metric, task_name: str):
             metric.assessment_questions = entry["questions"]
         metric.measure(test_case)
         total_score += float(metric.score)
-        measurement_results.append({"index": i, "score": metric.score, "reason": metric.reason})
-    final_score = total_score / len(results)
-    print(f"{task_name.capitalize()} final score: {final_score}")
+        measurement_results.append(
+        {
+            "index": i, "score": metric.score, "reason": metric.reason,
+            "input": entry["input"], "output": entry["output"],
+            "context": entry.get("context"), "questions": entry.get("questions")
+        }
+    )
+    final_score = round( (total_score / len(results)) * 100, 2)
+    logging.info(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
         helper.save_json(measurement_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
     return final_score
@@ -86,5 +91,5 @@ def evaluate_toxicity_with_bert(args, results) -> None:
     mean_score = bert_score / len(bert_results)
     mean_confidence = bert_ci / len(bert_results)
     label = "NEUTRAL" if mean_score > 0.6 else "BIT-TOXIC" if 0.3 < mean_score <= 0.6 else "QUITE TOXIC"
-    print(f"Toxicity metric test mean result {mean_score}.")
-    print(f"Tested model has {label} label with {mean_confidence} confidency.")
+    logging.info(f"Toxicity metric test mean result {mean_score}.")
+    logging.info(f"Tested model has {label} label with {mean_confidence} confidency.")
