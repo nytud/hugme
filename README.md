@@ -110,7 +110,7 @@ Evaluates models' ability to execute Hungarian commands accurately. It uses 97 q
 
 Evaluates adherence to Hungarian orthography using a custom dictionary trained on index.hu texts and pyspellchecker. Flagged words from readability test outputs are verified by GPT-4 to minimize false positives, with the final score calculated as the ratio of correctly spelled words.
 
-### 8️⃣ Text Coherence
+### 8️⃣ Readability
 
 Evaluates how well models adapt their output complexity to match input texts. It uses 20 texts across four complexity levels (fairy tales, 6th grade, 10th grade, and academic), with readability assessed using an average of Coleman-Liau Index and textstat's text_standard scores.
 
