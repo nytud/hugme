@@ -24,10 +24,10 @@ def benchmark(task_name, args, generate) -> dict:
 
 def preprocess(dataset: list):
     for entry in dataset:
-        entry["A"] = "A " + entry["A"]
-        entry["B"] = "B " + entry["B"]
-        entry["C"] = "C " + entry["C"]
-        entry["D"] = "D " + entry["D"]
+        entry["A"] = "A " + str(entry["A"])
+        entry["B"] = "B " + str(entry["B"])
+        entry["C"] = "C " + str(entry["C"])
+        entry["D"] = "D " + str(entry["D"])
     return dataset
 
 

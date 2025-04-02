@@ -69,6 +69,7 @@ def get_generation(task_name, args):
 
     def generate(prompt, **parameters) -> str:
 
+        alpaca_prompt = None
         if "alpaca_prompt" in parameters:
             alpaca_prompt = parameters.pop("alpaca_prompt")
 
