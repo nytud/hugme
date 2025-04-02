@@ -54,7 +54,7 @@ def evaluate(args) -> None:
 
 def get_generation(task_name, args):
 
-    parameters = helper.read_json(args.parameters) if args.parameters else {}
+    args.parameters = parameters = helper.read_json(args.parameters) if args.parameters else {}
 
     if task_name == config.NIH and args.provider:
         raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
@@ -62,16 +62,20 @@ def get_generation(task_name, args):
     if args.model_name and not args.provider:
         tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=config.HF_TOKEN)
         model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=config.HF_TOKEN)
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, **parameters)
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
         if task_name == config.NIH: # needle in haystack requires special handling
             return pipe
 
-    def generate(prompt, **parameters) -> str:
+    def generate(prompt, **kwargs) -> str:
 
         alpaca_prompt = None
-        if "alpaca_prompt" in parameters:
-            alpaca_prompt = parameters.pop("alpaca_prompt")
+        if "alpaca_prompt" in kwargs:
+            alpaca_prompt = kwargs.pop("alpaca_prompt")
+
+        parameters.update(kwargs)
+
+        print(f"Generating with parameters: {parameters}")
 
         result: list = pipe(prompt, **parameters)
         generated_text: str = result[0]["generated_text"]

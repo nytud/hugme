@@ -7,6 +7,9 @@ import config
 import helper
 
 
+MAX_NEW_TOKENS = 256 # TODO add to params
+
+
 def aggregate_metric_pass_rates(test_results) -> float:
     total_metrics = 0
     total_successes = 0
@@ -30,7 +33,7 @@ def compute_metric(task_name, args, generate):
     for entry in dataset:
         prompt_instructions, query = entry['prompt_instructions'], entry['query']
         output = generate(query)
-        metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions ,include_reason=True))
+        metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions, include_reason=True))
         cases.append(LLMTestCase(input=query,actual_output=output,))
 
     result = evaluate(cases, metrics)

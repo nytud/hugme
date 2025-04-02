@@ -31,26 +31,19 @@ def compute_metric(task_name, args, generate):
 def generate_results(args, generate, dataset, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        prompt = template.get_prompt(args.task_name, entry, alpaca_prompt=args.use_alpaca_prompt)
+        prompt = template.get_prompt(task_name, entry, alpaca_prompt=args.use_alpaca_prompt)
 
         try:
             temperature = args.parameters.get("temperature", TEMPERATURE)
             max_new_tokens = args.parameters.get("max_new_tokens", MAX_NEW_TOKENS)
             do_sample = args.parameters.get("do_sample", True)
 
-            output = generate(
-                text_inputs=prompt, temperature=temperature,
-                max_new_tokens=max_new_tokens, do_sample=do_sample
-            )
+            output = generate(prompt, temperature=temperature, max_new_tokens=max_new_tokens, do_sample=do_sample)
         except RuntimeError as e:
             print(f"Error during text generation: {e}")
             output = None
 
         results.append({"query": entry.get("query"), "prompt": prompt, "output": output})
-
-    if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.READABILITY}-generation-results.json")
-
     return results
 
 
@@ -91,9 +84,10 @@ def compute_scores(args, results):
             generated_mean_coleman, generated_mean_std
         )
         similarity_scores.append(similarity_score)
+        item["similarity_score"] = similarity_score
 
     if args.save_results:
-        helper.save_json(similarity_scores, config.RESULTS_DIR, f"{config.READABILITY}-eval-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.READABILITY}-eval-results.json")
 
     print(f"{config.READABILITY} benchmark results accuracy: {mean(similarity_scores)}")
 
