@@ -11,6 +11,8 @@ MAX_NEW_TOKENS = 20
 
 def benchmark(task_name, args, generate) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         results = helper.read_json(args.use_gen_results)

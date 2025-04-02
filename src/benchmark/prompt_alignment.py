@@ -1,3 +1,4 @@
+import random
 from deepeval import evaluate
 from deepeval.metrics import PromptAlignmentMetric
 from deepeval.test_case import LLMTestCase
@@ -22,6 +23,8 @@ def aggregate_metric_pass_rates(test_results) -> float:
 
 def compute_metric(task_name, args, generate):
     dataset = helper.read_json(config.PROMPT_ALIGNMENT_DATASET)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     metrics = []
     cases = []
     for entry in dataset:

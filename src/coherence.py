@@ -1,3 +1,4 @@
+import random
 import torch
 from transformers import BertTokenizer, BertForNextSentencePrediction
 
@@ -10,6 +11,8 @@ MODEL_NAME = 'SZTAKI-HLT/hubert-base-cc'
 
 def compute_metric(task_name, args, generate):
     dataset = helper.read_json(config.TEXT_COHERENCE_DATASET)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         results = helper.read_json(args.use_gen_results)

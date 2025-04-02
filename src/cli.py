@@ -26,6 +26,7 @@ def cli() -> None:
     parser.add_argument("--batch-size", type=int, default=1, help="batch size for generation")
     parser.add_argument("--provider", type=str, default=None, choices=['openai'])
     parser.add_argument("--use-alpaca-prompt", type=lambda x: x.lower()=='true', default=False)
+    parser.add_argument("--sample-size", type=float, default=1.0, help="sample size for evaluation")
 
     args = parser.parse_args()
 

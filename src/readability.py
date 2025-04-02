@@ -1,4 +1,5 @@
 import re
+import random
 from statistics import mean
 from textstat import textstat
 from tqdm import tqdm
@@ -15,6 +16,8 @@ MAX_NEW_TOKENS = 256
 def compute_metric(task_name, args, generate):
 
     dataset = helper.read_json(config.READABILITY_DATASET)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
 
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)

@@ -1,3 +1,4 @@
+import random
 from tqdm import tqdm
 
 import config
@@ -10,6 +11,8 @@ MAX_NEW_TOKENS = 20
 
 def benchmark(task_name, args, generate) -> dict:
     dataset = helper.read_json(config.DATASETS + "mmlu.json")
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     dataset = preprocess(dataset)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)

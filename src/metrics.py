@@ -1,3 +1,4 @@
+import random
 from tqdm import tqdm
 from transformers import pipeline
 from deepeval import metrics
@@ -20,6 +21,8 @@ def compute_metric(task_name, args, generate):
     metric = _metrics.get(task_name)
     dataset_name = config.METRIC_DATASETES.get(task_name)
     dataset = helper.read_json(dataset_name)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     if args.use_gen_results:
         print("Using generation results from path: ", args.use_gen_results)
         gen_results = helper.read_json(args.use_gen_results)

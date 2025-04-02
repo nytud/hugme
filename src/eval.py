@@ -1,5 +1,3 @@
-from typing import Callable
-
 import time
 import openai
 from datetime import datetime
@@ -80,7 +78,10 @@ def get_generation(task_name, args):
         if alpaca_prompt:
             output = generated_text.split("### Válasz:")[1]
         else:
-            output = generated_text[len(prompt):].strip()
+            if isinstance(generated_text, str):
+                output = generated_text[len(prompt):].strip()
+            else:
+                output = generated_text[-1]["content"]
         return output
 
     def generate_with_openai(prompt, **parameters) -> str:
