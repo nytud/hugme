@@ -120,7 +120,7 @@ Adapts the TruthfulQA dataset for Hungary by translating questions and adding cu
 
 ### 🔟 HuMMLU (Massive Multitask Language Understanding)
 
-Adapts the MMLU benchmark for Hungarian by machine-translating and manually refining multiple-choice questions across 57 subjects to ensure cultural relevance and accurate assessment.
+Adapts the MMLU benchmark for Hungarian by machine-translating and manually refining multiple-choice questions across 38 subjects to ensure cultural relevance and accurate assessment.
 
 ### 🧩 Needle in the Haystack
 
