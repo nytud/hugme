@@ -25,7 +25,7 @@ def compute_metric(task_name, args, generate):
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
     if args.use_gen_results:
-        print("Using generation results from path: ", args.use_gen_results)
+        logging.info("Using generation results from path: ", args.use_gen_results)
         gen_results = helper.read_json(args.use_gen_results)
     else:
         gen_results = generate_results(args, generate, dataset, task_name)

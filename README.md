@@ -26,7 +26,7 @@ hugme
 | Parameter         | Description |
 |------------------|-------------|
 | `--model-name`   | Name of the model (local path, Hugging Face model or OpenAI models). |
-| `--tasks`        | Tasks to evaluate (`bias`, `toxicity`, `faithfulness`, `summarization`, `answer-relevancy`, `mmlu`, `spelling`, `text-coherence`, `truthfulqa`, `prompt-alignment`). |
+| `--tasks`        | Tasks to evaluate (`bias`, `toxicity`, `faithfulness`, `hallucination`, `summarization`, `answer-relevancy`, `mmlu`, `spelling`, `text-coherence`, `truthfulqa`, `prompt-alignment`, `readability`, `needle-in-haystack`). |
 | `--judge`        | Default: `"gpt-3.5-turbo-1106"`. Specifies the judge model for evaluations. |
 | `--use-cuda`     | Default: `True`. Enables GPU acceleration. |
 | `--cuda-id`      | Default: `1`. Specifies which GPU to use. Indexing starts from 0 |
@@ -35,6 +35,7 @@ hugme
 | `--save-results` | Default: `True`. Whether to save evaluation results. |
 | `--use-alpaca-prompt` | Default: `False`. Use alpaca prompt. |
 | `--provider` | Default: `False`. Provider to use. Choices: (`openai`) |
+| `--sample-size` | Default: `1.0`. Sample size (percenatage) from task's dataset. Choices: (`openai`) |
 
 #### 🛠 Configure datasets
 
@@ -104,7 +105,7 @@ Tests the model's ability to condense Hungarian texts while retaining key inform
 
 ### 6️⃣ Prompt Alignment
 
-Evaluates models' ability to execute Hungarian commands accurately. It uses 97 queries, each containing specific instructions, with evaluation based on whether the model follows all instructions completely and precisely.
+Evaluates models' ability to execute Hungarian commands accurately. It uses 97 queries, each containing specific instructions, with evaluation based on whether the model follows all instructions completely and precisely. Max new tokens minimum is 256.
 
 ### 7️⃣ Spelling
 

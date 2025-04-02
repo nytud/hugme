@@ -7,7 +7,7 @@ import config
 import helper
 
 
-MAX_NEW_TOKENS = 256 # TODO add to params
+MAX_NEW_TOKENS = 256
 
 
 def aggregate_metric_pass_rates(test_results) -> float:
@@ -32,7 +32,7 @@ def compute_metric(task_name, args, generate):
     cases = []
     for entry in dataset:
         prompt_instructions, query = entry['prompt_instructions'], entry['query']
-        output = generate(query)
+        output = generate(query, max_new_tokens = MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
         metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions, include_reason=True))
         cases.append(LLMTestCase(input=query,actual_output=output,))
 
