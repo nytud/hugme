@@ -114,11 +114,11 @@ Evaluates adherence to Hungarian orthography using a custom dictionary trained o
 
 Evaluates how well models adapt their output complexity to match input texts. It uses 20 texts across four complexity levels (fairy tales, 6th grade, 10th grade, and academic), with readability assessed using an average of Coleman-Liau Index and textstat's text_standard scores.
 
-### 9️⃣ TruthfulQA
+### 9️⃣ HuTruthfulQA
 
 Adapts the TruthfulQA dataset for Hungary by translating questions and adding culturally specific content, resulting in 747 questions across 37 categories.
 
-### 🔟 MMLU (Massive Multitask Language Understanding)
+### 🔟 HuMMLU (Massive Multitask Language Understanding)
 
 Adapts the MMLU benchmark for Hungarian by machine-translating and manually refining multiple-choice questions across 57 subjects to ensure cultural relevance and accurate assessment.
 
