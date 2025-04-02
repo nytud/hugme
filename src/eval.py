@@ -1,6 +1,7 @@
 import time
-import openai
+import logging
 from datetime import datetime
+import openai
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
 import config
@@ -24,17 +25,15 @@ TASK_HANDLERS = {
 }
 
 def evaluate(args) -> None:
-    print("Evaluation started...")
+    logging.info("Evaluation started...")
     score_results = {}
     eval_start_time = time.time()
 
     for task_name in args.tasks:
 
-        print(f"Loading {args.model_name} model and tokenizer...")
         generate = get_generation(task_name, args)
-        print(f"Finished loading {args.model_name} model and tokenizer...")
 
-        print(f"Started evaluation on {task_name}.")
+        logging.info(f"Started evaluation on {task_name}.")
         task_start_time = time.time()
 
         if task_name not in TASK_HANDLERS:
@@ -43,9 +42,9 @@ def evaluate(args) -> None:
         results = TASK_HANDLERS[task_name](task_name, args, generate)
         score_results[task_name] = results
 
-        print(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
+        logging.info(f"Task took {time.time() - task_start_time:.3f} seconds on {args.device}.")
 
-    print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
+    logging.info(f"Evaluation took {time.time() - eval_start_time:.3f} seconds on {args.device}.")
 
     if args.save_results:
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -53,6 +52,8 @@ def evaluate(args) -> None:
 
 
 def get_generation(task_name, args):
+
+    logging.info(f"Loading {args.model_name} model and tokenizer...")
 
     args.parameters = parameters = helper.read_json(args.parameters) if args.parameters else {}
 
@@ -75,16 +76,21 @@ def get_generation(task_name, args):
 
         parameters.update(kwargs)
 
-        print(f"Generating with parameters: {parameters}")
+        logging.debug(f"Generating with parameters: {parameters}")
 
         result: list = pipe(prompt, **parameters)
         generated_text: str = result[0]["generated_text"]
+
+        logging.debug(f"Prompt: {prompt}")
+        logging.debug(f"Parameters: {parameters}")
+        logging.debug(f"Result: {result}")
+        logging.debug(f"Generated text: {generated_text}")
 
         if alpaca_prompt:
             output = generated_text.split("### Válasz:")[1]
         else:
             if isinstance(generated_text, str):
-                output = generated_text[len(prompt):].strip()
+                output = generated_text
             else:
                 output = generated_text[-1]["content"]
         return output
@@ -105,5 +111,7 @@ def get_generation(task_name, args):
             **parameters
         )
         return completion.choices[0].message.content
+
+    logging.info(f"Finished loading {args.model_name} model and tokenizer...")
 
     return generate if args.provider is None else generate_with_openai

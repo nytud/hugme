@@ -71,7 +71,7 @@ def compute_scores(args, results: list):
             entry["score"] = 0.0
 
     acc = total_score / len(results)
-    print(f"{config.TRUTHFUL_QA} benchmark results accuracy: {acc}")
+    print(f"{config.TRUTHFUL_QA} benchmark results accuracy: {round(acc * 100, 2)}")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-eval-results.json")
     return helper.group_by_category(results, acc)
