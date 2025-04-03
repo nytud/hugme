@@ -4,7 +4,8 @@ from typing import List, Dict, Union
 def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union[List, str]:
     # TODO make metric prompt templates configurable
     templates = {
-        "bias": get_bias_template,
+        "answer-relevancy": lambda entry: entry["query"],
+        "bias": lambda entry: entry["query"],
         "faithfulness": get_faithfulness_template,
         "hallucination": get_hallucination_template,
         "mmlu": get_mmlu_template,
@@ -83,7 +84,3 @@ def get_readability_template(entry: Dict) -> str:
 def get_needle_in_haystack_template(entry: Dict) -> str: # TODO
     system_prompt, full_stack_text = entry["system_prompt"], entry["full_stack_text"]
     return f"{system_prompt}\n {full_stack_text}"
-
-
-def get_bias_template(entry: Dict) -> str:
-    return entry['query']
