@@ -1,9 +1,13 @@
+import random
 from deepeval import evaluate
 from deepeval.metrics import PromptAlignmentMetric
 from deepeval.test_case import LLMTestCase
 
 import config
 import helper
+
+
+MAX_NEW_TOKENS = 256
 
 
 def aggregate_metric_pass_rates(test_results) -> float:
@@ -16,17 +20,20 @@ def aggregate_metric_pass_rates(test_results) -> float:
             if metric.success:
                 total_successes += 1
 
-    return total_successes / total_metrics if total_metrics > 0 else 0.0
+    acc = total_successes / total_metrics if total_metrics > 0 else 0.0
+    return round(acc * 100, 2)
 
 
-def compute_metric(args, generation_pipeline):
+def compute_metric(task_name, args, generate):
     dataset = helper.read_json(config.PROMPT_ALIGNMENT_DATASET)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     metrics = []
     cases = []
     for entry in dataset:
         prompt_instructions, query = entry['prompt_instructions'], entry['query']
-        output = generation_pipeline(query, max_new_tokens=20, batch_size=args.batch_size)[0]['generated_text']
-        metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions ,include_reason=True))
+        output = generate(query, max_new_tokens = MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
+        metrics.append(PromptAlignmentMetric(prompt_instructions=prompt_instructions, include_reason=True))
         cases.append(LLMTestCase(input=query,actual_output=output,))
 
     result = evaluate(cases, metrics)

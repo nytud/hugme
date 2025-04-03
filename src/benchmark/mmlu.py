@@ -1,42 +1,44 @@
+import random
 from tqdm import tqdm
 
 import config
 import helper
+import template
 
 
 MAX_NEW_TOKENS = 20
 
 
-def benchmark(args, generation_pipeline) -> dict:
+def benchmark(task_name, args, generate) -> dict:
     dataset = helper.read_json(config.DATASETS + "mmlu.json")
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
     dataset = preprocess(dataset)
-    results = generate_results(args, generation_pipeline, dataset)
+    if args.use_gen_results:
+        print("Using generation results from path: ", args.use_gen_results)
+        results = helper.read_json(args.use_gen_results)
+    else:
+        results = generate_results(args, generate, dataset, task_name)
     return compute_scores(args, results)
 
 
 def preprocess(dataset: list):
     for entry in dataset:
-        entry["A"] = "A " + entry["A"]
-        entry["B"] = "B " + entry["B"]
-        entry["C"] = "C " + entry["C"]
-        entry["D"] = "D " + entry["D"]
+        entry["A"] = "A " + str(entry["A"])
+        entry["B"] = "B " + str(entry["B"])
+        entry["C"] = "C " + str(entry["C"])
+        entry["D"] = "D " + str(entry["D"])
     return dataset
 
 
-def generate_results(args, generation_pipeline, dataset: list):
+def generate_results(args, generate, dataset: list, task_name):
     results = []
     for entry in tqdm(dataset, desc="Generating responses", unit="query"):
-        question, target = entry['input'], entry['target']
-        a, b, c, d = entry['A'], entry['B'], entry['C'], entry['D']
-        query = (
-            "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza!"
-            f"Kérdés: {question} Válaszok: {a}, {b}, {c}, {d}"
+        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
+        output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
+        results.append(
+            {"query": entry['input'], "output": output, "target": entry['target'], "category": entry['category']}
         )
-        prompt = helper.get_model_prompt(args.model_name, query)
-        output = generation_pipeline(
-            prompt, batch_size=args.batch_size, max_new_tokens=MAX_NEW_TOKENS
-        )[0]['generated_text']
-        results.append({"query": question, "output": output, "target": target, "category": entry['category']})
     return results
 
 

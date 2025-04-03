@@ -1,5 +1,6 @@
 import os
 import string
+import random
 import requests
 from spellchecker import SpellChecker
 
@@ -11,10 +12,16 @@ import metrics
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
 
 
-def compute_metric(args, generation_pipeline):
+def compute_metric(task_name, args, generate):
     dataset = helper.read_json(config.SPELLING_DATASET)
-    results = metrics.generate_results(args, generation_pipeline, dataset, config.SPELLING)
-    scores = compute_score(args, results, config.SPELLING)
+    sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
+    dataset = random.sample(dataset, sample_size)
+    if args.use_gen_results:
+        print("Using generation results from path: ", args.use_gen_results)
+        results = helper.read_json(args.use_gen_results)
+    else:
+        results = metrics.generate_results(args, generate, dataset, config.SPELLING)
+    scores = compute_score(args, results, task_name)
     return scores
 
 

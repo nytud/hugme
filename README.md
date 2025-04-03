@@ -25,16 +25,17 @@ hugme
 
 | Parameter         | Description |
 |------------------|-------------|
-| `--model-name`   | Name of the model (local path or Hugging Face model). |
-| `--tokenizer-name` | *(Optional)* Specify only if different from the model. |
-| `--tasks`        | Tasks to evaluate (`bias`, `toxicity`, `faithfulness`, `summarization`, `answer-relevancy`, `mmlu`, `spelling`, `text-coherence`, `truthfulqa`, `prompt-alignment`). |
+| `--model-name`   | Name of the model (local path, Hugging Face model or OpenAI models). |
+| `--tasks`        | Tasks to evaluate (`bias`, `toxicity`, `faithfulness`, `hallucination`, `summarization`, `answer-relevancy`, `mmlu`, `spelling`, `text-coherence`, `truthfulqa`, `prompt-alignment`, `readability`, `needle-in-haystack`). |
 | `--judge`        | Default: `"gpt-3.5-turbo-1106"`. Specifies the judge model for evaluations. |
 | `--use-cuda`     | Default: `True`. Enables GPU acceleration. |
-| `--cuda-id`      | Default: `1`. Specifies which GPU to use. Indexing starts from 1 |
+| `--cuda-id`      | Default: `1`. Specifies which GPU to use. Indexing starts from 0 |
 | `--seed`         | Sets a random seed for reproducibility. |
-| `--parameters`   | Path to a JSON configuration file for model parameters. |
+| `--parameters`   | Path to a JSON configuration file for model parameters. See below for example. |
 | `--save-results` | Default: `True`. Whether to save evaluation results. |
-| `--batch-size` | Default: `1`. The number of batches to run concurrently |
+| `--use-alpaca-prompt` | Default: `False`. Use alpaca prompt. |
+| `--provider` | Default: `False`. Provider to use. Choices: (`openai`) |
+| `--sample-size` | Default: `1.0`. Sample size (percenatage) from task's dataset. Choices: (`openai`) |
 
 #### 🛠 Configure datasets
 
@@ -104,7 +105,7 @@ Tests the model's ability to condense Hungarian texts while retaining key inform
 
 ### 6️⃣ Prompt Alignment
 
-Evaluates models' ability to execute Hungarian commands accurately. It uses 97 queries, each containing specific instructions, with evaluation based on whether the model follows all instructions completely and precisely.
+Evaluates models' ability to execute Hungarian commands accurately. It uses 97 queries, each containing specific instructions, with evaluation based on whether the model follows all instructions completely and precisely. Max new tokens minimum is 256.
 
 ### 7️⃣ Spelling
 
@@ -126,6 +127,9 @@ Adapts the MMLU benchmark for Hungarian by machine-translating and manually refi
 
 Tests LLM performance in extracting specific information ("needle") from large bodies of Hungarian text ("haystack") to assess their ability to focus on relevant details within a complex context. Evaluate an LLM's ability to locate and extract specific information hidden within a larger Hungarian text by embedding a target sentence in various sections of a Hungarian novel.
 
+Providers like OpenAI are currently unsupported for this metric.
+
 # 🤝 Contributing
 
 Contributions to HuGME are welcome! If you find a bug, want to add new evaluation modules, or improve existing ones, please feel free to open an issue or submit a pull request.
+

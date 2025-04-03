@@ -1,20 +1,22 @@
 from typing import Dict, List
 import random
-import re
 import torch
-import config
-from helper import read_file
 
-MAX_CONTEXT_LENGTH = 1024
+import config
+import helper
+import template
+
+
 TURNS = 2
 MAX_NEW_TOKENS = 20
+MAX_CONTEXT_LENGTH = 1024
 HUNDREDTH = 0.01
 GOOD_SOLUTION = 1.0
 BAD_SOLUTION = 0.0
 
 
 def select_needle(generation_pipeline):
-    cities = read_file(config.NEEDLE_FILE).split("\n")
+    cities = helper.read_file(config.NEEDLE_FILE).split("\n")
     random_city = random.choice(cities)
     anniversary = random.randint(1, 100)
     needle_text = (
@@ -42,13 +44,7 @@ def insert_needle(cutted_haystack, fraction, tokenized_needle):
     )
 
 
-def clean_answer(answer):
-    return re.sub(r"\D", "", str(answer))
-
-
-def generate_answer_scores(
-    cutted_haystack, city, anniversary, generation_pipeline, tokenized_needle
-):
+def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeline, tokenized_needle):
     system_prompt = (
         f"Kizárólag a következő szöveg alapján, "
         f"hanyadik évfordulóját ünnepelte {city} város?\n"
@@ -62,14 +58,16 @@ def generate_answer_scores(
         full_stack_text = generation_pipeline.tokenizer.convert_tokens_to_string(
             tokenized_haystack_with_needle
         )
+        entry = {"system_prompt": system_prompt, "full_stack_text": full_stack_text}
+        prompt = template.get_prompt("needle-in-haystack", entry)
 
         with torch.no_grad():
             actual_answer = generation_pipeline(
-                text_inputs=f"{system_prompt}\n {full_stack_text}",
+                text_inputs=prompt,
                 max_new_tokens=MAX_NEW_TOKENS,
             )
 
-        answer = clean_answer(actual_answer)
+        answer = helper.clean_answer(actual_answer)
         if str(answer).strip() == str(anniversary):
             goodness = 1.0
         elif len(str(actual_answer)) >= 3 and str(anniversary) in str(actual_answer):
@@ -89,9 +87,7 @@ def generate_answer_scores(
     return new_rows
 
 
-def evaluate_haystack_context(
-    tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline
-):
+def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline):
     results = []
     for i in range(10, 110, 10):
         cutted_haystack = cut_haystack(i, tokenized_haystack, tokenized_needle)
@@ -107,9 +103,9 @@ def evaluate_haystack_context(
     return results
 
 
-def compute_metric(generation_pipeline) -> List[Dict[str, float]]:
+def compute_metric(task_name, args, generation_pipeline) -> List[Dict[str, float]]:
     tokenized_needle, city, anniversary = select_needle(generation_pipeline)
-    haystack = read_file(config.HAYSTACK_DATASET)
+    haystack = helper.read_file(config.HAYSTACK_DATASET)
     tokenized_haystack = generation_pipeline.tokenizer.tokenize(haystack)
     results = []
     for _ in range(TURNS):
