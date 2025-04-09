@@ -73,7 +73,7 @@ def get_truthful_qa_template(entry: Dict) -> str:
 def get_mmlu_template(entry: Dict) -> str:
     question, a, b, c, d = entry['input'], entry['A'], entry['B'], entry['C'], entry['D']
     return (
-            "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza!"
+            "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza! "
             f"Kérdés: {question}\nVálaszok: {a}, {b}, {c}, {d}"
         )
 

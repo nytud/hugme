@@ -79,6 +79,11 @@ Alternatively, provide them inline when running the evaluation:
 OPENAI_KEY=sk-examplekey hugme --model-name NYTK/PULI-LlumiX-32K --tasks mmlu
 ```
 
+## 🧠 Results
+
+After running metrics and/or benchmarks, all generation and evaluations outputs are saved inside the `results/` directory.
+
+
 ## 📊 Evaluation Tasks
 
 HuGME includes multiple tasks to evaluate different aspects of LLM performance in Hungarian. Calculation can also be found [here](https://docs.confident-ai.com/docs/getting-started).
