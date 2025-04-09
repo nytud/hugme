@@ -7,4 +7,3 @@ transformers
 sentencepiece
 pyspellchecker
 textstat
-flash-attn

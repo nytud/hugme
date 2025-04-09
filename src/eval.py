@@ -61,14 +61,15 @@ def get_generation(task_name, args):
         raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
 
     if args.model_name and not args.provider:
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=config.HF_TOKEN, trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(args.model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left")
+        tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True)
         pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
         if task_name == config.NIH: # needle in haystack requires special handling
             return pipe
 
-    def generate(prompt, **kwargs) -> str:
+    def generate(prompts, **kwargs):
 
         alpaca_prompt = None
         if "alpaca_prompt" in kwargs:
@@ -78,22 +79,25 @@ def get_generation(task_name, args):
 
         logging.debug(f"Generating with parameters: {parameters}")
 
-        result: list = pipe(prompt, **parameters)
-        generated_text: str = result[0]["generated_text"]
+        results = pipe(prompts, **parameters)
 
-        logging.debug(f"Prompt: {prompt}")
-        logging.debug(f"Parameters: {parameters}")
-        logging.debug(f"Result: {result}")
-        logging.debug(f"Generated text: {generated_text}")
-
-        if alpaca_prompt:
-            output = generated_text.split("### Válasz:")[1]
+        if parameters.get("batch_size", 1) > 1:
+            generated_texts = [r[0]["generated_text"] for r in results]
+            print(f"Generated texts: {generated_texts}")
         else:
-            if isinstance(generated_text, str):
-                output = generated_text
-            else:
-                output = generated_text[-1]["content"]
-        return output
+            generated_texts = results[0]["generated_text"]
+
+        logging.debug(f"Prompt: {prompts}")
+        logging.debug(f"Parameters: {parameters}")
+        logging.debug(f"Result: {results}")
+        logging.debug(f"Generated text: {generated_texts}")
+
+        # if isinstance(generated_text, str):
+        #     output = generated_text
+        # else:
+        #     output = generated_text[-1]["content"]
+        # return output
+        return generated_texts
 
     def generate_with_openai(prompt, **parameters) -> str:
 
