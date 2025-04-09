@@ -21,5 +21,9 @@ srun -w lolka --gres=gpu:1 --mem=5000 hugme --model-name Qwen/Qwen2.5-7B-Instruc
 # error:
 
 srun -w lolka --gres=gpu:1 --mem=5000 hugme --model-name meta-llama/Llama-3.1-8B-Instruct --tasks mmlu --parameters /home/osvathm/hugme/parameters.json
-srun -w lolka --gres=gpu:1 --mem=5000 hugme --model-name microsoft/Phi-4-mini-instruct --tasks mmlu --parameters /home/osvathm/hugme/parameters.json
+srun -w lolka --gres=gpu:1 --mem=5000 hugme --model-name microsoft/Phi-4-mini-instruct --tasks mmlu --parameters /home/osvathm/hugme/parameters.json --cuda-ids 0,1,2,3
+
+hugme --model-name microsoft/Phi-4-mini-instruct --tasks mmlu --parameters /home/osvathm/hugme/parameters.json --cuda-ids 0,1,2,3
+hugme --model-name google/gemma-3-4b-it --tasks mmlu --parameters /home/osvathm/hugme/parameters.json --cuda-ids 0,1,2,3
+hugme --model-name NYTK/puli-llumix-instruct --tasks mmlu --parameters /home/osvathm/hugme/parameters.json --cuda-ids 0,1,2,3 --use-alpaca-prompt
 ```
