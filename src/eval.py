@@ -83,7 +83,6 @@ def get_generation(task_name, args):
 
         if parameters.get("batch_size", 1) > 1:
             generated_texts = [r[0]["generated_text"] for r in results]
-            print(f"Generated texts: {generated_texts}")
         else:
             generated_texts = results[0]["generated_text"]
 
