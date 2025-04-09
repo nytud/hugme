@@ -52,7 +52,7 @@ def compute_scores(args, results: list):
             entry['score'] = 0.0
     total_score = score / len(results)
 
-    print(f"MMLU benchmark score: {total_score}")
+    print(f"MMLU benchmark score: {round(total_score * 100, 2)}%")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, "mmlu-results.json")
 
