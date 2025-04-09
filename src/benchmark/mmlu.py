@@ -31,14 +31,22 @@ def preprocess(dataset: list):
     return dataset
 
 
+def generate_batches(dataset, batch_size):
+    for i in range(0, len(dataset), batch_size):
+        yield dataset[i:i + batch_size]
+
+
 def generate_results(args, generate, dataset: list, task_name):
     results = []
-    for entry in tqdm(dataset, desc="Generating responses", unit="query"):
-        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
-        output = generate(prompt, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt)
-        results.append(
-            {"query": entry['input'], "output": output, "target": entry['target'], "category": entry['category']}
-        )
+    total_batches = len(dataset) // args.batch_size + (1 if len(dataset) % args.batch_size != 0 else 0)
+    for batch_entry in tqdm(generate_batches(dataset, args.batch_size), desc="Generating responses", total=total_batches, unit="query"):
+        prompts = [template.get_prompt(task_name, entry, args.use_alpaca_prompt) for entry in batch_entry]
+        outputs = generate(prompts, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt, batch_size=args.batch_size)
+
+        for output, entry in zip(outputs, batch_entry):
+            results.append(
+                {"query": entry['input'], "output": output, "target": entry['target'], "category": entry['category']}
+            )
     return results
 
 
@@ -52,7 +60,7 @@ def compute_scores(args, results: list):
             entry['score'] = 0.0
     total_score = score / len(results)
 
-    print(f"MMLU benchmark score: {total_score}")
+    print(f"MMLU benchmark score: {round(total_score * 100, 2)}%")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, "mmlu-results.json")
 

@@ -38,7 +38,7 @@ def cli() -> None:
     parser.add_argument("--parameters", type=str, default=None, help="path to JSON config file for model params")
     parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save results')
     parser.add_argument("--use-gen-results", type=Path, default=None, help='use generation results from path')
-    parser.add_argument("--batch-size", type=int, default=1, help="batch size for generation")
+    parser.add_argument("--batch-size", type=int, default=2, help="batch size for generation")
     parser.add_argument("--provider", type=str, default=None, choices=['openai'])
     parser.add_argument("--use-alpaca-prompt", type=lambda x: x.lower()=='true', default=False)
     parser.add_argument("--sample-size", type=float, default=1.0, help="sample size for evaluation")
