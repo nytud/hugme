@@ -36,6 +36,19 @@ def generate_batches(dataset, batch_size):
         yield dataset[i:i + batch_size]
 
 
+def post_process_llama(output):
+    keyword = "válasz"
+    index = output.lower().find(keyword)
+    
+    if index != -1:
+        
+        if index + len(keyword) < len(output) and output[index + len(keyword)] == ":":
+            return output[index + len(keyword) + 1:].strip()  
+        else:
+            return output[index + len(keyword):].strip()  
+    else:
+        return output  
+
 def generate_results(args, generate, dataset: list, task_name):
     results = []
     total_batches = len(dataset) // args.batch_size + (1 if len(dataset) % args.batch_size != 0 else 0)
@@ -44,8 +57,9 @@ def generate_results(args, generate, dataset: list, task_name):
         outputs = generate(prompts, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt, batch_size=args.batch_size)
 
         for output, entry in zip(outputs, batch_entry):
+            actual_output_text = post_process_llama(str(output))
             results.append(
-                {"query": entry['input'], "output": output, "target": entry['target'], "category": entry['category']}
+                {"query": entry['input'], "output": actual_output_text, "target": entry['target'], "category": entry['category']}
             )
     return results
 
