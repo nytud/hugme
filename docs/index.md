@@ -22,11 +22,11 @@ HuGME combines several evaluation strategies to deliver a robust assessment:
 - **Comprehensive metrics:** Each module is designed to measure specific dimensions including bias mitigation, prompt alignment, and factual consistency.
 
 For detailed documentation, refer to our module breakdown:
-- Bias & Toxicity Testing
-- Relevance & Faithfulness Analysis
-- Summarization & Prompt Alignment
-- Specialized Linguistic Evaluations
 
+- LLM-as-a-judge
+- Language proficiency
+- World knowledge
+- Needle in the haystack
 ---
 
 
