@@ -31,7 +31,7 @@ def evaluate(args) -> None:
 
     for task_name in args.tasks:
 
-        generate = get_generation(task_name, args)
+        generate = get_generation(task_name, args) if not args.use_gen_results else None
 
         logging.info(f"Started evaluation on {task_name}.")
         task_start_time = time.time()

@@ -17,7 +17,7 @@ def compute_metric(task_name, args, generate):
         "faithfulness": metrics.FaithfulnessMetric(threshold=0.5, model=args.judge),
         "hallucination": metrics.HallucinationMetric(threshold=0.5, model=args.judge),
         "summarization": metrics.SummarizationMetric(threshold=0.5, model=args.judge),
-        "answer-relavancy": metrics.AnswerRelevancyMetric(threshold=0.7, model=args.judge),
+        "answer-relevancy": metrics.AnswerRelevancyMetric(threshold=0.7, model=args.judge),
     }
     metric = _metrics.get(task_name)
     dataset_name = config.METRIC_DATASETES.get(task_name)
