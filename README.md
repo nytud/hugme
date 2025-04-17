@@ -69,7 +69,7 @@ HuGME allows model parameters to be configured via a JSON file for the Hugginfac
 To authenticate with OpenAI or Hugging Face, set your API keys as environment variables:
 
 ```bash
-export OPENAI_KEY=sk-examplekey
+export OPENAI_API_KEY=sk-examplekey
 export HF_TOKEN=hf-exampletoken
 ```
 
