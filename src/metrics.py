@@ -17,7 +17,7 @@ def compute_metric(task_name, args, generate):
         "faithfulness": metrics.FaithfulnessMetric(threshold=0.5, model=args.judge),
         "hallucination": metrics.HallucinationMetric(threshold=0.5, model=args.judge),
         "summarization": metrics.SummarizationMetric(threshold=0.5, model=args.judge),
-        "answer-relavancy": metrics.AnswerRelevancyMetric(threshold=0.7, model=args.judge),
+        "answer-relevancy": metrics.AnswerRelevancyMetric(threshold=0.7, model=args.judge),
     }
     metric = _metrics.get(task_name)
     dataset_name = config.METRIC_DATASETES.get(task_name)
@@ -43,6 +43,8 @@ def generate_results(args, generate, dataset, task_name):
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )
+    if args.save_results:
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
     return results
 
 
@@ -57,10 +59,10 @@ def compute_score(args, results: list, metric, task_name: str):
         if task_name == "summarization":
             metric.assessment_questions = entry["questions"]
         metric.measure(test_case)
-        total_score += float(metric.score)
+        total_score += int(metric.success)
         measurement_results.append(
         {
-            "index": i, "score": metric.score, "reason": metric.reason,
+            "index": i, "success": metric.success, "score": metric.score, "reason": metric.reason,
             "input": entry["input"], "output": entry["output"],
             "context": entry.get("context"), "questions": entry.get("questions")
         }
