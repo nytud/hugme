@@ -76,7 +76,7 @@ export HF_TOKEN=hf-exampletoken
 Alternatively, provide them inline when running the evaluation:
 
 ```bash
-OPENAI_KEY=sk-examplekey hugme --model-name NYTK/PULI-LlumiX-32K --tasks mmlu
+OPENAI_API_KEY=sk-examplekey hugme --model-name NYTK/PULI-LlumiX-32K --tasks mmlu
 ```
 
 ## 🧠 Results
