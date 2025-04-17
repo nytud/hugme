@@ -57,10 +57,10 @@ def compute_score(args, results: list, metric, task_name: str):
         if task_name == "summarization":
             metric.assessment_questions = entry["questions"]
         metric.measure(test_case)
-        total_score += float(metric.score)
+        total_score += int(metric.success)
         measurement_results.append(
         {
-            "index": i, "score": metric.score, "reason": metric.reason,
+            "index": i, "success": metric.success, "score": metric.score, "reason": metric.reason,
             "input": entry["input"], "output": entry["output"],
             "context": entry.get("context"), "questions": entry.get("questions")
         }
