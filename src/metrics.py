@@ -43,6 +43,8 @@ def generate_results(args, generate, dataset, task_name):
         results.append(
             {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
         )
+    if args.save_results:
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
     return results
 
 
