@@ -13,6 +13,21 @@ theme:
     - search.suggest
     - toc.follow
     - toc.integrate
+  nav:
+    - Home:
+      - index.md
+    - Modules:
+      - Modules.md
+    - Results:
+      - Results.md
+    - Downloads:
+      - Downloads.md
+    - News: 
+      - News.md
+    - About:
+      - About.md
+    - Contact:
+      - Contact.md
   logo: assets/logo.png
   favicon: assets/favicon.svg
   palette:

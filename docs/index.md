@@ -32,10 +32,10 @@ For detailed documentation, refer to our module breakdown:
 
 ## Navigation
 
-- **Overview:** Learn more about the HuGME framework and its objectives.
 - **Modules:** Access detailed documentation on each evaluation module.
 - **Results:** View comprehensive evaluation reports and leaderboards.
 - **Downloads:** Get the HuGME paper and evaluation scripts.
+- **News:** Keep up-to-date with HuGME. 
 - **About:** Discover our team, partners, and the inspiration behind HuGME.
 - **Contact:** Reach out for collaborations or inquiries.
 
