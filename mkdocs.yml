@@ -1,11 +1,53 @@
 site_name: HuGME
+nav:
+  - Home: index.md
+  - Modules: Modules.md
+  - Results: Results.md
+  - Downloads: Downloads.md
+  - News: News.md
+  - About: About.md
+  - Contact: Contact.md
 theme:
   name: material
   language: hu
   features:
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.path
+    - search.highlight
+    - search.suggest
+    - toc.follow
     - toc.integrate
   logo: assets/logo.png
-  favicon: images/favicon.png
+  favicon: assets/favicon.svg
+  palette:
+    scheme: slate
+    primary: black
+    accent: yellow
+  palette:
+    - media: "(prefers-color-scheme)"
+      accent: yellow
+      primary: black
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      accent: yellow
+      primary: black
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      accent: yellow
+      primary: black
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
 
 
 site_url: https://hugme.nytud.hu/

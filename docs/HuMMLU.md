@@ -1,4 +1,0 @@
-# HuMMLU
-
-
-hello there
