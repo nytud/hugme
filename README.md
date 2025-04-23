@@ -90,27 +90,27 @@ HuGME includes multiple tasks to evaluate different aspects of LLM performance i
 
 ### 1️⃣ Bias
 
-Assesses language model outputs for biased content through systematic opinion analysis across gender, politics, race/ethnicity, and geographical dimensions. It employs a dataset of 62 carefully crafted queries designed to potentially elicit biased responses, with models required to prefix their outputs using opinion indicators (such as "I think," "I believe," or "In my opinion" - or their Hungarian equivalents "Szerintem," "Úgy gondolom," or "Véleményem szerint"). This prefixing requirement facilitates opinion extraction, which is crucial since unbiased responses typically lack opinionated content.
+Assesses language model outputs for biased content through systematic opinion analysis across gender, politics, race/ethnicity, and geographical dimensions. It employs a dataset of 100 carefully crafted queries designed to potentially elicit biased responses, with models required to prefix their outputs using opinion indicators (such as *Szerintem* 'I think', *Úgy gondolom* 'I believe', or *Véleményem szerint* 'In my opinion'). This prefixing requirement facilitates opinion extraction, which is crucial since unbiased responses typically lack opinionated content.
 
 ### 2️⃣ Toxicity
 
-Evaluates language models' tendency to generate harmful or offensive content by analyzing opinions extracted from model responses to 88 specialized queries. An opinion is classified as toxic if it contains personal attacks, mockery, hate speech, dismissive statements, or threats that degrade or intimidate others, while non-toxic opinions are characterized by respectful engagement, openness to discussion, and constructive critique of ideas rather than individuals.
+Evaluates language models' tendency to generate harmful or offensive content by analyzing opinions extracted from model responses to 100 specialized queries. An opinion is classified as toxic if it contains personal attacks, mockery, hate speech, dismissive statements, or threats that degrade or intimidate others, while non-toxic opinions are characterized by respectful engagement, openness to discussion, and constructive critique of ideas rather than individuals.
 
-### 3️⃣ Answer Relevancy
+### 3️⃣ Answer relevancy
 
-Evaluates the model's ability to generate contextually appropriate responses by comparing individual output statements against the input query. Using 50 diverse test queries spanning history, logic, and Hungarian idioms, the module assesses whether responses stay on topic and avoid contradictions, focusing on relevance rather than factual accuracy.
+Evaluates the model's ability to generate contextually appropriate responses by comparing individual output statements against the input query. Using 100 diverse test queries spanning history, logic, and Hungarian idioms, the module assesses whether responses stay on topic and avoid contradictions, focusing on relevance rather than factual accuracy.
 
 ### 4️⃣ Faithfulness
 
-Examines factual accuracy by comparing model outputs against provided context across 49 queries. Each query includes detailed context, with the evaluation focused on verifying that extracted claims align with the given factual information.
+Examines factual accuracy by comparing model outputs against provided context across 100 queries. Each query includes detailed context, with the evaluation focused on verifying that extracted claims align with the given factual information.
 
 ### 5️⃣ Summarization
 
-Tests the model's ability to condense Hungarian texts while retaining key information. Using 38 texts, evaluation is based on whether two predefined yes/no questions can be answered from each generated summary, ensuring critical details remain while allowing flexibility in presentation.
+Tests the model's ability to condense Hungarian texts while retaining key information. Using 50 texts, evaluation is based on whether four predefined yes/no questions can be answered from each generated summary, ensuring critical details remain while allowing flexibility in presentation.
 
-### 6️⃣ Prompt Alignment
+### 6️⃣ Prompt alignment
 
-Evaluates models' ability to execute Hungarian commands accurately. It uses 97 queries, each containing specific instructions, with evaluation based on whether the model follows all instructions completely and precisely. Max new tokens minimum is 256.
+Evaluates models' ability to execute Hungarian commands accurately. It uses 100 queries, each containing specific instructions, with evaluation based on whether the model follows all instructions completely and precisely. Max new tokens minimum is 256.
 
 ### 7️⃣ Spelling
 
