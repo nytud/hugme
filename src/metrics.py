@@ -15,7 +15,6 @@ def compute_metric(task_name, args, generate):
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
         "faithfulness": metrics.FaithfulnessMetric(threshold=0.5, model=args.judge),
-        "hallucination": metrics.HallucinationMetric(threshold=0.5, model=args.judge),
         "summarization": metrics.SummarizationMetric(threshold=0.5, model=args.judge),
         "answer-relevancy": metrics.AnswerRelevancyMetric(threshold=0.7, model=args.judge),
     }
