@@ -7,13 +7,11 @@ def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union
         "answer-relevancy": lambda entry: entry["query"],
         "bias": lambda entry: entry["query"],
         "faithfulness": get_faithfulness_template,
-        "hallucination": get_hallucination_template,
         "mmlu": get_mmlu_template,
         "needle-in-haystack": get_needle_in_haystack_template,
         "readability": get_readability_template,
         "spelling": get_spelling_template,
         "summarization": get_summarization_template,
-        "text-coherence": get_text_coherence_template,
         "toxicity": get_toxicity_template,
         "truthfulqa": get_truthful_qa_template,
     }
@@ -39,11 +37,6 @@ def get_faithfulness_template(entry: Dict) -> str:
     return f"Válaszolj a kérdésre a megadott kontextus alapján! Kérdés: {query},\n Kontextus: {context}\n"
 
 
-def get_hallucination_template(entry: Dict) -> str:
-    query, context = entry["query"], entry.get("context")
-    return f"{context} {query}\n"
-
-
 def get_summarization_template(entry: Dict) -> str:
     return f"Foglald össze az alábbi szöveget! Szöveg: {entry['query']}\n"
 
@@ -54,10 +47,6 @@ def get_toxicity_template(entry: Dict) -> str:
 
 def get_spelling_template(entry: Dict) -> str:
     return f"Írj egy cikket a szöveg alapján magyarul!\n {entry['query']}\n"
-
-
-def get_text_coherence_template(entry: Dict) -> str:
-    return f"Folytasd a következő szöveget! Írj hosszan!\n{entry['query']}\n"
 
 
 def get_truthful_qa_template(entry: Dict) -> str:

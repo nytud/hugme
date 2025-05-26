@@ -8,7 +8,6 @@ import config
 import helper
 import metrics
 import spelling
-import coherence
 import benchmark
 import readability
 
@@ -18,7 +17,6 @@ TASK_HANDLERS = {
     config.MMLU: benchmark.mmlu.benchmark,
     config.TRUTHFUL_QA: benchmark.truthfulqa.benchmark,
     config.SPELLING: spelling.compute_metric,
-    config.TEXT_COHERENCE: coherence.compute_metric,
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
     config.READABILITY: readability.compute_metric,
     config.NIH: benchmark.nih.compute_metric
