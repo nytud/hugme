@@ -34,14 +34,16 @@ def cut_haystack(fraction, tokenized_haystack, tokenized_needle):
 
 
 def insert_needle(cutted_haystack, fraction, tokenized_needle):
-    lower_bound = int(len(cutted_haystack) * ((fraction - MAX_NEW_TOKENS) * HUNDREDTH))
+    lower_bound = max(0, int(len(cutted_haystack) * ((fraction-10) * HUNDREDTH)))
     upper_bound = int(len(cutted_haystack) * (fraction * HUNDREDTH))
     insert_position = random.randint(lower_bound, upper_bound)
+    
     return (
         cutted_haystack[:insert_position]
         + tokenized_needle
         + cutted_haystack[insert_position:]
     )
+
 
 
 def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeline, tokenized_needle):
@@ -51,7 +53,7 @@ def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeli
         "Csak egy számot adj vissza!"
     )
     new_rows = []
-    for j in range(MAX_NEW_TOKENS, 100 + MAX_NEW_TOKENS, MAX_NEW_TOKENS):
+    for j in range(10, 110, 10):
         tokenized_haystack_with_needle = insert_needle(
             cutted_haystack, j, tokenized_needle
         )
@@ -65,12 +67,14 @@ def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeli
             actual_answer = generation_pipeline(
                 text_inputs=prompt,
                 max_new_tokens=MAX_NEW_TOKENS,
+                return_full_text = False,
             )
 
         answer = helper.clean_answer(actual_answer)
-        if str(answer).strip() == str(anniversary):
+
+        if str(answer).strip() == str(anniversary) and len(str(actual_answer[0]["generated_text"])) <= 3:
             goodness = 1.0
-        elif len(str(actual_answer)) >= 3 and str(anniversary) in str(actual_answer):
+        elif len(str(actual_answer[0]["generated_text"])) >= 3 and str(anniversary) in str(actual_answer[0]["generated_text"]):
             goodness = 0.5
         else:
             goodness = 0
@@ -84,7 +88,9 @@ def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeli
         }
         torch.cuda.empty_cache()
         new_rows.append(new_row)
+        answer = None
     return new_rows
+
 
 
 def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline):
