@@ -69,9 +69,8 @@ def get_generation(task_name, args):
 
     def generate(prompts, **kwargs):
 
-        alpaca_prompt = None
         if "alpaca_prompt" in kwargs:
-            alpaca_prompt = kwargs.pop("alpaca_prompt")
+            kwargs.pop("alpaca_prompt")
 
         parameters.update(kwargs)
 
@@ -89,11 +88,6 @@ def get_generation(task_name, args):
         logging.debug(f"Result: {results}")
         logging.debug(f"Generated text: {generated_texts}")
 
-        # if isinstance(generated_text, str):
-        #     output = generated_text
-        # else:
-        #     output = generated_text[-1]["content"]
-        # return output
         return generated_texts
 
     def generate_with_openai(prompt, **parameters) -> str:
