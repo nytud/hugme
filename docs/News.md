@@ -1,3 +1,10 @@
 # News
 
-We don’t have any news just yet – stay tuned! New feature announcements, evaluation tips, and user stories will appear here soon.
+📅 **July 24, 2025**  
+📍 **Vienna, Austria**
+
+# HuGME to be presented at ACL 2025
+
+We are pleased to announce that **HuGME** will be presented at the **GEM2 Workshop** during **ACL 2025**, taking place next week in **Vienna**.
+
+If you're attending ACL, we warmly invite you to join the session and connect with us!

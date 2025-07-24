@@ -1,8 +1,6 @@
 
 # HuGME – Hungarian Generative Model Evaluation Benchmark
 
-**How good is your Hungarian?**
-
 **HuGME** is an advanced evaluation framework designed to assess the linguistic and cultural capabilities of Large Language Models (LLMs) in Hungarian. Partially employing the [DeepEval](https://docs.confident-ai.com/) methodology, HuGME provides a comprehensive, multi-dimensional assessment that covers everything from bias and toxicity to readability and factual accuracy.
 
 ## What is HuGME?
