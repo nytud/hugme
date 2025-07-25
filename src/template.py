@@ -38,7 +38,7 @@ def get_faithfulness_template(entry: Dict) -> str:
 
 
 def get_summarization_template(entry: Dict) -> str:
-    return f"Foglald össze az alábbi szöveget! Szöveg: {entry['query']}\n"
+    return f"Foglald össze az alábbi szöveget! Szöveg: {entry['input']}\n"
 
 
 def get_toxicity_template(entry: Dict) -> str:
@@ -46,7 +46,7 @@ def get_toxicity_template(entry: Dict) -> str:
 
 
 def get_spelling_template(entry: Dict) -> str:
-    return f"Írj egy cikket a szöveg alapján magyarul!\n {entry['query']}\n"
+    return f"Foglald össze az alábbi szöveget! Szöveg: {entry['input']}\n"
 
 
 def get_truthful_qa_template(entry: Dict) -> str:

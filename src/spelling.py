@@ -26,35 +26,36 @@ def compute_metric(task_name, args, generate):
 
 
 def compute_score(args, results: list, task_name: str):
-    spelling_score, llm_spelling_score = 0.0, 0.0
+    text_lens, misspelled_count = 0, 0
     spelling_results = []
     for i, entry in enumerate(results):
         output = entry["output"]
-        spelling, bad_words, score = check_spelling(output)
-        llm_score = check_spelling_with_llm(bad_words)
+        text_len, misspelled, correct_rate = check_spelling(output)
         spelling_results.append(
             {
-                "index": i, "output": output, "spelling": spelling,
-                "bad_words": bad_words, "score": score, "llm_score": llm_score
+                "index": i, "output": output,
+                "misspelled": misspelled, "correct_rate": correct_rate
             }
         )
-        spelling_score += score
-        llm_spelling_score += llm_score
+        text_lens += text_len
+        misspelled_count += len(misspelled)
+
     if args.save_results:
         helper.save_json(spelling_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
-    spelling_score = spelling_score / len(results) * 100
-    llm_spelling_score = llm_spelling_score / len(results) * 100
-    print(f"Spell checking results score: {spelling_score}, llm-score: {llm_spelling_score}")
-    return {"score": spelling_score, "llm-score": llm_spelling_score}
+
+    spelling_score = (1 - misspelled_count / text_lens) * 100
+
+    print(f"Spell checking results score: {spelling_score}")
+    return {"score": spelling_score}
 
 
 def check_spelling(text: str):
     text = remove_punctuation(text)
     texts = text.split()
+    text_len = len(texts)
     misspelled = list(spell.unknown(texts))
-    if misspelled:
-        return "BAD", misspelled, 0
-    return "OK", misspelled, 1
+    correct_rate = 1 - len(misspelled) / text_len
+    return text_len, misspelled, correct_rate
 
 
 def remove_punctuation(text: str) -> str:
