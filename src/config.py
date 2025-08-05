@@ -19,6 +19,7 @@ NEEDLE_FILE = DATASETS + os.getenv("NEEDLE_FILE", "nih_needle.txt")
 TRUTHFUL_QA_DATASET = DATASETS + os.getenv("TRUTHFUL_QA_DATASET", "truthful-qa.json")
 PROMPT_ALIGNMENT_DATASET = DATASETS + os.getenv("PROMPT_ALIGNMENT_DATASET", "prompt-alignment.json")
 READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.json")
+COLA_DATASET = DATASETS + os.getenv("COLA_DATASET", "summarization.json")
 
 
 METRIC_DATASETES = {
@@ -36,4 +37,7 @@ SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"
 PROMPT_ALIGNMENT = "prompt-alignment"
 READABILITY = "readability"
+COLA = "cola"
 METRICS = list(METRIC_DATASETES.keys())
+
+BERT_MODEL = os.getenv("BERT_MODEL")

@@ -3,7 +3,11 @@ torch
 openai
 deepeval
 accelerate
-transformers
+transformers==4.54.1
 sentencepiece
 pyspellchecker
 textstat
+peft
+scipy
+torchvision
+huspacy

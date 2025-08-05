@@ -19,7 +19,8 @@ TASK_HANDLERS = {
     config.SPELLING: spelling.compute_metric,
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
     config.READABILITY: readability.compute_metric,
-    config.NIH: benchmark.nih.compute_metric
+    config.NIH: benchmark.nih.compute_metric,
+    config.COLA: benchmark.cola.compute_metric,
 }
 
 def evaluate(args) -> None:
