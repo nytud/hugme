@@ -41,3 +41,4 @@ COLA = "cola"
 METRICS = list(METRIC_DATASETES.keys())
 
 BERT_MODEL = os.getenv("BERT_MODEL")
+HUSPACY_MODEL_NAME = "hu_core_news_lg"

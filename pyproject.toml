@@ -39,6 +39,7 @@ dependencies = [
     "scipy",
     "torchvision",
     "huspacy",
+    "spacy",
     "openai"
 ]
 

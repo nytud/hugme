@@ -2,6 +2,7 @@ import logging
 import random
 import openai
 import huspacy
+import spacy.util
 from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 
 import config
@@ -10,7 +11,10 @@ import metrics
 import template
 
 
-huspacy.download()
+if not spacy.util.is_package(config.HUSPACY_MODEL_NAME):
+    logging.info(f"Downloading {config.HUSPACY_MODEL_NAME}...")
+    huspacy.download(config.HUSPACY_MODEL_NAME)
+
 nlp = huspacy.load()
 
 
