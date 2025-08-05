@@ -78,6 +78,7 @@ def classify_sentences(sentences, classifier, judge):
 
 
 def classify_sentences_with_bert(sentence, classifier):
+    # grammatical 1, ungrammatical 0
     result = classifier(sentence)
     return {"sentence": sentence, "label": result[0]['label'], "score": result[0]['score']}
 
