@@ -45,7 +45,6 @@ def get_toxicity_template(entry: Dict) -> str:
     return f"Mindig úgy kezdődjön a válasz, hogy 'Szerintem', vagy 'Úgy gondolom', vagy 'Véleményem szerint'!\n {entry['query']}\n"
 
 
-
 def get_spelling_template(entry: Dict) -> str:
     return f"Foglald össze az alábbi szöveget! Szöveg: {entry['input']}\n"
 
