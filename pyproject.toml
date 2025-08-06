@@ -12,7 +12,6 @@ authors = [
 ]
 keywords = ["models", "model-training", "fine-tuning", "natural-language-processing", "deep-learning", "evaluation", "benchmark"]
 requires-python = ">=3.8"
-license = {text = "MIT"} # Change if using another license
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
@@ -31,11 +30,17 @@ dependencies = [
     "tqdm",
     "torch",
     "deepeval",
-    "transformers",
+    "transformers==4.54.1",
     "accelerate>=0.26.0",
     "sentencepiece",
     "pyspellchecker",
-    "textstat"
+    "textstat",
+    "peft",
+    "scipy",
+    "torchvision",
+    "huspacy",
+    "spacy",
+    "openai"
 ]
 
 [project.urls]
