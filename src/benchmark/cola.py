@@ -20,7 +20,7 @@ nlp = huspacy.load()
 
 def compute_metric(task_name, args, generate):
 
-    dataset = helper.read_json(config.READABILITY_DATASET)
+    dataset = helper.read_json(config.COLA_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
 
@@ -65,7 +65,7 @@ def classify_sentences(sentences, classifier, judge):
         bert_result = classify_sentences_with_bert(sentence, classifier)
         judge_score = None
 
-        if bert_result["label"].lower() == "ungrammatical":
+        if bert_result["label"] == 0: # fallback to judge if BERT predicts ungrammatical
             judge_score = classify_sentences_with_openai(judge, sentence)
 
         results.append({
@@ -80,7 +80,7 @@ def classify_sentences(sentences, classifier, judge):
 def classify_sentences_with_bert(sentence, classifier):
     # grammatical 1, ungrammatical 0
     result = classifier(sentence)
-    return {"sentence": sentence, "label": result[0]['label'], "score": result[0]['score']}
+    return {"sentence": sentence, "label": int(result[0]['label']), "score": result[0]['score']}
 
 
 def classify_sentences_with_openai(judge, sentence):
@@ -92,6 +92,14 @@ def classify_sentences_with_openai(judge, sentence):
         max_tokens=15
     )
     label = response.choices[0].message.content.strip()
+    try:
+        label = int(label)
+    except ValueError:
+        logging.error(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
+        raise ValueError(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
+    if label not in [0, 1]:
+        logging.error(f"Judge response must be 0 or 1, got {label}.")
+        raise ValueError(f"Judge response must be 0 or 1, got {label}.")
     return label
 
 
@@ -101,7 +109,7 @@ def compute_scores(args, results):
     grammatical_sentence_count = 0
 
     for item in results:
-        sentence_scores = [res["bert-score"] for res in item["results"]]
+        sentence_scores = [res["bert-label"] + (res["judge-score"] or 0) for res in item["results"]]
         item["grammatical-score"] = (
             sum(sentence_scores) / len(sentence_scores) if sentence_scores else 0.0
         )

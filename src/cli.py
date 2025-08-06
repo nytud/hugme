@@ -11,18 +11,8 @@ __doc__ = """
 This script is designed as a starting point for evaluating your models using HuGME.
 """
 
-log_level = int(os.getenv('LOG_LEVEL', 5))
-
-log_levels = {
-    0: logging.CRITICAL,
-    1: logging.ERROR,
-    2: logging.DEBUG,
-    3: logging.INFO,
-    4: logging.WARNING,
-    5: logging.NOTSET
-}
-
-logging.basicConfig(level=log_levels.get(log_level, logging.INFO), format="%(levelname)s: %(message)s")
+log_level = int(os.getenv('LOG_LEVEL', logging.INFO))
+logging.basicConfig(level=log_level, format="%(levelname)s: %(message)s")
 
 
 def cli() -> None:
