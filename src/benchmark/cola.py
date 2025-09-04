@@ -25,7 +25,7 @@ def compute_metric(task_name, args, generate):
     dataset = random.sample(dataset, sample_size)
 
     if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
+        logging.info(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
     else:
         results = metrics.generate_results(args, generate, dataset, config.COLA)
