@@ -22,6 +22,7 @@ TRUTHFUL_QA_DATASET = DATASETS + os.getenv("TRUTHFUL_QA_DATASET", "truthful-qa.j
 PROMPT_ALIGNMENT_DATASET = DATASETS + os.getenv("PROMPT_ALIGNMENT_DATASET", "prompt-alignment.json")
 READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.json")
 COLA_DATASET = DATASETS + os.getenv("COLA_DATASET", "summarization.json")
+MMLU_DATASET = DATASETS + os.getenv("MMLU_DATASET", "mmlu.json")
 
 
 METRIC_DATASETES = {

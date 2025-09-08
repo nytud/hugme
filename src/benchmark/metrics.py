@@ -1,3 +1,4 @@
+from typing import Any, List, Dict
 import random
 import logging
 from transformers import pipeline
@@ -22,11 +23,21 @@ def compute_metric(args, task_name: str) -> float:
     dataset = helper.read_json(dataset_name)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    gen_results = generation.generate_results(args, task_name, dataset)
+    gen_results = generation.generate_results(args, task_name, dataset, format_result)
     score = compute_score(args, gen_results, metric, task_name)
     if task_name == "toxicity":
         evaluate_toxicity_with_bert(args, gen_results)
     return score
+
+
+def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+    return {
+        "input": prompt,
+        "output": output.text,
+        "context": entry.get("context"),
+        "questions": entry.get("questions"),
+        "token_usage": output.total_tokens
+    }
 
 
 def compute_score(args, results: list, metric, task_name: str) -> float:

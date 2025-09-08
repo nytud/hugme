@@ -1,6 +1,7 @@
-from typing import Any, List,Optional
+from typing import Any, Callable, Dict, Iterator, List,Optional
 
 import logging
+from unittest import result
 from tqdm import tqdm
 from dataclasses import dataclass
 import openai
@@ -18,7 +19,12 @@ class ModelOutput:
     total_tokens: Optional[int] = None
 
 
-def generate_results(args, task_name: str, dataset: List) -> list:
+def generate_results(
+        args,
+        task_name: str,
+        dataset: List,
+        format_fn: Callable[[Dict, Any, ModelOutput], Dict]
+    ) -> List[Dict[str, Any]]:
 
     client = load_model(args, task_name)
     parameters = create_parameters(args, task_name)
@@ -30,17 +36,14 @@ def generate_results(args, task_name: str, dataset: List) -> list:
 
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
+
         prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
-        output = generate(prompt, client, parameters, model_name=args.model_name, provider=args.provider)
-        results.append(
-            {
-                "input": prompt,
-                "output": output.text,
-                "context": entry.get("context"),
-                "questions": entry.get("questions"),
-                "token_usage": output.total_tokens
-            }
+        output = generate(
+            prompt, client, parameters, model_name=args.model_name, provider=args.provider
         )
+        formatted_result = format_fn(entry, prompt, output)
+        results.append(formatted_result)
+
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
     return results
@@ -137,3 +140,8 @@ def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> M
         logging.error(f"HuggingFace model generation failed: {e}")
         raise e
     return ModelOutput(generated_texts) # TODO implement total tokens for huggingface
+
+
+def generate_batches(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
+    for i in range(0, len(dataset), batch_size):
+        yield dataset[i:i + batch_size]

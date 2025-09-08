@@ -1,28 +1,23 @@
+from typing import Any, List, Dict
+
 import random
 from tqdm import tqdm
 
 import config
 import helper
-import template
+import generation
 
 
-MAX_NEW_TOKENS = 20
-
-
-def benchmark(task_name, args, generate) -> dict:
-    dataset = helper.read_json(config.DATASETS + "mmlu.json")
+def compute_metric(args, task_name: str) -> dict:
+    dataset = helper.read_json(config.MMLU_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
     dataset = preprocess(dataset)
-    if args.use_gen_results:
-        print("Using generation results from path: ", args.use_gen_results)
-        results = helper.read_json(args.use_gen_results)
-    else:
-        results = generate_results(args, generate, dataset, task_name)
-    return compute_scores(args, results)
+    gen_results = generation.generate_results(args, task_name, dataset, format_result)
+    return compute_scores(args, gen_results)
 
 
-def preprocess(dataset: list):
+def preprocess(dataset: List[Dict]) -> List[Dict]:
     for entry in dataset:
         entry["A"] = "A " + str(entry["A"])
         entry["B"] = "B " + str(entry["B"])
@@ -31,13 +26,7 @@ def preprocess(dataset: list):
     return dataset
 
 
-# TODO move to helper.py
-def generate_batches(dataset, batch_size):
-    for i in range(0, len(dataset), batch_size):
-        yield dataset[i:i + batch_size]
-
-
-def post_process_llama(output):
+def post_process_llama(output: str):
     keyword = "válasz"
     index = output.lower().find(keyword)
 
@@ -50,22 +39,16 @@ def post_process_llama(output):
     else:
         return output
 
-def generate_results(args, generate, dataset: list, task_name):
-    results = []
-    total_batches = len(dataset) // args.batch_size + (1 if len(dataset) % args.batch_size != 0 else 0)
-    for batch_entry in tqdm(generate_batches(dataset, args.batch_size), desc="Generating responses", total=total_batches, unit="query"):
-        prompts = [template.get_prompt(task_name, entry, args.use_alpaca_prompt) for entry in batch_entry]
-        if args.provider is not None: # TODO fix for openai batch generation
-            outputs = [generate(prompt, max_new_tokens=MAX_NEW_TOKENS) for prompt in prompts]
-        else:
-            outputs = generate(prompts, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt, batch_size=args.batch_size)
 
-        for output, entry in zip(outputs, batch_entry):
-            actual_output_text = post_process_llama(str(output))
-            results.append(
-                {"query": entry['input'], "output": actual_output_text, "target": entry['target'], "category": entry['category']}
-            )
-    return results
+def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+    actual_output_text = post_process_llama(output.text)
+    return {
+        "prompt": prompt,
+        "output": actual_output_text,
+        "target": entry['target'],
+        "category": entry['category'],
+        "total_tokens": output.total_tokens
+    }
 
 
 def compute_scores(args, results: list):
