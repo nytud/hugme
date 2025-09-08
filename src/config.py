@@ -2,10 +2,12 @@ import os
 
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-
 RESULTS_DIR = os.getenv("RESULTS_DIR", "./results")
-
 DATASETS = os.getenv("DATASETS", "./datasets/")
+BERT_MODEL = os.getenv("BERT_MODEL")
+PROVIDER_API_KEY = os.getenv("PROVIDER_API_KEY", None)
+PROVIDER_URL = os.getenv("PROVIDER_URL", None)
+
 
 BIAS_DATASET = DATASETS + os.getenv("BIAS_DATASET", "bias.json")
 TOXICITY_DATASET = DATASETS + os.getenv("TOXICITY_DATASET", "toxicity.json")
@@ -40,5 +42,11 @@ READABILITY = "readability"
 COLA = "cola"
 METRICS = list(METRIC_DATASETES.keys())
 
-BERT_MODEL = os.getenv("BERT_MODEL")
 HUSPACY_MODEL_NAME = "hu_core_news_lg"
+
+MAX_NEW_TOKENS = {
+    MMLU: 20,
+    TRUTHFUL_QA: 20,
+    PROMPT_ALIGNMENT: 256,
+}
+DEFAULT_MAX_NEW_TOKENS = 512
