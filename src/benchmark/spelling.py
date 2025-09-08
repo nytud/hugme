@@ -7,7 +7,7 @@ from spellchecker import SpellChecker
 
 import config
 import helper
-import metrics
+import benchmark.metrics as metrics
 
 
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)

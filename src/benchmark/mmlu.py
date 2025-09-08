@@ -31,6 +31,7 @@ def preprocess(dataset: list):
     return dataset
 
 
+# TODO move to helper.py
 def generate_batches(dataset, batch_size):
     for i in range(0, len(dataset), batch_size):
         yield dataset[i:i + batch_size]
@@ -39,22 +40,25 @@ def generate_batches(dataset, batch_size):
 def post_process_llama(output):
     keyword = "válasz"
     index = output.lower().find(keyword)
-    
+
     if index != -1:
-        
+
         if index + len(keyword) < len(output) and output[index + len(keyword)] == ":":
-            return output[index + len(keyword) + 1:].strip()  
+            return output[index + len(keyword) + 1:].strip()
         else:
-            return output[index + len(keyword):].strip()  
+            return output[index + len(keyword):].strip()
     else:
-        return output  
+        return output
 
 def generate_results(args, generate, dataset: list, task_name):
     results = []
     total_batches = len(dataset) // args.batch_size + (1 if len(dataset) % args.batch_size != 0 else 0)
     for batch_entry in tqdm(generate_batches(dataset, args.batch_size), desc="Generating responses", total=total_batches, unit="query"):
         prompts = [template.get_prompt(task_name, entry, args.use_alpaca_prompt) for entry in batch_entry]
-        outputs = generate(prompts, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt, batch_size=args.batch_size)
+        if args.provider is not None: # TODO fix for openai batch generation
+            outputs = [generate(prompt, max_new_tokens=MAX_NEW_TOKENS) for prompt in prompts]
+        else:
+            outputs = generate(prompts, max_new_tokens=MAX_NEW_TOKENS, alpaca_prompt=args.use_alpaca_prompt, batch_size=args.batch_size)
 
         for output, entry in zip(outputs, batch_entry):
             actual_output_text = post_process_llama(str(output))

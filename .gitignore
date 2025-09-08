@@ -1,3 +1,7 @@
+models-results/
+results/
+.deepeval/
+
 .DS_Store
 .deepeval_telemtry.txt
 .deepeval-cache.json

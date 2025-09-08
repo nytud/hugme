@@ -7,7 +7,7 @@ from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 
 import config
 import helper
-import metrics
+import benchmark.metrics as metrics
 import template
 
 

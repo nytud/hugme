@@ -1,16 +1,15 @@
 import random
 import logging
-from tqdm import tqdm
 from transformers import pipeline
 from deepeval import metrics
 from deepeval.test_case import LLMTestCase
 
 import config
 import helper
-import template
+from generate import generate_results
 
 
-def compute_metric(task_name, args, generate):
+def compute_metric(task_name, args, model_handler) -> float:
     _metrics = {
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
@@ -27,27 +26,14 @@ def compute_metric(task_name, args, generate):
         logging.info("Using generation results from path: ", args.use_gen_results)
         gen_results = helper.read_json(args.use_gen_results)
     else:
-        gen_results = generate_results(args, generate, dataset, task_name)
-    results = compute_score(args, gen_results, metric, task_name)
+        gen_results = generate_results(args, model_handler, dataset, task_name)
+    score = compute_score(args, gen_results, metric, task_name)
     if task_name == "toxicity":
         evaluate_toxicity_with_bert(args, gen_results)
-    return results
+    return score
 
 
-def generate_results(args, generate, dataset, task_name):
-    results = []
-    for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
-        output = generate(prompt, alpaca_prompt=args.use_alpaca_prompt)
-        results.append(
-            {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
-        )
-    if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
-    return results
-
-
-def compute_score(args, results: list, metric, task_name: str):
+def compute_score(args, results: list, metric, task_name: str) -> float:
     total_score = 0.0
     measurement_results = []
     for i, entry in enumerate(results):
