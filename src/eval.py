@@ -10,7 +10,7 @@ import benchmark
 TASK_HANDLERS = {
     **{task: benchmark.metrics.compute_metric for task in config.METRICS}, # deepeval-based metrics
     config.MMLU: benchmark.mmlu.benchmark,
-    config.TRUTHFUL_QA: benchmark.truthfulqa.benchmark,
+    config.TRUTHFUL_QA: benchmark.truthfulqa.compute_metric,
     config.SPELLING: benchmark.spelling.compute_metric,
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
     config.READABILITY: benchmark.readability.compute_metric,
