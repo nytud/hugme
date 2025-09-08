@@ -5,7 +5,6 @@ from datetime import datetime
 import config
 import helper
 import benchmark
-from generation import ModelHandler
 
 
 TASK_HANDLERS = {
@@ -26,15 +25,13 @@ def evaluate(args) -> None:
 
     for task_name in args.tasks:
 
-        model_handler = ModelHandler(task_name, args) if not args.use_gen_results else None
-
         logging.info(f"Started evaluation on {task_name}.")
         task_start_time = time.time()
 
         if task_name not in TASK_HANDLERS:
             raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
 
-        score = TASK_HANDLERS[task_name](task_name, args, model_handler)
+        score = TASK_HANDLERS[task_name](args, task_name)
         score_results[task_name] = score
 
         logging.info(f"Task {task_name} took {time.time() - task_start_time:.3f} seconds on {args.device}.")
