@@ -2,19 +2,19 @@ from typing import List, Dict, Union
 
 
 def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union[List, str]:
-    # TODO make metric prompt and alpaca prompt templates configurable
     templates = {
         "answer-relevancy": lambda entry: entry["query"],
         "bias": lambda entry: entry["query"],
+        "cola": get_cola_template,
         "faithfulness": get_faithfulness_template,
         "mmlu": get_mmlu_template,
         "needle-in-haystack": get_needle_in_haystack_template,
+        "prompt-alignment": lambda entry: entry["query"],
         "readability": get_readability_template,
         "spelling": get_spelling_template,
         "summarization": get_summarization_template,
         "toxicity": get_toxicity_template,
         "truthfulqa": get_truthful_qa_template,
-        "cola": get_cola_template,
     }
     template_fn = templates[task_name]
     if alpaca_prompt:
