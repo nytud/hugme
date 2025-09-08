@@ -2,6 +2,7 @@ from typing import Any, List,Optional
 
 import logging
 from tqdm import tqdm
+from dataclasses import dataclass
 import openai
 from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -9,6 +10,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import config
 import helper
 import template
+
+
+@dataclass
+class ModelOutput:
+    text: str
+    total_tokens: Optional[int] = None
 
 
 def generate_results(args, task_name: str, dataset: List) -> list:
@@ -28,9 +35,10 @@ def generate_results(args, task_name: str, dataset: List) -> list:
         results.append(
             {
                 "input": prompt,
-                "output": output,
+                "output": output.text,
                 "context": entry.get("context"),
-                "questions": entry.get("questions")
+                "questions": entry.get("questions"),
+                "token_usage": output.total_tokens
             }
         )
     if args.save_results:
@@ -49,9 +57,13 @@ def load_model(args, task_name):
 
 def initialize_huggingface_model(model_name: str):
     logging.info(f"Loading HuggingFace model and tokenizer {model_name}.")
-    tokenizer = AutoTokenizer.from_pretrained(model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left"
+    )
     tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True
+    )
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
     logging.info(f"Finished loading {model_name} model and tokenizer from HuggingFace.")
     return pipe
@@ -69,7 +81,6 @@ def create_parameters(args, task_name) -> dict:
     parameters["max_new_tokens"] = config.MAX_NEW_TOKENS.get( # limit max new tokens for some tasks
         task_name, parameters.get("max_new_tokens", config.DEFAULT_MAX_NEW_TOKENS)
     )
-
     if not args.provider: # huggingface's transformers lib is used
         return parameters
 
@@ -86,11 +97,16 @@ def create_parameters(args, task_name) -> dict:
         parameters.update({"extra_body": {"enable_thinking": True, "result_format": "message"}})
 
     logging.info(f"Using generation parameters: {parameters}")
-
     return parameters
 
 
-def generate(prompt: Any, client: Any, parameters: dict, model_name: Optional[str] = None, provider: Optional[str] = None) -> str:
+def generate(
+        prompt: Any,
+        client: Any,
+        parameters: dict,
+        model_name: Optional[str] = None,
+        provider: Optional[str] = None
+    ) -> ModelOutput:
     if provider:
         assert model_name is not None, "Model name must be provided when using OpenAI API."
         return generate_with_openai(prompt, client, model_name, parameters)
@@ -98,24 +114,26 @@ def generate(prompt: Any, client: Any, parameters: dict, model_name: Optional[st
         return generate_with_huggingface(prompt, client, parameters)
 
 
-def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> str:
+def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
     try:
         completion = client.chat.completions.create(model=model_name, messages=prompt, **parameters)
     except openai.BadRequestError as e:
         logging.error(f"OpenAI API request failed for: \n{prompt}\n with parameters: {parameters}")
         logging.error(f"OpenAI API request failed: {e}")
+        if e.status_code == 400 and e.code == "data_inspection_failed" and "Input data may contain inappropriate content." in e.message:
+            return ModelOutput("Input data may contain inappropriate content.")
         raise e
-    return completion.choices[0].message.content
+    return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> str: # TODO check NiH task
+def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput: # TODO check NiH task
     try:
         results = client(prompts, **parameters)
-        # if self.batch_size.get("batch_size", 1) > 1: # TODO implement bactch gen for openai package, then here
+        # if batch_size > 1: # TODO implement bactch gen for openai package, then reimplement here
         #     generated_texts = [r[0]["generated_text"] for r in results]
         generated_texts = results[0]["generated_text"]
     except Exception as e:
         logging.error(f"HuggingFace model generation failed for prompts: {prompts} with parameters: {parameters}")
         logging.error(f"HuggingFace model generation failed: {e}")
         raise e
-    return generated_texts
+    return ModelOutput(generated_texts) # TODO implement total tokens for huggingface
