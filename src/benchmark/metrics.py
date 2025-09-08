@@ -6,10 +6,10 @@ from deepeval.test_case import LLMTestCase
 
 import config
 import helper
-from generate import generate_results
+import generation
 
 
-def compute_metric(task_name, args, model_handler) -> float:
+def compute_metric(args, task_name: str) -> float:
     _metrics = {
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
@@ -22,11 +22,7 @@ def compute_metric(task_name, args, model_handler) -> float:
     dataset = helper.read_json(dataset_name)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
-        gen_results = helper.read_json(args.use_gen_results)
-    else:
-        gen_results = generate_results(args, model_handler, dataset, task_name)
+    gen_results = generation.generate_results(args, task_name, dataset)
     score = compute_score(args, gen_results, metric, task_name)
     if task_name == "toxicity":
         evaluate_toxicity_with_bert(args, gen_results)
@@ -46,12 +42,18 @@ def compute_score(args, results: list, metric, task_name: str) -> float:
         metric.measure(test_case)
         total_score += int(metric.success)
         measurement_results.append(
-        {
-            "index": i, "success": metric.success, "score": metric.score, "reason": metric.reason,
-            "input": entry["input"], "output": entry["output"],
-            "context": entry.get("context"), "questions": entry.get("questions")
-        }
-    )
+            {
+                "index": i,
+                "success": metric.success,
+                "score": metric.score,
+                "reason": metric.reason,
+                "input": entry["input"],
+                "output": entry["output"],
+                "context": entry.get("context"),
+                "questions": entry.get("questions"),
+                "token_used": entry.get("token_usage")
+            }
+        )
     final_score = round( (total_score / len(results)) * 100, 2)
     logging.info(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
