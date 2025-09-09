@@ -47,6 +47,8 @@ def compute_scores(args, results: List[Dict]) -> Dict:
         if metric.score >= THRESHOLD:
             passed += 1
 
+        entry["reason"] = metric.reason
+
     avg_score = total_score / len(results)
     success_rate = passed / len(results)
 
