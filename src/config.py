@@ -2,7 +2,7 @@ import os
 
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-RESULTS_DIR = os.getenv("RESULTS_DIR", "./results")
+RESULTS_DIR = os.getenv("RESULTS_DIR", "./results/")
 DATASETS = os.getenv("DATASETS", "./datasets/")
 BERT_MODEL = os.getenv("BERT_MODEL")
 PROVIDER_API_KEY = os.getenv("PROVIDER_API_KEY", None)

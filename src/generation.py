@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, Iterator, List,Optional
 
 import logging
+import pathlib
 from tqdm import tqdm
 from dataclasses import dataclass
 import openai
@@ -58,20 +59,26 @@ def load_model(args, task_name):
     if args.provider:
         return initialize_openai_client()
     else:
-        return initialize_huggingface_model(args.model_name)
+        return initialize_huggingface_model(args)
 
 
-def initialize_huggingface_model(model_name: str):
-    logging.info(f"Loading HuggingFace model and tokenizer {model_name}.")
+def initialize_huggingface_model(args):
+    logging.info(f"Loading HuggingFace model and tokenizer from: {args.model_name}")
     tokenizer = AutoTokenizer.from_pretrained(
-        model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left"
+        args.model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left"
     )
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(
-        model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True
+        args.model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True
     )
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
-    logging.info(f"Finished loading {model_name} model and tokenizer from HuggingFace.")
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
+    logging.info(f"Finished loading {args.model_name} model and tokenizer from HuggingFace (or from locally).")
+
+    # extract model name from full repo name or local model path, necessary for saving results later, e.g.
+    # "/home/models/models/meta-llama-3.1-8B-instruct" -> meta-llama-3.1-8b-instruct
+    # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
+    model_name_or_path = pathlib.Path(args.model_name)
+    args.model_name = model_name_or_path.name.lower()
     return pipe
 
 
