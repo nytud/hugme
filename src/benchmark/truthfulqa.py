@@ -1,10 +1,10 @@
-import logging
+from typing import Any, Dict
+
 import random
 from tqdm import tqdm
 
 import config
 import helper
-import template
 import generation
 
 
@@ -12,34 +12,18 @@ def compute_metric(args, task_name: str) -> dict:
     dataset = helper.read_json(config.TRUTHFUL_QA_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    gen_results = generate_results(args, task_name, dataset)
+    gen_results = generation.generate_results(args, task_name, dataset, format_result)
     return compute_scores(args, gen_results)
 
 
-def generate_results(args, task_name, dataset):
-
-    client = generation.load_model(args, task_name)
-    parameters = generation.create_parameters(args, task_name)
-
-    if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
-        gen_results = helper.read_json(args.use_gen_results)
-        return gen_results
-
-    results = []
-    for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
-        output = generation.generate(prompt, client, parameters, model_name=args.model_name, provider=args.provider)
-        results.append({
-            "input": prompt,
-            "output": output.text,
-            "category": entry["category"],
-            "correct_index": [x[0] for x in entry["answer_options"] if x[1] == entry["correct_answers"]][0],
-            "total_tokens": output.total_tokens
-        })
-    if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
-    return results
+def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+    return {
+        "input": prompt,
+        "output": output.text,
+        "category": entry["category"],
+        "correct_index": [x[0] for x in entry["answer_options"] if x[1] == entry["correct_answers"]][0],
+        "total_tokens": output.total_tokens
+    }
 
 
 def check_answer(answer: str, correct_index: int) -> bool:

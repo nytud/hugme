@@ -29,7 +29,7 @@ def evaluate(args) -> None:
         task_start_time = time.time()
 
         if task_name not in TASK_HANDLERS:
-            raise ValueError(f"Task '{task_name}' is not supported. Valid tasks: {list(TASK_HANDLERS.keys())}")
+            raise ValueError(f"Task '{task_name}' is not supported. Valid tasks are {list(TASK_HANDLERS.keys())}")
 
         score = TASK_HANDLERS[task_name](args, task_name)
         score_results[task_name] = score
@@ -40,4 +40,4 @@ def evaluate(args) -> None:
 
     if args.save_results:
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-results-{current_time}.json")
+        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-{args.model_name}-results-{current_time}.json")

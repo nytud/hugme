@@ -1,7 +1,6 @@
 from typing import Any, Callable, Dict, Iterator, List,Optional
 
 import logging
-from unittest import result
 from tqdm import tqdm
 from dataclasses import dataclass
 import openai
@@ -31,8 +30,8 @@ def generate_results(
 
     if args.use_gen_results:
         logging.info("Using generation results from path: ", args.use_gen_results)
-        gen_results = helper.read_json(args.use_gen_results)
-        return gen_results
+        results = helper.read_json(args.use_gen_results)
+        return results
 
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
@@ -45,7 +44,7 @@ def generate_results(
         results.append(formatted_result)
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-generation-results.json")
     return results
 
 

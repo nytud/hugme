@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any, Dict
 import random
 import logging
 from transformers import pipeline
