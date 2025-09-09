@@ -26,13 +26,13 @@ def generate_results(
         format_fn: Callable[[Dict, Any, ModelOutput], Dict]
     ) -> List[Dict[str, Any]]:
 
-    client = load_model(args, task_name)
-    parameters = create_parameters(args, task_name)
-
     if args.use_gen_results:
         logging.info(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
         return results
+
+    client = load_model(args, task_name)
+    parameters = create_parameters(args, task_name)
 
     results = []
     for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
