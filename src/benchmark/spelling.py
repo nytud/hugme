@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 import os
 import string
 import random
@@ -7,26 +9,29 @@ from spellchecker import SpellChecker
 
 import config
 import helper
-import benchmark.metrics as metrics
+import generation
 
 
 spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
 
 
-def compute_metric(task_name, args, generate):
+def compute_metric(args, task_name: str):
     dataset = helper.read_json(config.SPELLING_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
-        results = helper.read_json(args.use_gen_results)
-    else:
-        results = metrics.generate_results(args, generate, dataset, config.SPELLING)
-    scores = compute_score(args, results, task_name)
-    return scores
+    results = generation.generate_results(args, task_name, dataset, format_result)
+    return compute_score(args, results)
 
 
-def compute_score(args, results: list, task_name: str):
+def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> dict:
+    return {
+        "prompt": prompt,
+        "output": output.text,
+        "token_usage": output.total_tokens
+    }
+
+
+def compute_score(args, results: List[Dict]):
     text_lens, misspelled_count = 0, 0
     spelling_results = []
     for i, entry in enumerate(results):
@@ -34,19 +39,22 @@ def compute_score(args, results: list, task_name: str):
         text_len, misspelled, correct_rate = check_spelling(output)
         spelling_results.append(
             {
-                "index": i, "output": output,
-                "misspelled": misspelled, "correct_rate": correct_rate
+                "index": i,
+                "output": output,
+                "misspelled": misspelled,
+                "correct_rate": correct_rate
             }
         )
         text_lens += text_len
         misspelled_count += len(misspelled)
 
     if args.save_results:
-        helper.save_json(spelling_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
-
+        helper.save_json(
+            spelling_results, config.RESULTS_DIR, f"{config.SPELLING}-{args.model_name}-{args.thinking}-eval-results.json"
+        )
     spelling_score = (1 - misspelled_count / text_lens) * 100
 
-    print(f"Spell checking results score: {spelling_score}")
+    logging.info(f"Spell checking results score: {spelling_score}")
     return {"score": spelling_score}
 
 
