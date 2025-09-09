@@ -35,7 +35,7 @@ def compute_scores(args, results: List[Dict]) -> Dict:
     total_score = 0.0
 
     for entry in results:
-        test_case = LLMTestCase(input=entry["query"], actual_output=entry["output"])
+        test_case = LLMTestCase(input=entry["prompt"], actual_output=entry["output"])
         metric = PromptAlignmentMetric(
             prompt_instructions=entry["prompt_instructions"],
             model=args.judge,
@@ -54,7 +54,11 @@ def compute_scores(args, results: List[Dict]) -> Dict:
     logging.info(f"Success rate ({THRESHOLD}+): {success_rate:.2%}")
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.PROMPT_ALIGNMENT}-eval-results.json")
+        helper.save_json(
+            results,
+            config.RESULTS_DIR,
+            f"{config.PROMPT_ALIGNMENT}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+        )
     return {"success_rate": success_rate, "average_score": avg_score }
 
 

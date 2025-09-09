@@ -20,6 +20,7 @@ def compute_metric(args, task_name: str):
 
 def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> dict:
     return {
+        "query": entry["query"],
         "prompt": prompt,
         "output": output.text,
         "total_tokens": output.total_tokens

@@ -68,7 +68,11 @@ def compute_score(args, results: list, metric, task_name: str) -> float:
     final_score = round( (total_score / len(results)) * 100, 2)
     logging.info(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
-        helper.save_json(measurement_results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-eval-results.json")
+        helper.save_json(
+            measurement_results,
+            config.RESULTS_DIR,
+            f"{task_name}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+        )
     return final_score
 
 
