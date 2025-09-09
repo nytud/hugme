@@ -12,7 +12,7 @@ This script is designed as a starting point for evaluating your models using HuG
 """
 
 log_level = int(os.getenv('LOG_LEVEL', logging.INFO))
-logging.basicConfig(level=log_level, format="%(levelname)s: %(message)s")
+logging.basicConfig(level=log_level, format="%(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 
 def cli() -> None:
