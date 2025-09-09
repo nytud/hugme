@@ -64,6 +64,6 @@ def compute_scores(args, results: list):
 
     logging.info(f"MMLU benchmark score: {round(total_score * 100, 2)}%")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-{args.model_name}-eval-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-{args.model_name}-{args.thinking}-eval-results.json")
 
     return helper.group_by_category(results, total_score)

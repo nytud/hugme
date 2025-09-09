@@ -44,7 +44,7 @@ def generate_results(
         results.append(formatted_result)
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-generation-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-{args.model_name}-{args.thinking}-generation-results.json")
     return results
 
 
