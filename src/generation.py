@@ -30,7 +30,7 @@ def generate_results(
     parameters = create_parameters(args, task_name)
 
     if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
+        logging.info(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
         return results
 
