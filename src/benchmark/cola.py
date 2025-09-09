@@ -7,7 +7,7 @@ from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 
 import config
 import helper
-import metrics
+import generation
 import template
 
 
@@ -18,21 +18,26 @@ if not spacy.util.is_package(config.HUSPACY_MODEL_NAME):
 nlp = huspacy.load()
 
 
-def compute_metric(task_name, args, generate):
+def compute_metric(args, task_name: str) -> float:
 
     dataset = helper.read_json(config.COLA_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
 
-    if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
-        results = helper.read_json(args.use_gen_results)
-    else:
-        results = metrics.generate_results(args, generate, dataset, config.COLA)
+    results = generation.generate_results(args, task_name, dataset, format_result)
 
     model = load_classifier()
     classification_results = classify_results(args, results, model)
     return compute_scores(args, classification_results)
+
+
+def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> dict:
+    return {
+        "input": prompt,
+        "output": output.text,
+        "questions": entry["questions"],
+        "token_usage": output.total_tokens
+    }
 
 
 def classify_results(args, results, model):
@@ -117,7 +122,7 @@ def compute_scores(args, results):
         total_sentences += len(sentence_scores)
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, "cola-eval-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.COLA}-{args.model_name}-eval-results.json")
 
     accuracy = ((grammatical_sentence_count / total_sentences) * 100) if total_sentences else 0.0
     logging.info(f"CoLA benchmark accuracy: {accuracy:.2f}%")

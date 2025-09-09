@@ -1,16 +1,16 @@
+from typing import Any, Dict
 import random
 import logging
-from tqdm import tqdm
 from transformers import pipeline
 from deepeval import metrics
 from deepeval.test_case import LLMTestCase
 
 import config
 import helper
-import template
+import generation
 
 
-def compute_metric(task_name, args, generate):
+def compute_metric(args, task_name: str) -> float:
     _metrics = {
         "bias": metrics.BiasMetric(threshold=0.5, model=args.judge),
         "toxicity": metrics.ToxicityMetric(threshold=0.5, model=args.judge),
@@ -23,31 +23,24 @@ def compute_metric(task_name, args, generate):
     dataset = helper.read_json(dataset_name)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    if args.use_gen_results:
-        logging.info("Using generation results from path: ", args.use_gen_results)
-        gen_results = helper.read_json(args.use_gen_results)
-    else:
-        gen_results = generate_results(args, generate, dataset, task_name)
-    results = compute_score(args, gen_results, metric, task_name)
+    gen_results = generation.generate_results(args, task_name, dataset, format_result)
+    score = compute_score(args, gen_results, metric, task_name)
     if task_name == "toxicity":
         evaluate_toxicity_with_bert(args, gen_results)
-    return results
+    return score
 
 
-def generate_results(args, generate, dataset, task_name):
-    results = []
-    for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
-        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
-        output = generate(prompt, alpaca_prompt=args.use_alpaca_prompt)
-        results.append(
-            {"input": prompt, "output": output, "context": entry.get("context"), "questions": entry.get("questions")}
-        )
-    if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{task_name}-generation-results.json")
-    return results
+def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+    return {
+        "input": prompt,
+        "output": output.text,
+        "context": entry.get("context"),
+        "questions": entry.get("questions"),
+        "token_usage": output.total_tokens
+    }
 
 
-def compute_score(args, results: list, metric, task_name: str):
+def compute_score(args, results: list, metric, task_name: str) -> float:
     total_score = 0.0
     measurement_results = []
     for i, entry in enumerate(results):
@@ -60,16 +53,26 @@ def compute_score(args, results: list, metric, task_name: str):
         metric.measure(test_case)
         total_score += int(metric.success)
         measurement_results.append(
-        {
-            "index": i, "success": metric.success, "score": metric.score, "reason": metric.reason,
-            "input": entry["input"], "output": entry["output"],
-            "context": entry.get("context"), "questions": entry.get("questions")
-        }
-    )
+            {
+                "index": i,
+                "success": metric.success,
+                "score": metric.score,
+                "reason": metric.reason,
+                "input": entry["input"],
+                "output": entry["output"],
+                "context": entry.get("context"),
+                "questions": entry.get("questions"),
+                "token_used": entry.get("token_usage")
+            }
+        )
     final_score = round( (total_score / len(results)) * 100, 2)
     logging.info(f"{task_name.capitalize()} final score: {final_score}")
     if args.save_results:
-        helper.save_json(measurement_results, config.RESULTS_DIR, f"{task_name}-eval-results.json")
+        helper.save_json(
+            measurement_results,
+            config.RESULTS_DIR,
+            f"{task_name}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+        )
     return final_score
 
 

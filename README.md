@@ -13,43 +13,47 @@ git clone https://github.com/nytud/hugme
 pip install .
 ```
 
-### Running the Framework
+### Running HuGME
 
 You can execute HuGME with:
 
 ```bash
-hugme
+hugme --model-name /path/to/your/model --tasks bias --parameters config.json
 ```
 
 ### Command-Line Parameters
 
 | Parameter         | Description |
 |------------------|-------------|
-| `--model-name`   | Name of the model (local path, Hugging Face model or OpenAI models). |
+| `--model-name`   | Name of the model (Hugging Face (local) model or OpenAI models). |
 | `--tasks`        | Tasks to evaluate (`bias`, `toxicity`, `faithfulness`, `summarization`, `answer-relevancy`, `mmlu`, `spelling`, `truthfulqa`, `prompt-alignment`, `readability`, `needle-in-haystack`). |
 | `--judge`        | Default: `"gpt-3.5-turbo-1106"`. Specifies the judge model for evaluations. |
 | `--use-cuda`     | Default: `True`. Enables GPU acceleration. |
 | `--cuda-id`      | Default: `1`. Specifies which GPU to use. Indexing starts from 0 |
 | `--seed`         | Sets a random seed for reproducibility. |
-| `--parameters`   | Path to a JSON configuration file for model parameters. See below for example. |
+| `--parameters`   | Required. Path to a JSON configuration file for model parameters. See below for example. |
 | `--save-results` | Default: `True`. Whether to save evaluation results. |
-| `--use-alpaca-prompt` | Default: `False`. Use alpaca prompt. |
+| `--use-gen-results` | Path to generated file by the model to evaluation on. |
 | `--provider` | Default: `False`. Provider to use. Choices: (`openai`) |
-| `--sample-size` | Default: `1.0`. Sample size (percenatage) from task's dataset. Choices: (`openai`) |
+| `--thinking` | Default: `False`. Enable thinking mode. |
+| `--use-alpaca-prompt` | Default: `False`. Use alpaca prompt. |
+| `--sample-size` | Default: `1.0`. Sample size (percenatage) from task's dataset. |
 
-#### 🛠 Configure datasets
+### 🛠 Configure HuGME
 
-Before running HuGME, you must set the `DATASETS` environment variable to ensure the framework can access the necessary datasets for evaluation tasks.
+Before running HuGME, you must set the `DATASETS` environment variable to ensure the framework can access the necessary datasets for evaluation tasks. Ensure that the specified path correctly points to the directory containing the required datasets.
 
 ```bash
 export DATASETS=/path/to/datasets
 ```
 
-Ensure that the specified path correctly points to the directory containing the required datasets.
+The following environment variable needs to be configured for spelling task:
 
-#### 🛠 Configuration: JSON Parameters
+```bash
+export BERT_MODEL=/path/to/bert-model
+```
 
-HuGME allows model parameters to be configured via a JSON file for the Hugginface's transformer library text generation pipeline. Example:
+HuGME requires model parameters to be configured via a JSON file for the Hugginface's transformer library or OpenAI's library. The file path needs to be set in `--parameters` flag. Example:
 
 ```json
 {
@@ -64,13 +68,16 @@ HuGME allows model parameters to be configured via a JSON file for the Hugginfac
 }
 ```
 
+
 ### 🔑 Providing API Keys
 
 To authenticate with OpenAI or Hugging Face, set your API keys as environment variables:
 
 ```bash
-export OPENAI_API_KEY=sk-examplekey
-export HF_TOKEN=hf-exampletoken
+export OPENAI_API_KEY=sk-examplekey # judge model for deepeval based metrics
+export HF_TOKEN=hf-exampletoken # using huggingface models
+export PROVIDER_API_KEY=provider-api-key # using custom (openai package compatible) provider
+export PROVIDER_URL=hf-provider-url # using custom (openai package compatible) provider
 ```
 
 Alternatively, provide them inline when running the evaluation:
