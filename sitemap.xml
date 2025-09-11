@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://hugme.nytud.hu/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+    <url>
+         <loc>https://hugme.nytud.hu/About/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+    <url>
+         <loc>https://hugme.nytud.hu/Contact/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+    <url>
+         <loc>https://hugme.nytud.hu/Downloads/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+    <url>
+         <loc>https://hugme.nytud.hu/Modules/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+    <url>
+         <loc>https://hugme.nytud.hu/News/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+    <url>
+         <loc>https://hugme.nytud.hu/Results/</loc>
+         <lastmod>2025-09-11</lastmod>
+    </url>
+</urlset>
