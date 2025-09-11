@@ -2,8 +2,8 @@ from typing import Any, Callable, Dict, Iterator, List,Optional
 
 import logging
 import pathlib
-from tqdm import tqdm
 from dataclasses import dataclass
+from tqdm import tqdm
 import openai
 from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -54,11 +54,10 @@ def generate_results(
 
 def load_model(args, task_name):
     if task_name == config.NIH and args.provider:
-            raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
+        raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
     if args.provider:
         return initialize_openai_client()
-    else:
-        return initialize_huggingface_model(args)
+    return initialize_huggingface_model(args)
 
 
 def initialize_huggingface_model(args):
@@ -122,8 +121,7 @@ def generate(
     if provider:
         assert model_name is not None, "Model name must be provided when using OpenAI API."
         return generate_with_openai(prompt, client, model_name, parameters)
-    else:
-        return generate_with_huggingface(prompt, client, parameters)
+    return generate_with_huggingface(prompt, client, parameters)
 
 
 def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
@@ -132,17 +130,17 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     except openai.BadRequestError as e:
         logging.error(f"OpenAI API request failed for: \n{prompt}\n with parameters: {parameters}")
         logging.error(f"OpenAI API request failed: {e}")
-        if e.status_code == 400 and e.code == "data_inspection_failed" and "Input data may contain inappropriate content." in e.message:
-            return ModelOutput("Input data may contain inappropriate content.")
+        inappropriate_content_message = "Input data may contain inappropriate content."
+        if e.status_code == 400 and e.code == "data_inspection_failed" and inappropriate_content_message in e.message:
+            return ModelOutput(inappropriate_content_message)
         raise e
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
 def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput: # TODO check NiH task
+    # TODO implement batch generation for openai package, then reimplement here
     try:
         results = client(prompts, **parameters)
-        # if batch_size > 1: # TODO implement bactch gen for openai package, then reimplement here
-        #     generated_texts = [r[0]["generated_text"] for r in results]
         generated_texts = results[0]["generated_text"]
     except Exception as e:
         logging.error(f"HuggingFace model generation failed for prompts: {prompts} with parameters: {parameters}")

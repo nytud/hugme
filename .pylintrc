@@ -9,6 +9,10 @@ disable=
     E0401, # import-error
     W1203, # logging-fstring-formatting
     W1201, # logging-format-formatting
+    W0511, # TODO comments
+    W0707,
+    W0613, # unused-argument
+    R0801, # duplicate-code
 
 # Use multiple processes to speed up Pylint.
 jobs=4
