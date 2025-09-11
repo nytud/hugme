@@ -37,7 +37,7 @@ def insert_needle(cutted_haystack, fraction, tokenized_needle):
     lower_bound = max(0, int(len(cutted_haystack) * ((fraction-10) * HUNDREDTH)))
     upper_bound = int(len(cutted_haystack) * (fraction * HUNDREDTH))
     insert_position = random.randint(lower_bound, upper_bound)
-    
+
     return (
         cutted_haystack[:insert_position]
         + tokenized_needle

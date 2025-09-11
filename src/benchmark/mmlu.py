@@ -35,10 +35,8 @@ def post_process_llama(output: str):
 
         if index + len(keyword) < len(output) and output[index + len(keyword)] == ":":
             return output[index + len(keyword) + 1:].strip()
-        else:
-            return output[index + len(keyword):].strip()
-    else:
-        return output
+        return output[index + len(keyword):].strip()
+    return output
 
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
@@ -64,6 +62,10 @@ def compute_scores(args, results: list):
 
     logging.info(f"MMLU benchmark score: {round(total_score * 100, 2)}%")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-{args.model_name}-{args.thinking}-eval-results.json")
+        helper.save_json(
+            results,
+            config.RESULTS_DIR,
+            f"{config.MMLU}-{args.model_name}-{args.thinking}-eval-results.json"
+        )
 
     return helper.group_by_category(results, total_score)

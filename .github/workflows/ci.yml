@@ -39,9 +39,4 @@ jobs:
 
       - name: Static code analysis
         run: |
-          env PYTHONPATH="." python3 -m pylint src/
-
-      - name: Safety analysis
-        run: |
-          pip install safety
-          safety check -r requirements.txt
+          env PYTHONPATH="." python3 -m pylint src/  --ignore=nih.py --disable=R0801

@@ -1,8 +1,8 @@
 import re
 import random
 import logging
-from tqdm import tqdm
 from statistics import mean
+from tqdm import tqdm
 from textstat import textstat
 
 import helper

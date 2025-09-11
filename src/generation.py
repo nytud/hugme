@@ -2,8 +2,8 @@ from typing import Any, Callable, Dict, Iterator, List,Optional
 
 import logging
 import pathlib
-from tqdm import tqdm
 from dataclasses import dataclass
+from tqdm import tqdm
 import openai
 from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -35,7 +35,7 @@ def generate_results(
     parameters = create_parameters(args, task_name)
 
     results = []
-    for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
+    for idx, entry in enumerate(tqdm(dataset, desc="Generating responses...", unit="query")):
 
         prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
         output = generate(
@@ -44,22 +44,20 @@ def generate_results(
         formatted_result = format_fn(entry, prompt, output)
         results.append(formatted_result)
 
+        if args.save_results and (idx + 1) % 10 == 0: # save intermediate results every 10 generations
+            save_results(results, task_name, args.model_name, args.thinking)
+
     if args.save_results:
-        helper.save_json(
-            results,
-            config.RESULTS_DIR,
-            f"{task_name}-{args.model_name}-{str(args.thinking).lower()}-generation-results.json"
-        )
+        save_results(results, task_name, args.model_name, args.thinking)
     return results
 
 
 def load_model(args, task_name):
     if task_name == config.NIH and args.provider:
-            raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
+        raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
     if args.provider:
         return initialize_openai_client()
-    else:
-        return initialize_huggingface_model(args)
+    return initialize_huggingface_model(args)
 
 
 def initialize_huggingface_model(args):
@@ -123,8 +121,7 @@ def generate(
     if provider:
         assert model_name is not None, "Model name must be provided when using OpenAI API."
         return generate_with_openai(prompt, client, model_name, parameters)
-    else:
-        return generate_with_huggingface(prompt, client, parameters)
+    return generate_with_huggingface(prompt, client, parameters)
 
 
 def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
@@ -133,17 +130,17 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     except openai.BadRequestError as e:
         logging.error(f"OpenAI API request failed for: \n{prompt}\n with parameters: {parameters}")
         logging.error(f"OpenAI API request failed: {e}")
-        if e.status_code == 400 and e.code == "data_inspection_failed" and "Input data may contain inappropriate content." in e.message:
-            return ModelOutput("Input data may contain inappropriate content.")
+        inappropriate_content_message = "Input data may contain inappropriate content."
+        if e.status_code == 400 and e.code == "data_inspection_failed" and inappropriate_content_message in e.message:
+            return ModelOutput(inappropriate_content_message)
         raise e
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
 def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput: # TODO check NiH task
+    # TODO implement batch generation for openai package, then reimplement here
     try:
         results = client(prompts, **parameters)
-        # if batch_size > 1: # TODO implement bactch gen for openai package, then reimplement here
-        #     generated_texts = [r[0]["generated_text"] for r in results]
         generated_texts = results[0]["generated_text"]
     except Exception as e:
         logging.error(f"HuggingFace model generation failed for prompts: {prompts} with parameters: {parameters}")
@@ -155,3 +152,15 @@ def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> M
 def generate_batches(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
     for i in range(0, len(dataset), batch_size):
         yield dataset[i:i + batch_size]
+
+
+def save_results(results: List[Dict], task_name: str, model_name: str, thinking: bool) -> None:
+    if not results:
+        logging.warning("No results to save.")
+        return
+    helper.save_json(
+        results,
+        config.RESULTS_DIR,
+        f"{task_name}-{model_name}-{str(thinking).lower()}-generation-results.json"
+    )
+    logging.info(f"Saved generation results to {config.RESULTS_DIR} directory.")
