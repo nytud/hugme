@@ -35,7 +35,7 @@ def generate_results(
     parameters = create_parameters(args, task_name)
 
     results = []
-    for entry in tqdm(dataset, desc="Generating responses...", unit="query"):
+    for idx, entry in enumerate(tqdm(dataset, desc="Generating responses...", unit="query")):
 
         prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
         output = generate(
@@ -44,12 +44,11 @@ def generate_results(
         formatted_result = format_fn(entry, prompt, output)
         results.append(formatted_result)
 
+        if args.save_results and (idx + 1) % 10 == 0: # save intermediate results every 10 generations
+            save_results(results, task_name, args.model_name, args.thinking)
+
     if args.save_results:
-        helper.save_json(
-            results,
-            config.RESULTS_DIR,
-            f"{task_name}-{args.model_name}-{str(args.thinking).lower()}-generation-results.json"
-        )
+        save_results(results, task_name, args.model_name, args.thinking)
     return results
 
 
@@ -155,3 +154,15 @@ def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> M
 def generate_batches(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
     for i in range(0, len(dataset), batch_size):
         yield dataset[i:i + batch_size]
+
+
+def save_results(results: List[Dict], task_name: str, model_name: str, thinking: bool) -> None:
+    if not results:
+        logging.warning("No results to save.")
+        return
+    helper.save_json(
+        results,
+        config.RESULTS_DIR,
+        f"{task_name}-{model_name}-{str(thinking).lower()}-generation-results.json"
+    )
+    logging.info(f"Saved generation results to {config.RESULTS_DIR} directory.")
