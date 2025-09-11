@@ -20,14 +20,14 @@ def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union
     }
     template_fn = templates[task_name]
     if alpaca_prompt:
-        message = (
+        message = ( # type: ignore
             "Az alábbiakban egy utasítást találsz, amely leír egy feladatot. "
             "Írj egy választ, amely megfelelően teljesíti a feladatot!\n"
             f"### Utasítás: \n{template_fn(entry)}\n"
             "### Válasz:\n"
         )
     else:
-        message = [
+        message = [ # type: ignore
             {"role": "system", "content": "Te egy segítőkész asszisztens vagy."},
             {"role": "user", "content": template_fn(entry)},
         ]
