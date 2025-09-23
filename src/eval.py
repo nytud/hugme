@@ -31,8 +31,6 @@ def evaluate(args) -> None:
         if task_name not in TASK_HANDLERS:
             raise ValueError(f"Task '{task_name}' is not supported. Valid tasks are {list(TASK_HANDLERS.keys())}")
 
-        print("args:")
-        print(args)
         score = TASK_HANDLERS[task_name](args, task_name)
         score_results[task_name] = score
 
