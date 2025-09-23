@@ -92,6 +92,10 @@ def create_parameters(args, task_name) -> dict:
     parameters["max_new_tokens"] = config.MAX_NEW_TOKENS.get( # limit max new tokens for some tasks
         task_name, parameters.get("max_new_tokens", config.DEFAULT_MAX_NEW_TOKENS)
     )
+
+    if task_name==config.NIH:
+        parameters["return_full_text"]=False
+
     if not args.provider: # huggingface's transformers lib is used
         return parameters
 
