@@ -6,6 +6,7 @@ import config
 import helper
 import template
 
+from generation import load_model
 
 TURNS = 2
 MAX_NEW_TOKENS = 20
@@ -109,7 +110,12 @@ def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, annive
     return results
 
 
-def compute_metric(task_name, args, generation_pipeline) -> List[Dict[str, float]]:
+
+
+
+def compute_metric(args, task_name) -> List[Dict[str, float]]:
+    generation_pipeline=load_model(args, task_name)
+    
     tokenized_needle, city, anniversary = select_needle(generation_pipeline)
     haystack = helper.read_file(config.HAYSTACK_DATASET)
     tokenized_haystack = generation_pipeline.tokenizer.tokenize(haystack)
