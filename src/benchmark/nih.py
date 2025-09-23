@@ -6,10 +6,9 @@ import config
 import helper
 import template
 
-from generation import load_model
+from generation import load_model, create_parameters
 
 TURNS = 2
-MAX_NEW_TOKENS = 20
 MAX_CONTEXT_LENGTH = 1024
 HUNDREDTH = 0.01
 GOOD_SOLUTION = 1.0
@@ -47,7 +46,7 @@ def insert_needle(cutted_haystack, fraction, tokenized_needle):
 
 
 
-def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeline, tokenized_needle):
+def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeline, tokenized_needle, parameters):
     system_prompt = (
         f"Kizárólag a következő szöveg alapján, "
         f"hanyadik évfordulóját ünnepelte {city} város?\n"
@@ -64,11 +63,11 @@ def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeli
         entry = {"system_prompt": system_prompt, "full_stack_text": full_stack_text}
         prompt = template.get_prompt("needle-in-haystack", entry)
 
+        print(parameters)
         with torch.no_grad():
             actual_answer = generation_pipeline(
                 text_inputs=prompt,
-                max_new_tokens=MAX_NEW_TOKENS,
-                return_full_text = False,
+                **parameters
             )
 
         answer = helper.clean_answer(actual_answer)
@@ -94,7 +93,7 @@ def generate_answer_scores(cutted_haystack, city, anniversary, generation_pipeli
 
 
 
-def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline):
+def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline, parameters):
     results = []
     for i in range(10, 110, 10):
         cutted_haystack = cut_haystack(i, tokenized_haystack, tokenized_needle)
@@ -105,6 +104,7 @@ def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, annive
                 anniversary,
                 generation_pipeline,
                 tokenized_needle,
+                parameters
             )
         )
     return results
@@ -113,16 +113,18 @@ def evaluate_haystack_context(tokenized_haystack, tokenized_needle, city, annive
 
 
 
+
 def compute_metric(args, task_name) -> List[Dict[str, float]]:
     generation_pipeline=load_model(args, task_name)
-    
+    parameters=create_parameters(args,task_name)
+
     tokenized_needle, city, anniversary = select_needle(generation_pipeline)
     haystack = helper.read_file(config.HAYSTACK_DATASET)
     tokenized_haystack = generation_pipeline.tokenizer.tokenize(haystack)
     results = []
     for _ in range(TURNS):
         result = evaluate_haystack_context(
-            tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline
+            tokenized_haystack, tokenized_needle, city, anniversary, generation_pipeline, parameters
         )
         results.append(result)
 
