@@ -6,7 +6,13 @@
 
 ### Installation
 
-To install **HuGME**, use the following command:
+Installation via pypi
+
+```bash
+pip install hugme
+```
+
+To install the library for testing and development, use the following command:
 
 ```bash
 git clone https://github.com/nytud/hugme
