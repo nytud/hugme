@@ -47,20 +47,11 @@ def check_prerequisites(args):
 
 def generate_results(args, client, parameters: dict, n_turns: int, model_context_len: int):
 
-    tokenized_needle, tokenized_haystack, city, anniversary = create_needle_and_haystack(
-        client.tokenizer.tokenize, model_context_len
-    )
+    tokenized_needle, tokenized_haystack, city, anniversary = create_needle_and_haystack(client.tokenizer.tokenize)
+
     results = []
     context_lengths = create_context_lengths(model_context_len, MODEL_MIN_CONTEXT_LEN)
     logging.info(f"Created context lengths for evaluation: {context_lengths}")
-
-    # calculate number of context lengths
-    # for each context len
-    #   trim haystack
-    #   for each needle insertion fraction
-    #       for each turn
-    #           generate answer scores
-    #       aggregate results
 
     for context_len in context_lengths:
         trimmed_haystack, actual_context_len = trim_haystack(tokenized_haystack, tokenized_needle, context_len)
@@ -70,12 +61,6 @@ def generate_results(args, client, parameters: dict, n_turns: int, model_context
             # for each position, the model is evaluated, and collect results
             insertion_positions = create_needle_insertion_depths(n_turns, actual_context_len, fraction)
             for i, insertion_position in enumerate(insertion_positions):
-                # logging.info(
-                #     f"context length: {context_len}, actual_context_len: {actual_context_len}, "
-                #     f"fraction: {fraction}-{fraction + 0.1:0.1f}, turn: {i+1}/{n_turns}, "
-                #     f"interval: {int((actual_context_len / 10) * (fraction * 10))}-{int((actual_context_len / 10) * ((fraction + 0.1) * 10))}, "
-                #     f"insertion position: {insertion_position}"
-                # )
                 tokenized_haystack_with_needle = insert_needle_in_haystack(
                     trimmed_haystack, insertion_position, tokenized_needle
                 )
