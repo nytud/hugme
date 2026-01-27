@@ -1,11 +1,14 @@
 import os
 import re
 import json
-import logging
 import random
+import logging
 import pathlib
 from collections import defaultdict
+
 import torch
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def set_seeds(args) -> None:
@@ -82,3 +85,75 @@ def group_by_category(results: list, acc: float) -> dict:
 
 def clean_answer(answer):
     return re.sub(r"\D", "", str(answer))
+
+
+def plot_needle_in_haystack(
+    results: dict,
+    save_path: str,
+    agg: str = "mean",
+    title: str = "Needle-in-a-Haystack (heatmap)",
+    annotate: bool = False,
+    annotate_fmt: str = ".2f",
+    figsize: tuple[int, int] = (10, 6),
+    dpi: int = 200
+):
+
+    r = []
+    for context_length in results:
+        for fraction in results[context_length]:
+            r.append(
+                {
+                    "context_length": int(context_length),
+                    "fraction": fraction,
+                    "score": results[context_length][fraction],
+                }
+            )
+    xs = [r["context_length"] for r in r]
+    ys = [r["fraction"] for r in r]
+    vs = [r["score"] for r in r]
+
+    x_vals = sorted(set(xs))
+    y_vals = sorted(set(ys))
+    grid = np.full((len(y_vals), len(x_vals)), np.nan, dtype=float)
+
+    buckets = {}
+    for xv, yv, vv in zip(xs, ys, vs):
+        buckets.setdefault((yv, xv), []).append(vv)
+
+    for (yv, xv), vals in buckets.items():
+        if agg == "mean":
+            grid[y_vals.index(yv), x_vals.index(xv)] = float(np.mean(vals))
+        elif agg == "min":
+            grid[y_vals.index(yv), x_vals.index(xv)] = float(np.min(vals))
+        elif agg == "max":
+            grid[y_vals.index(yv), x_vals.index(xv)] = float(np.max(vals))
+        else:
+            raise ValueError(f"Unsupported agg='{agg}'")
+
+    fig, ax = plt.subplots(figsize=figsize)
+    im = ax.imshow(grid, aspect="auto", origin="lower")
+
+    ax.set_title(title)
+    ax.set_xlabel("Context length")
+    ax.set_ylabel("Fraction")
+
+    ax.set_xticks(np.arange(len(x_vals)))
+    ax.set_xticklabels([str(v) for v in x_vals], rotation=45, ha="right")
+    ax.set_yticks(np.arange(len(y_vals)))
+    ax.set_yticklabels([str(v) for v in y_vals])
+
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label("Success")
+
+    if annotate:
+        for i in range(grid.shape[0]):
+            for j in range(grid.shape[1]):
+                v = grid[i, j]
+                if np.isfinite(v):
+                    ax.text(j, i, format(v, annotate_fmt), ha="center", va="center")
+
+    plt.tight_layout()
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
+    logging.info(f"Saved figure to {save_path}")

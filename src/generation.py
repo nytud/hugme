@@ -70,6 +70,7 @@ def initialize_huggingface_model(args):
         args.model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True
     )
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
+    pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
     logging.info(f"Finished loading {args.model_name} model and tokenizer from HuggingFace (or from locally).")
 
     # extract model name from full repo name or local model path, necessary for saving results later, e.g.
@@ -137,7 +138,7 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput: # TODO check NiH task
+def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput:
     # TODO implement batch generation for openai package, then reimplement here
     try:
         results = client(prompts, **parameters)

@@ -12,3 +12,4 @@ scipy
 torchvision
 huspacy
 spacy
+matplotlib

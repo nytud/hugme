@@ -52,3 +52,9 @@ MAX_NEW_TOKENS = {
     READABILITY: 256
 }
 DEFAULT_MAX_NEW_TOKENS = 512
+OPENAI_PROVIDER_NAME = "openai"
+
+# needle in haystack parameters
+N_TURNS = os.getenv("N_TURNS")
+MODEL_CONTEXT_LEN = os.getenv("MODEL_CONTEXT_LEN")
+
