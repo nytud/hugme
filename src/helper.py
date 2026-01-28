@@ -88,47 +88,42 @@ def clean_answer(answer):
 
 
 def plot_needle_in_haystack(
-    results: dict,
+    results,
     save_path: str,
-    agg: str = "mean",
     title: str = "Needle-in-a-Haystack (heatmap)",
     annotate: bool = False,
     annotate_fmt: str = ".2f",
     figsize: tuple[int, int] = (10, 6),
-    dpi: int = 200
-):
+    dpi: int = 200,
+) -> None:
+    # sort x-axis numerically (context lengths stored as strings)
+    x_vals = sorted((int(k) for k in results.keys()))
+    x_labels = [str(x) for x in x_vals]
 
-    r = []
-    for context_length in results:
-        for fraction in results[context_length]:
-            r.append(
-                {
-                    "context_length": int(context_length),
-                    "fraction": fraction,
-                    "score": results[context_length][fraction],
-                }
-            )
-    xs = [r["context_length"] for r in r]
-    ys = [r["fraction"] for r in r]
-    vs = [r["score"] for r in r]
+    # collect all fraction bins and sort by their numeric start (e.g. "0.1-0.2" -> 0.1)
+    def frac_start(s: str) -> float:
+        return float(s.split("-", 1)[0])
 
-    x_vals = sorted(set(xs))
-    y_vals = sorted(set(ys))
+    all_fracs = set()
+    for ctx_str, frac_map in results.items():
+        if not isinstance(frac_map, dict):
+            raise TypeError(f"Expected dict for context '{ctx_str}', got {type(frac_map)}")
+        all_fracs.update(frac_map.keys())
+
+    y_vals = sorted(all_fracs, key=frac_start)  # fraction labels
+    y_labels = y_vals
+
+    # build grid [y, x]
     grid = np.full((len(y_vals), len(x_vals)), np.nan, dtype=float)
+    y_index = {f: i for i, f in enumerate(y_vals)}
+    x_index = {ctx: j for j, ctx in enumerate(x_vals)}
 
-    buckets = {}
-    for xv, yv, vv in zip(xs, ys, vs):
-        buckets.setdefault((yv, xv), []).append(vv)
-
-    for (yv, xv), vals in buckets.items():
-        if agg == "mean":
-            grid[y_vals.index(yv), x_vals.index(xv)] = float(np.mean(vals))
-        elif agg == "min":
-            grid[y_vals.index(yv), x_vals.index(xv)] = float(np.min(vals))
-        elif agg == "max":
-            grid[y_vals.index(yv), x_vals.index(xv)] = float(np.max(vals))
-        else:
-            raise ValueError(f"Unsupported agg='{agg}'")
+    for ctx_str, frac_map in results.items():
+        ctx = int(ctx_str)
+        j = x_index[ctx]
+        for frac_label, score in frac_map.items():
+            i = y_index[frac_label]
+            grid[i, j] = float(score)
 
     fig, ax = plt.subplots(figsize=figsize)
     im = ax.imshow(grid, aspect="auto", origin="lower")
@@ -138,9 +133,10 @@ def plot_needle_in_haystack(
     ax.set_ylabel("Fraction")
 
     ax.set_xticks(np.arange(len(x_vals)))
-    ax.set_xticklabels([str(v) for v in x_vals], rotation=45, ha="right")
+    ax.set_xticklabels(x_labels, rotation=45, ha="right")
+
     ax.set_yticks(np.arange(len(y_vals)))
-    ax.set_yticklabels([str(v) for v in y_vals])
+    ax.set_yticklabels(y_labels)
 
     cbar = plt.colorbar(im, ax=ax)
     cbar.set_label("Success rate")
@@ -153,7 +149,7 @@ def plot_needle_in_haystack(
                     ax.text(j, i, format(v, annotate_fmt), ha="center", va="center")
 
     plt.tight_layout()
-
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
     fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
     logging.info(f"Saved figure to {save_path}")
