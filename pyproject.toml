@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hugme"
-version = "0.0.1"
+version = "1.0.0"
 description = "Library to evaluate models on HuGME benchmark."
 readme = "README.md"
 authors = [
