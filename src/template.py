@@ -84,8 +84,11 @@ def get_readability_template(entry: Dict) -> str:
 
 
 def get_needle_in_haystack_template(entry: Dict) -> str:
-    system_prompt, full_stack_text = entry["system_prompt"], entry["full_stack_text"]
-    return f"{system_prompt}\n {full_stack_text}"
+    return (
+        f"Kizárólag a következő szöveg alapján, "
+        f"hanyadik évfordulóját ünnepelte {entry['city']} város?\n"
+        f"Csak egy számot adj vissza!\n {entry['text']}"
+    )
 
 
 def get_cola_prompt_for_model(sentence):

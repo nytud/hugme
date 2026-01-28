@@ -1,11 +1,15 @@
 import os
 import re
+import gc
 import json
-import logging
 import random
+import logging
 import pathlib
 from collections import defaultdict
+
 import torch
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def set_seeds(args) -> None:
@@ -24,6 +28,11 @@ def set_device(args) -> None:
         device = torch.device("cpu")
     logging.info(f"Using device: {device}")
     args.device = device
+
+
+def cleanup():
+    gc.collect()
+    torch.cuda.empty_cache()
 
 
 def read_file(file_path, readlines: bool = False):
@@ -82,3 +91,72 @@ def group_by_category(results: list, acc: float) -> dict:
 
 def clean_answer(answer):
     return re.sub(r"\D", "", str(answer))
+
+
+# pylint: disable=too-many-locals, too-many-arguments, too-many-statements, too-many-positional-arguments
+def plot_needle_in_haystack(
+    results,
+    save_path: str,
+    title: str = "Needle-in-a-Haystack (heatmap)",
+    annotate: bool = False,
+    annotate_fmt: str = ".2f",
+    figsize: tuple[int, int] = (10, 6),
+    dpi: int = 200,
+) -> None:
+    # sort x-axis numerically (context lengths stored as strings)
+    x_vals = sorted((int(k) for k in results.keys()))
+    x_labels = [str(x) for x in x_vals]
+
+    # collect all fraction bins and sort by their numeric start (e.g. "0.1-0.2" -> 0.1)
+    def frac_start(s: str) -> float:
+        return float(s.split("-", 1)[0])
+
+    all_fracs = set()
+    for ctx_str, frac_map in results.items():
+        if not isinstance(frac_map, dict):
+            raise TypeError(f"Expected dict for context '{ctx_str}', got {type(frac_map)}")
+        all_fracs.update(frac_map.keys())
+
+    y_vals = sorted(all_fracs, key=frac_start)  # fraction labels
+    y_labels = y_vals
+
+    # build grid [y, x]
+    grid = np.full((len(y_vals), len(x_vals)), np.nan, dtype=float)
+    y_index = {f: i for i, f in enumerate(y_vals)}
+    x_index = {ctx: j for j, ctx in enumerate(x_vals)}
+
+    for ctx_str, frac_map in results.items():
+        ctx = int(ctx_str)
+        j = x_index[ctx]
+        for frac_label, score in frac_map.items():
+            i = y_index[frac_label]
+            grid[i, j] = float(score)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    im = ax.imshow(grid, aspect="auto", origin="lower")
+
+    ax.set_title(title)
+    ax.set_xlabel("Context length")
+    ax.set_ylabel("Fraction")
+
+    ax.set_xticks(np.arange(len(x_vals)))
+    ax.set_xticklabels(x_labels, rotation=45, ha="right")
+
+    ax.set_yticks(np.arange(len(y_vals)))
+    ax.set_yticklabels(y_labels)
+
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label("Success rate")
+
+    if annotate:
+        for i in range(grid.shape[0]):
+            for j in range(grid.shape[1]):
+                v = grid[i, j]
+                if np.isfinite(v):
+                    ax.text(j, i, format(v, annotate_fmt), ha="center", va="center")
+
+    plt.tight_layout()
+    os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+    fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+    logging.info(f"Saved figure to {save_path}")
