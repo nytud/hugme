@@ -113,12 +113,7 @@ def create_needle_insertion_depths(data: dict, context_length: int, fraction: fl
 
 def trim_haystack(data: dict, context_length: int):
     trimmed_length = context_length - len(data["needle"])
-    logging.info(
-        f"Trimmed tokenized haystack length to '{trimmed_length}' to fit current context length of '{context_length}'."
-    )
     data["trimmed_haystack"] = data["haystack"][:trimmed_length]
-    # TODO remove later
-    assert len(data["trimmed_haystack"]) == trimmed_length, "Trimmed haystack length does not match expected length."
     return trimmed_length
 
 
