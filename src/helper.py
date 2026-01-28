@@ -143,7 +143,7 @@ def plot_needle_in_haystack(
     ax.set_yticklabels([str(v) for v in y_vals])
 
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label("Success")
+    cbar.set_label("Success rate")
 
     if annotate:
         for i in range(grid.shape[0]):

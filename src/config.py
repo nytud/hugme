@@ -1,4 +1,5 @@
 import os
+import torch
 
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -55,6 +56,6 @@ DEFAULT_MAX_NEW_TOKENS = 512
 OPENAI_PROVIDER_NAME = "openai"
 
 # needle in haystack parameters
+MODEL_DTYPE = torch.float32 # may require torch.bfloat16 or torch.float16 depending on the model
 N_TURNS = os.getenv("N_TURNS")
 MODEL_CONTEXT_LEN = os.getenv("MODEL_CONTEXT_LEN")
-

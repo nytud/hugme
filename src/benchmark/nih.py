@@ -1,6 +1,8 @@
 from typing import Dict
+import gc
 import random
 import logging
+import torch
 
 import config
 import helper
@@ -22,6 +24,7 @@ def compute_metric(args, task_name: str):
 
     client = generation.load_model(args, task_name)
     parameters = generation.create_parameters(args, task_name)
+    parameters["max_new_tokens"] = MAX_NEW_TOKENS
 
     results = generate_results(args, client, parameters, n_turns, model_context_len)
     scores = compute_scores(args, results, n_turns)
@@ -47,15 +50,21 @@ def check_prerequisites(args):
 
 def generate_results(args, client, parameters: dict, n_turns: int, model_context_len: int):
 
+    if args.use_gen_results:
+        logging.info(f"Using generation results from path: {args.use_gen_results}")
+        results = helper.read_json(args.use_gen_results)
+        return results
+
     tokenized_needle, tokenized_haystack, city, anniversary = create_needle_and_haystack(client.tokenizer.tokenize)
 
-    results = []
+    fractions = [i / 10 for i in range(0, 10)] # [0.0, 0.1, ..., 0.9]
     context_lengths = create_context_lengths(model_context_len, MODEL_MIN_CONTEXT_LEN)
     logging.info(f"Created context lengths for evaluation: {context_lengths}")
 
+    results = []
+
     for context_len in context_lengths:
         trimmed_haystack, actual_context_len = trim_haystack(tokenized_haystack, tokenized_needle, context_len)
-        fractions = [i / 10 for i in range(0, 10)] # [0.0, 0.1, ..., 0.9]
         for fraction in fractions:
             # create n_turns random insertion positions between a given interval, e.g. 0.0-0.1
             # for each position, the model is evaluated, and collect results
@@ -69,14 +78,18 @@ def generate_results(args, client, parameters: dict, n_turns: int, model_context
                 output = generation.generate_with_huggingface(prompt, client, parameters)
                 result = format_result(
                     context_len, actual_context_len, fraction,
-                    insertion_position, anniversary, prompt, output
+                    insertion_position, anniversary, output
                 )
                 results.append(result)
 
+        # cleanup
+        gc.collect()
+        torch.cuda.empty_cache()
         logging.info(f"Completed evaluation for context length: {context_len}\n")
 
-    if args.save_results:
-        generation.save_results(results, config.NIH, args.model_name, False)
+        # also save temporary results after each context length evaluation
+        if args.save_results:
+            generation.save_results(results, f"{config.NIH}-{context_len}", args.model_name, False)
 
     return results
 
@@ -118,7 +131,7 @@ def insert_needle_in_haystack(tokenized_haystack: list[int], insertion_position:
     return tokenized_haystack[:insertion_position] + tokenized_needle + tokenized_haystack[insertion_position:]
 
 
-def format_result(context_len, actual_context_len, fraction, insertion_position, anniversary, prompt, output) -> Dict:
+def format_result(context_len, actual_context_len, fraction, insertion_position, anniversary, output) -> Dict:
     answer = helper.clean_answer(output.text)
     return {
         "context_length": context_len,
@@ -126,7 +139,6 @@ def format_result(context_len, actual_context_len, fraction, insertion_position,
         "fraction": f"{fraction:0.1f}-{fraction + 0.1:0.1f}",
         "interval": f"{int((actual_context_len / 10) * (fraction * 10))}-{int((actual_context_len / 10) * ((fraction + 0.1) * 10))}",
         "insertion_position": insertion_position,
-        "prompt": prompt,
         "model_output": output.text,
         "model_cleaned_output": answer,
         "correct_answer": anniversary,

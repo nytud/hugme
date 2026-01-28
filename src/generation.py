@@ -5,6 +5,7 @@ import pathlib
 from dataclasses import dataclass
 from tqdm import tqdm
 import openai
+import torch
 from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -67,7 +68,7 @@ def initialize_huggingface_model(args):
     )
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(
-        args.model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True
+        args.model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True, torch_dtype=config.MODEL_DTYPE
     )
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
     pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
@@ -141,8 +142,9 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
 def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput:
     # TODO implement batch generation for openai package, then reimplement here
     try:
-        results = client(prompts, **parameters)
-        generated_texts = results[0]["generated_text"]
+        with torch.inference_mode():
+            results = client(prompts, **parameters)
+            generated_texts = results[0]["generated_text"]
     except Exception as e:
         logging.error(f"HuggingFace model generation failed for prompts: {prompts} with parameters: {parameters}")
         logging.error(f"HuggingFace model generation failed: {e}")
