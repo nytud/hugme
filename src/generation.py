@@ -68,7 +68,8 @@ def initialize_huggingface_model(args):
     )
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(
-        args.model_name, device_map="auto", token=config.HF_TOKEN, trust_remote_code=True, torch_dtype=config.MODEL_DTYPE
+        args.model_name, device_map="auto", token=config.HF_TOKEN,
+        trust_remote_code=True, torch_dtype=config.MODEL_DTYPE
     )
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
     pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id

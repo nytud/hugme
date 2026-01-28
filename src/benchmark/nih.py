@@ -1,8 +1,7 @@
 from typing import Dict
-import gc
+import os
 import random
 import logging
-import torch
 
 import config
 import helper
@@ -10,86 +9,69 @@ import template
 import generation
 
 
-N_TURNS = 5
 MAX_NEW_TOKENS = 20
 MODEL_MIN_CONTEXT_LEN = 1024
-MODEL_MAX_CONTEXT_LEN = 2048
 GOOD_SOLUTION = 1.0
 BAD_SOLUTION = 0.0
 
 
 def compute_metric(args, task_name: str):
 
-    n_turns, model_context_len = check_prerequisites(args)
+    check_prerequisites(args)
 
     client = generation.load_model(args, task_name)
     parameters = generation.create_parameters(args, task_name)
     parameters["max_new_tokens"] = MAX_NEW_TOKENS
 
-    results = generate_results(args, client, parameters, n_turns, model_context_len)
-    scores = compute_scores(args, results, n_turns)
+    results = generate_results(args, client, parameters)
+    scores = compute_scores(args, results)
     return scores
 
 
-def check_prerequisites(args):
+def check_prerequisites(args, n_turns: int = 5, model_context_len: int = 2048):
     if args.provider == config.OPENAI_PROVIDER_NAME:
-        raise ValueError("The NIH task is not supported with OpenAI API. Please use local model instead (transformers API).")
+        raise ValueError("The NIH task is not supported with OpenAI API. Please use local model with `transformers`.")
     if config.N_TURNS is None:
-        logging.warning(
-            f"N_TURNS environment variables are not set. The N_TURNS={N_TURNS} default value will be used."
-        )
+        os.environ["N_TURNS"] = str(n_turns)
+        logging.warning(f"N_TURNS env variable is not set. N_TURNS={n_turns} is set.")
     if config.MODEL_CONTEXT_LEN is None:
-        logging.warning(
-            "MODEL_CONTEXT_LEN environment variables are not set."
-            f"The MODEL_CONTEXT_LEN={MODEL_MAX_CONTEXT_LEN} default value will be used"
-        )
-    n_turns = int(config.N_TURNS) if config.N_TURNS is not None else N_TURNS
-    model_context_len = int(config.MODEL_CONTEXT_LEN) if config.MODEL_CONTEXT_LEN is not None else MODEL_MAX_CONTEXT_LEN
-    return n_turns, model_context_len
+        os.environ["MODEL_CONTEXT_LEN"] = str(model_context_len)
+        logging.warning("MODEL_CONTEXT_LEN env variable is not set. MODEL_CONTEXT_LEN={model_context_len} is set")
 
 
-def generate_results(args, client, parameters: dict, n_turns: int, model_context_len: int):
+def generate_results(args, client, parameters: dict):
 
     if args.use_gen_results:
         logging.info(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
         return results
 
-    tokenized_needle, tokenized_haystack, city, anniversary = create_needle_and_haystack(client.tokenizer.tokenize)
+    data = create_needle_and_haystack(client.tokenizer.tokenize)
+    results = generate_results_for_context_lengths(data, client, parameters)
+
+    if args.save_results:
+        generation.save_results(results, config.NIH, args.model_name, False)
+
+    return results
+
+
+def generate_results_for_context_lengths(data, client, parameters):
 
     fractions = [i / 10 for i in range(0, 10)] # [0.0, 0.1, ..., 0.9]
-    context_lengths = create_context_lengths(model_context_len, MODEL_MIN_CONTEXT_LEN)
+    context_lengths = create_context_lengths()
     logging.info(f"Created context lengths for evaluation: {context_lengths}")
 
     results = []
-
-    for context_len in context_lengths:
-        trimmed_haystack, actual_context_len = trim_haystack(tokenized_haystack, tokenized_needle, context_len)
+    for context_lenth in context_lengths:
         for fraction in fractions:
-            # create n_turns random insertion positions between a given interval, e.g. 0.0-0.1
-            # for each position, the model is evaluated, and collect results
-            insertion_positions = create_needle_insertion_depths(n_turns, actual_context_len, fraction)
-            for i, insertion_position in enumerate(insertion_positions):
-                tokenized_haystack_with_needle = insert_needle_in_haystack(
-                    trimmed_haystack, insertion_position, tokenized_needle
-                )
-                haystack_with_needle = client.tokenizer.convert_tokens_to_string(tokenized_haystack_with_needle)
-                prompt = template.get_prompt("needle-in-haystack", {"text": haystack_with_needle, "city": city})
-                output = generation.generate_with_huggingface(prompt, client, parameters)
-                result = format_result(
-                    context_len, actual_context_len, fraction,
-                    insertion_position, anniversary, output
-                )
+            insertion_positions = create_needle_insertion_depths(data, context_lenth, fraction)
+            for insertion_position in insertion_positions:
+                output = generate_result(insertion_position, data, client, parameters)
+                result = format_result(context_lenth, fraction, output, data)
                 results.append(result)
 
-        # cleanup
-        gc.collect()
-        torch.cuda.empty_cache()
-        logging.info(f"Completed evaluation for context length: {context_len}\n")
-
-        # also save temporary results after each context length evaluation
-        if args.save_results:
-            generation.save_results(results, f"{config.NIH}-{context_len}", args.model_name, False)
+        helper.cleanup()
+        logging.info(f"Completed evaluation for context length: {context_lenth}\n")
 
     return results
 
@@ -107,60 +89,78 @@ def create_needle_and_haystack(tokenize_fn):
     tokenized_haystack = tokenize_fn(haystack)
     logging.info("Created and tokenized haystack.")
 
-    return tokenized_needle, tokenized_haystack, random_city, anniversary
+    return {
+        "haystack": tokenized_haystack, "needle": tokenized_needle,
+        "city": random_city, "anniversary": anniversary
+    }
 
 
-def create_context_lengths(max_context_len: int, current_context_len: int) -> list[int]:
+def create_context_lengths() -> list[int]:
     # [1024, 2048, ..., max_context_len]
-    return [2**i * current_context_len for i in range(int(max_context_len / current_context_len).bit_length())]
+    max_context_len = os.getenv("MODEL_CONTEXT_LEN")
+    assert max_context_len is not None, "MODEL_CONTEXT_LEN env variable must be set."
+    return [2**i * MODEL_MIN_CONTEXT_LEN for i in range(int(int(max_context_len) / MODEL_MIN_CONTEXT_LEN).bit_length())]
 
 
-def create_needle_insertion_depths(n_turn: int, actual_context_length: int, fraction: float):
-    insertion_fractions = [random.uniform(0, 0.1) for i in range(n_turn)]
+def create_needle_insertion_depths(data: dict, context_length: int, fraction: float):
+    n_turn = os.getenv("N_TURNS")
+    assert n_turn is not None, "N_TURNS env variable must be set."
+    actual_context_length = trim_haystack(data, context_length)
+    insertion_fractions = [random.uniform(0, 0.1) for i in range(int(n_turn))]
     insertion_positions = [int(actual_context_length * (f + fraction)) for f in insertion_fractions]
     return insertion_positions
 
 
-def trim_haystack(tokenized_haystack: list[int], tokenized_needle: list[int], context_length: int):
-    trimmed_length = context_length - len(tokenized_needle)
-    logging.info(f"Trimmed tokenized haystack length to '{trimmed_length}' to fit current context length of '{context_length}'.")
-    return tokenized_haystack[:trimmed_length], trimmed_length
+def trim_haystack(data: dict, context_length: int):
+    trimmed_length = context_length - len(data["needle"])
+    logging.info(
+        f"Trimmed tokenized haystack length to '{trimmed_length}' to fit current context length of '{context_length}'."
+    )
+    data["trimmed_haystack"] = data["haystack"][:trimmed_length]
+    # TODO remove later
+    assert len(data["trimmed_haystack"]) == trimmed_length, "Trimmed haystack length does not match expected length."
+    return trimmed_length
+
+
+def generate_result(position, data, client, parameters):
+    tokenized_haystack_with_needle = insert_needle_in_haystack(data["trimmed_haystack"], position, data["needle"])
+    haystack_with_needle = client.tokenizer.convert_tokens_to_string(tokenized_haystack_with_needle)
+    prompt = template.get_prompt("needle-in-haystack", {"text": haystack_with_needle, "city": data["city"]})
+    output = generation.generate_with_huggingface(prompt, client, parameters)
+    return output
 
 
 def insert_needle_in_haystack(tokenized_haystack: list[int], insertion_position: int, tokenized_needle: list[int]):
     return tokenized_haystack[:insertion_position] + tokenized_needle + tokenized_haystack[insertion_position:]
 
 
-def format_result(context_len, actual_context_len, fraction, insertion_position, anniversary, output) -> Dict:
+def format_result(context_len: int, fraction: float, output, data: dict) -> Dict:
     answer = helper.clean_answer(output.text)
     return {
         "context_length": context_len,
-        "actual_context_length": actual_context_len,
         "fraction": f"{fraction:0.1f}-{fraction + 0.1:0.1f}",
-        "interval": f"{int((actual_context_len / 10) * (fraction * 10))}-{int((actual_context_len / 10) * ((fraction + 0.1) * 10))}",
-        "insertion_position": insertion_position,
         "model_output": output.text,
         "model_cleaned_output": answer,
-        "correct_answer": anniversary,
+        "correct_answer": data["anniversary"],
     }
 
-def compute_scores(args, results: list, n_turns: int) -> dict:
+def compute_scores(args, results: list) -> dict:
     for result in results:
         answer = result["model_cleaned_output"]
         anniversary = result["correct_answer"]
         if str(answer).strip() == str(anniversary):
-            result["score"] = 1
+            result["score"] = GOOD_SOLUTION
         else:
-            result["score"] = 0
+            result["score"] = BAD_SOLUTION
 
     logging.info("NIH benchmark results computed.")
     if args.save_results:
         helper.save_json(results, config.RESULTS_DIR, f"{config.NIH}-{args.model_name}-eval-results.json")
 
-    return compute_average_score(args, results, n_turns)
+    return compute_average_score(args, results)
 
 
-def compute_average_score(args, results: list, n_turns: int) -> dict:
+def compute_average_score(args, results: list) -> dict:
 
     # aggregate results by context length and fraction
     aggregated_results = {}
@@ -177,9 +177,9 @@ def compute_average_score(args, results: list, n_turns: int) -> dict:
         aggregated_results[context_len][fraction] += result["score"]
 
     # average the scores
-    for context_length in aggregated_results:
-        for fraction in aggregated_results[context_length]:
-            aggregated_results[context_length][fraction] /= n_turns
+    for fractions in aggregated_results.values():
+        for fraction in fractions:
+            fractions[fraction] /= int(os.getenv("N_TURNS", 5))
 
     logging.info("NIH benchmark aggregated results computed.")
 

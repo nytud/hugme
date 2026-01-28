@@ -1,5 +1,6 @@
 import os
 import re
+import gc
 import json
 import random
 import logging
@@ -27,6 +28,11 @@ def set_device(args) -> None:
         device = torch.device("cpu")
     logging.info(f"Using device: {device}")
     args.device = device
+
+
+def cleanup():
+    gc.collect()
+    torch.cuda.empty_cache()
 
 
 def read_file(file_path, readlines: bool = False):
@@ -87,6 +93,7 @@ def clean_answer(answer):
     return re.sub(r"\D", "", str(answer))
 
 
+# pylint: disable=too-many-locals, too-many-arguments, too-many-statements, too-many-positional-arguments
 def plot_needle_in_haystack(
     results,
     save_path: str,
