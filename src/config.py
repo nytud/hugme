@@ -24,6 +24,7 @@ PROMPT_ALIGNMENT_DATASET = DATASETS + os.getenv("PROMPT_ALIGNMENT_DATASET", "pro
 READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.json")
 COLA_DATASET = DATASETS + os.getenv("COLA_DATASET", "summarization.json")
 MMLU_DATASET = DATASETS + os.getenv("MMLU_DATASET", "mmlu.json")
+CULTURAL_DATASET = DATASETS + os.getenv("CULTURAL_DATASET", "cultural.json")
 
 
 METRIC_DATASETES = {
@@ -36,6 +37,7 @@ METRIC_DATASETES = {
 }
 
 MMLU = "mmlu"
+CULTURAL = "cultural"
 NIH = "needle-in-haystack"
 SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"

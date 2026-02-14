@@ -17,6 +17,7 @@ def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union
         "summarization": get_summarization_template,
         "toxicity": get_toxicity_template,
         "truthfulqa": get_truthful_qa_template,
+        "cultural": get_cultural_template,
     }
     template_fn = templates[task_name]
     if alpaca_prompt:
@@ -117,3 +118,10 @@ def get_cola_prompt_for_model(sentence):
         }
     ]
     return messages
+
+def get_cultural_template(entry: Dict) -> str:
+    question, a, b, c, d = entry['input'], entry['A'], entry['B'], entry['C'], entry['D']
+    return (
+            "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza! "
+            f"Kérdés: {question}\nVálaszok: {a}, {b}, {c}, {d}"
+        )

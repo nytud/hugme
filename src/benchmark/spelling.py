@@ -12,8 +12,13 @@ import helper
 import generation
 
 
-spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
+spell = None
 
+def get_spellchecker():
+    global spell
+    if spell is None:
+        spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
+    return spell
 
 def compute_metric(args, task_name: str):
     dataset = helper.read_json(config.SPELLING_DATASET)
@@ -61,6 +66,7 @@ def compute_score(args, results: List[Dict]):
 
 
 def check_spelling(text: str):
+    spell = get_spellchecker()
     text = remove_punctuation(text)
     texts = text.split()
     text_len = len(texts)
