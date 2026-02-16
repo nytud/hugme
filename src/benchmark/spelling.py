@@ -1,4 +1,5 @@
 from typing import List, Dict
+from functools import lru_cache
 
 import os
 import string
@@ -11,9 +12,11 @@ import config
 import helper
 import generation
 
-
-spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
-
+@lru_cache(maxsize=1)
+def get_spellchecker() -> SpellChecker:
+    return SpellChecker(
+        local_dictionary=config.SPELLING_DICT
+    )
 
 def compute_metric(args, task_name: str):
     dataset = helper.read_json(config.SPELLING_DATASET)
@@ -61,6 +64,7 @@ def compute_score(args, results: List[Dict]):
 
 
 def check_spelling(text: str):
+    spell = get_spellchecker()
     text = remove_punctuation(text)
     texts = text.split()
     text_len = len(texts)
