@@ -11,14 +11,12 @@ import config
 import helper
 import generation
 
-
-spell = None
-
 def get_spellchecker():
-    global spell
-    if spell is None:
-        spell = SpellChecker(local_dictionary=config.SPELLING_DICT)
-    return spell
+    if not hasattr(get_spellchecker, "_spell"):
+        get_spellchecker._spell = SpellChecker(
+            local_dictionary=config.SPELLING_DICT
+        )
+    return get_spellchecker._spell
 
 def compute_metric(args, task_name: str):
     dataset = helper.read_json(config.SPELLING_DATASET)
