@@ -21,7 +21,7 @@ def preprocess(dataset: List[Dict]) -> List[Dict]:
         entry["B"] = "B " + str(entry["B"])
         entry["C"] = "C " + str(entry["C"])
         entry["D"] = "D " + str(entry["D"])
-    
+
     return dataset
 
 def post_process_llama(output: str):
@@ -44,7 +44,7 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
         "category": entry['category'],
         "total_tokens": output.total_tokens
     }
-    
+
 def compute_scores(args, results: list):
     score = 0.0
     for entry in tqdm(results, desc="Calculating scores", unit="query"):
