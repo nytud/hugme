@@ -25,6 +25,10 @@ def preprocess(dataset: List[Dict]) -> List[Dict]:
     return dataset
 
 def post_process_llama(output: str):
+    """Cleans model outputs by extracting the final answer after the 
+    'válasz' keyword (if present), removing leading explanation text 
+    to ensure consistent comparison with target answers.
+    """
     keyword = "válasz"
     index = output.lower().find(keyword)
 
