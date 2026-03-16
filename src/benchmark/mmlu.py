@@ -45,7 +45,7 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
         "prompt": prompt,
         "output": actual_output_text,
         "target": entry['target'],
-        "category": entry['category'],
+        "category": entry['subject'],
         "total_tokens": output.total_tokens
     }
 
