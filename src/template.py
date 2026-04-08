@@ -105,6 +105,7 @@ def get_cola_prompt_for_model(sentence):
                 "of Hungarian grammar). "
                 "Ignore stylistic or semantic issues unless they affect grammatical correctness. "
                 "Do not correct the sentence, only classify it. "
+                "If the sentence is not written in Hungarian, output 0. "
                 "Always output exactly one number: 1 for 'grammatical' and 0 for 'ungrammatical'."
             )
         },
