@@ -38,6 +38,7 @@ def cli() -> None:
 
     helper.set_seeds(args)
     helper.set_device(args)
+    helper.shorten_model_name(args)
 
     evaluate.evaluate(args)
 

@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Iterator, List,Optional
 
+import re
 import logging
-import pathlib
 from dataclasses import dataclass
 from tqdm import tqdm
 import openai
@@ -42,14 +42,17 @@ def generate_results(
         output = generate(
             prompt, client, parameters, model_name=args.model_name, provider=args.provider
         )
-        formatted_result = format_fn(entry, prompt, output)
+        actual_prompt = prompt[1].get("content") if isinstance(prompt, list) else prompt
+        # for reasoning models, we don't need text inside <think></think>
+        output.text = re.sub(r'<think>.*?</think>', '', output.text, flags=re.DOTALL).strip()
+        formatted_result = format_fn(entry, actual_prompt, output)
         results.append(formatted_result)
 
         if args.save_results and (idx + 1) % 10 == 0: # save intermediate results every 10 generations
-            save_results(results, task_name, args.model_name, args.thinking)
+            save_results(results, task_name, args.model_name_short, args.thinking)
 
     if args.save_results:
-        save_results(results, task_name, args.model_name, args.thinking)
+        save_results(results, task_name, args.model_name_short, args.thinking)
     return results
 
 
@@ -75,11 +78,6 @@ def initialize_huggingface_model(args):
     pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
     logging.info(f"Finished loading {args.model_name} model and tokenizer from HuggingFace (or from locally).")
 
-    # extract model name from full repo name or local model path, necessary for saving results later, e.g.
-    # "/home/models/models/meta-llama-3.1-8B-instruct" -> meta-llama-3.1-8b-instruct
-    # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
-    model_name_or_path = pathlib.Path(args.model_name)
-    args.model_name = model_name_or_path.name.lower()
     return pipe
 
 
