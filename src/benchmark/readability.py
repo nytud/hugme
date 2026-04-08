@@ -47,7 +47,7 @@ def compute_scores(args, results):
 
     if args.save_results:
         helper.save_json(
-            results, config.RESULTS_DIR, f"{config.READABILITY}-{args.model_name}-{args.thinking}-eval-results.json"
+            results, config.RESULTS_DIR, f"{config.READABILITY}-{args.model_name_short}-{args.thinking}-eval-results.json"
         )
     logging.info(f"{config.READABILITY} benchmark results accuracy: {mean(similarity_scores)}")
 

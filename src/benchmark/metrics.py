@@ -30,7 +30,7 @@ def compute_metric(args, task_name: str) -> float:
     return score
 
 
-def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+def format_result(entry: Dict[str, Any], prompt: str, output: generation.ModelOutput) -> Dict:
     return {
         "input": prompt,
         "output": output.text,
@@ -71,7 +71,7 @@ def compute_score(args, results: list, metric, task_name: str) -> float:
         helper.save_json(
             measurement_results,
             config.RESULTS_DIR,
-            f"{task_name}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+            f"{task_name}-{args.model_name_short}-{str(args.thinking).lower()}-eval-results.json"
         )
     return final_score
 

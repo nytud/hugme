@@ -1,3 +1,4 @@
+import re
 import logging
 import random
 import openai
@@ -35,7 +36,6 @@ def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> d
     return {
         "input": prompt,
         "output": output.text,
-        "questions": entry["questions"],
         "token_usage": output.total_tokens
     }
 
@@ -122,7 +122,7 @@ def compute_scores(args, results):
         total_sentences += len(sentence_scores)
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.COLA}-{args.model_name}-eval-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.COLA}-{args.model_name_short}-eval-results.json")
 
     accuracy = ((grammatical_sentence_count / total_sentences) * 100) if total_sentences else 0.0
     logging.info(f"CoLA benchmark accuracy: {accuracy:.2f}%")

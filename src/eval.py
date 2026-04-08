@@ -1,5 +1,6 @@
 import time
 import logging
+import pathlib
 from datetime import datetime
 
 import config
@@ -43,4 +44,4 @@ def evaluate(args) -> None:
 
     if args.save_results:
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-{args.model_name}-results-{current_time}.json")
+        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-{args.model_name_short}-results-{current_time}.json")

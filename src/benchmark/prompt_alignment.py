@@ -48,6 +48,8 @@ def compute_scores(args, results: List[Dict]) -> Dict:
             passed += 1
 
         entry["reason"] = metric.reason
+        entry["score"] = metric.score
+        entry["passed"] = metric.score >= THRESHOLD
 
     avg_score = total_score / len(results)
     success_rate = passed / len(results)
@@ -59,7 +61,7 @@ def compute_scores(args, results: List[Dict]) -> Dict:
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.PROMPT_ALIGNMENT}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+            f"{config.PROMPT_ALIGNMENT}-{args.model_name_short}-{str(args.thinking).lower()}-eval-results.json"
         )
     return {"success_rate": success_rate, "average_score": avg_score }
 

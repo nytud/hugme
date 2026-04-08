@@ -39,7 +39,7 @@ def post_process_llama(output: str):
     return output
 
 
-def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+def format_result(entry: Dict[str, Any], prompt: str, output: generation.ModelOutput) -> Dict:
     actual_output_text = post_process_llama(output.text)
     return {
         "prompt": prompt,
@@ -65,7 +65,7 @@ def compute_scores(args, results: list):
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.MMLU}-{args.model_name}-{args.thinking}-eval-results.json"
+            f"{config.MMLU}-{args.model_name_short}-{args.thinking}-eval-results.json"
         )
 
     return helper.group_by_category(results, total_score)
