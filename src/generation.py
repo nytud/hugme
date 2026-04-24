@@ -40,7 +40,7 @@ def generate_results(
 
         prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
         output = generate(
-            prompt, client, parameters, model_name=args.model_name, provider=args.provider, thinking=args.thinking
+            prompt, client, parameters, args
         )
         formatted_result = format_fn(entry, prompt, output)
         results.append(formatted_result)
@@ -117,14 +117,12 @@ def generate(
         prompt: Any,
         client: Any,
         parameters: dict,
-        model_name: Optional[str] = None,
-        provider: Optional[str] = None,
-        thinking: bool = False
+        args
     ) -> ModelOutput:
-    if provider:
-        assert model_name is not None, "Model name must be provided when using OpenAI API."
-        return generate_with_openai(prompt, client, model_name, parameters)
-    return generate_with_huggingface(prompt, client, parameters, thinking)
+    if args.provider:
+        assert args.model_name is not None, "Model name must be provided when using OpenAI API."
+        return generate_with_openai(prompt, client, args.model_name, args.parameters)
+    return generate_with_huggingface(prompt, client, args.parameters, args.thinking)
 
 
 def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
