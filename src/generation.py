@@ -40,7 +40,7 @@ def generate_results(
 
         prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
         output = generate(
-            prompt, client, parameters, model_name=args.model_name, provider=args.provider
+            prompt, client, parameters, model_name=args.model_name, provider=args.provider, thinking=args.thinking
         )
         formatted_result = format_fn(entry, prompt, output)
         results.append(formatted_result)
@@ -82,7 +82,6 @@ def initialize_huggingface_model(args):
     args.model_name = model_name_or_path.name.lower()
     return pipe
 
-
 def initialize_openai_client():
     client = openai.OpenAI(api_key=config.PROVIDER_API_KEY, base_url=config.PROVIDER_URL)
     logging.info(f"Initialized OpenAI client with base URL {config.PROVIDER_URL}.")
@@ -119,12 +118,13 @@ def generate(
         client: Any,
         parameters: dict,
         model_name: Optional[str] = None,
-        provider: Optional[str] = None
+        provider: Optional[str] = None,
+        thinking: bool = False
     ) -> ModelOutput:
     if provider:
         assert model_name is not None, "Model name must be provided when using OpenAI API."
         return generate_with_openai(prompt, client, model_name, parameters)
-    return generate_with_huggingface(prompt, client, parameters)
+    return generate_with_huggingface(prompt, client, parameters, thinking)
 
 
 def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
@@ -140,18 +140,48 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput:
+def generate_with_huggingface(prompts: List[str], client, parameters: dict, thinking: bool) -> ModelOutput:
     # TODO implement batch generation for openai package, then reimplement here
+    tokenizer = client.tokenizer
+
+    if isinstance(prompts, list):
+        try:
+            rendered_prompt = tokenizer.apply_chat_template(
+                prompts,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=thinking
+            )
+        except TypeError:
+            rendered_prompt = tokenizer.apply_chat_template(
+                prompts,
+                tokenize=False,
+                add_generation_prompt=True
+            )
+
+    else:
+        rendered_prompt = prompt
+
     try:
         with torch.inference_mode():
-            results = client(prompts, **parameters)
-            generated_texts = results[0]["generated_text"]
-    except Exception as e:
-        logging.error(f"HuggingFace model generation failed for prompts: {prompts} with parameters: {parameters}")
-        logging.error(f"HuggingFace model generation failed: {e}")
-        raise e
-    return ModelOutput(generated_texts) # TODO implement total tokens for huggingface
 
+            results = client(
+                rendered_prompt,
+                **parameters
+            )
+
+        generated = results[0]["generated_text"]
+
+        if generated.startswith(rendered_prompt):
+            generated = generated[len(rendered_prompt):]
+
+        generated = generated.strip()
+
+    except Exception as e:
+        logging.error(f"HuggingFace generation failed: {e}")
+        raise e
+
+    return ModelOutput(generated) # TODO implement total tokens for huggingface
 
 def generate_batches(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
     for i in range(0, len(dataset), batch_size):
