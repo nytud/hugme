@@ -160,7 +160,7 @@ def generate_with_huggingface(prompts: List[str], client, parameters: dict, thin
             )
 
     else:
-        rendered_prompt = prompt
+        rendered_prompt = prompts
 
     try:
         with torch.inference_mode():
