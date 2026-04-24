@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Iterator, List,Optional
+from typing import Any, Callable, Dict, Iterator, List,Optional,Union
 
 import logging
 import pathlib
@@ -140,7 +140,7 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_with_huggingface(prompts: Union[str, list[dict[str, Any]]], client, parameters: dict, thinking: bool) -> ModelOutput:
+def generate_with_huggingface(prompts: Union[str, List[str]], client, parameters: dict, thinking: bool) -> ModelOutput:
     # TODO implement batch generation for openai package, then reimplement here
     tokenizer = client.tokenizer
 
