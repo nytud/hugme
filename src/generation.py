@@ -1,4 +1,5 @@
 from typing import Any, Callable, Dict, Iterator, List,Optional,Union
+import inspect
 
 import logging
 import pathlib
@@ -139,24 +140,23 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
 
 
 def generate_with_huggingface(prompts: Union[str, List[str]], client, parameters: dict, thinking: bool) -> ModelOutput:
-    # TODO implement batch generation for openai package, then reimplement here
     tokenizer = client.tokenizer
 
     if isinstance(prompts, list):
-        try:
-            rendered_prompt = tokenizer.apply_chat_template(
-                prompts,
-                tokenize=False,
-                add_generation_prompt=True,
-                enable_thinking=thinking
-            )
-        except TypeError:
-            rendered_prompt = tokenizer.apply_chat_template(
-                prompts,
-                tokenize=False,
-                add_generation_prompt=True
-            )
+        sig = inspect.signature(tokenizer.apply_chat_template)
 
+        kwargs = {
+            "tokenize": False,
+            "add_generation_prompt": True,
+        }
+
+        if "enable_thinking" in sig.parameters:
+            kwargs["enable_thinking"] = thinking
+
+        rendered_prompt = tokenizer.apply_chat_template(
+            prompts,
+            **kwargs
+        )
     else:
         rendered_prompt = prompts
 
@@ -169,11 +169,6 @@ def generate_with_huggingface(prompts: Union[str, List[str]], client, parameters
             )
 
         generated = results[0]["generated_text"]
-
-        if generated.startswith(rendered_prompt):
-            generated = generated[len(rendered_prompt):]
-
-        generated = generated.strip()
 
     except Exception as e:
         logging.error(f"HuggingFace generation failed: {e}")
