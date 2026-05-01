@@ -1,673 +1,279 @@
 # Benchmark Results
 
----
-
-## PULI Trio Instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 63.27 | - | - |
-| toxicity | tox | 7.0 | - | - |
-| relevance | r | 57.0 | - | - |
-| faithfulness | f | 78.0 | - | - |
-| summary | s | 30.61 | - | - |
-| prompt_alignment | p | 19 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.79 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## PULI LlumiX Instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | - | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | 94.7 | - | - |
-
----
-
-## google/gemma-3-4b-it
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | - | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | 93.73 | - | - |
-
----
-
-## microsoft/Phi-4-mini-instruct
-
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | - | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | 91.52 | - | - |
-
----
-
-## microsoft/Phi-4-multimodal-instruct
-
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | - | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | 93.51 | - | - |
-
----
-
-## SambaLingo-7B Chat (sambanovasystems/SambaLingo-Hungarian-Chat)
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 79.59 | - | - |
-| toxicity | tox | 83.0 | - | - |
-| relevance | r | 88.0 | - | - |
-| faithfulness | f | 74.0 | - | - |
-| summary | s | 63.27 | - | - |
-| prompt_alignment | p | 22.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.89 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## meta-llama/Llama-3.1-8B-Instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 73.47 | - | - |
-| toxicity | tox | 89.0 | - | - |
-| relevance | r | 65.0 | - | - |
-| faithfulness | f | 81.0 | - | - |
-| summary | s | 63.27 | - | - |
-| prompt_alignment | p | 29.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 94.9 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## PULI-LlumiX-Llama-3.1 8B-Chat
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 76.53 | - | - |
-| toxicity | tox | 87.0 | - | - |
-| relevance | r | 76.0 | - | - |
-| faithfulness | f | 91.0 | - | - |
-| summary | s | 61.22 | - | - |
-| prompt_alignment | p | 35.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 94.96 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## BSC-LT/salamandra-7b-instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.93 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
----
-
-## google/gemma-3-12b-it
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 94.87 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## google/gemma-3-27b-it
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.44 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
----
-
-## Qwen/Qwen2.5-32B-Instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 93.81 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
----
-
-## meta-llama/Llama-3.3-70B Instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 89.8 | - | - |
-| toxicity | tox | 94.0 | - | - |
-| relevance | r | 94.0 | - | - |
-| faithfulness | f | 96.0 | - | - |
-| summary | s | 75.51 | - | - |
-| prompt_alignment | p | 47.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.43 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## SambaLingo-70B Chat
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.68 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## Qwen/Qwen2.5-72B-Instruct
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | - | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 93.77 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## GPT-3.5 Turbo
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 89.8 | - | - |
-| toxicity | tox | 72.0 | - | - |
-| relevance | r | 95.0 | - | - |
-| faithfulness | f | 99.0 | - | - |
-| summary | s | 73.47 | - | - |
-| prompt_alignment | p | 74.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.43 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## GPT-4o-mini (2024-07-18)
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 89.8 | - | - |
-| toxicity | tox | 72.0 | - | - |
-| relevance | r | 95.0 | - | - |
-| faithfulness | f | 99.0 | - | - |
-| summary | s | 73.47 | - | - |
-| prompt_alignment | p | 74.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.43 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## GPT-o3-mini (2025-01-31)
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 97.96 | - | - |
-| toxicity | tox | 89.0 | - | - |
-| relevance | r | 97.0 | - | - |
-| faithfulness | f | 100.0 | - | - |
-| summary | s | 89.8 | - | - |
-| prompt_alignment | p | 85.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | 95.53 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
-
-## PULI-llumiX-llama-3.1-8B chat 16k
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 81.63 | -       | -     |
-| toxicity         | tox    |  82.0 | -       | -     |
-| relevance        | r      |  91.0 | -       | -     |
-| faithfulness     | f      |  98.0 | -       | -     |
-| summary          | s      | 26.53 | -       | -     |
-| prompt_alignment | p      |  27.0 | -       | -     |
-| readability      | read   |  79.7 | -       | -     |
-| spell_checking   | sp     | 100.0 | -       | -     |
-| cola             | c      |     - | -       | -     |
-| thruthfulQA      | th     | 25.44 | -       | -     |
-| MMLU             | m      | 46.98 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## PULI-llumiX-llama-3.1-8B chat 32k (from-base32k-epoch-hun-1)
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 85.71 | -       | -     |
-| toxicity         | tox    |  85.0 | -       | -     |
-| relevance        | r      |  89.0 | -       | -     |
-| faithfulness     | f      |  99.0 | -       | -     |
-| summary          | s      | 28.57 | -       | -     |
-| prompt_alignment | p      |  32.0 | -       | -     |
-| readability      | read   |  68.0 | -       | -     |
-| spell_checking   | sp     | 100.0 | -       | -     |
-| cola             | c      |     - | -       | -     |
-| thruthfulQA      | th     | 28.78 | -       | -     |
-| MMLU             | m      | 45.44 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## PULI-llumiX-llama-3.1-8B chat 32k (from-base32k-epoch-hun-2)
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 90.82 | -       | -     |
-| toxicity         | tox    |  88.0 | -       | -     |
-| relevance        | r      |  93.0 | -       | -     |
-| faithfulness     | f      | 100.0 | -       | -     |
-| summary          | s      | 34.69 | -       | -     |
-| prompt_alignment | p      |  35.0 | -       | -     |
-| readability      | read   |  75.9 | -       | -     |
-| spell_checking   | sp     | 100.0 | -       | -     |
-| cola             | c      |     - | -       | -     |
-| thruthfulQA      | th     | 38.55 | -       | -     |
-| MMLU             | m      | 43.89 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## PULI-trio-q-chat (from-base-hun-epoch-1)
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 81.63 | - | - |
-| toxicity | tox | 91.0 | - | - |
-| relevance | r | 84.0 | - | - |
-| faithfulness | f | 99.0 | - | - |
-| summary | s | 22.45 | - | - |
-| prompt_alignment | p | 52.0 | - | - |
-| readability | read | 78.3 | - | - |
-| spell_checking | sp | 94.78 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | 50.07 | - | - |
-| MMLU | m | 57.69 | - | - |
-| NiH | n | - | - | - |
-
----
-
-## PULI-trio-q-chat (from-base-hun-epoch-2)
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 80.61 | - | - |
-| toxicity | tox | 82.0 | - | - |
-| relevance | r | 89.0 | - | - |
-| faithfulness | f | 99.0 | - | - |
-| summary | s | 24.49 | - | - |
-| prompt_alignment | p | 51.0 | - | - |
-| readability | read | 68.7 | - | - |
-| spell_checking | sp | 94.58 | - | - |
-| cola | c | - | - | - | - |
-| thruthfulQA | th | 50.87 | - | - |
-| MMLU | m | 57.5 | - | - |
-| NiH | n | - | - | - |
-
----
-
-## Qwen/Qwen2.5-7B-Instruct
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 87.76 | -       | -     |
-| toxicity         | tox    |  98.0 | -       | -     |
-| relevance        | r      |  53.0 | -       | -     |
-| faithfulness     | f      |  98.0 | -       | -     |
-| summary          | s      | 30.61 | -       | -     |
-| prompt_alignment | p      |  33.0 | -       | -     |
-| readability      | read   |  76.1 | -       | -     |
-| spell_checking   | sp     | 93.32 | -       | -     |
-| cola             | c      |   0.0 | -       | -     |
-| thruthfulQA      | th     | 40.03 | -       | -     |
-| MMLU             | m      | 46.17 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
----
-
-## qwen-fine-tuning-sft/trio-q-base-sft
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 78.57 | -       | -     |
-| toxicity         | tox    |  85.0 | -       | -     |
-| relevance        | r      |  87.0 | -       | -     |
-| faithfulness     | f      |  98.0 | -       | -     |
-| summary          | s      | 36.73 | -       | -     |
-| prompt_alignment | p      |  44.0 | -       | -     |
-| readability      | read   |  73.9 | -       | -     |
-| spell_checking   | sp     | 94.55 | -       | -     |
-| cola             | c      |     - | -       | -     |
-| thruthfulQA      | th     | 51.14 | -       | -     |
-| MMLU             | m      | 58.14 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## qwen-fine-tuning-sft/qwen257-instruct-sft
-
-| Task             | Metric |  Score | Version | Notes |
-| ---------------- | ------ | -----: | ------- | ----- |
-| bias             | b      |  80.61 | -       | -     |
-| toxicity         | tox    |   86.0 | -       | -     |
-| relevance        | r      |   56.0 | -       | -     |
-| faithfulness     | f      |  100.0 | -       | -     |
-| summary          | s      |  32.65 | -       | -     |
-| prompt_alignment | p      |   35.0 | -       | -     |
-| readability      | read   |   76.5 | -       | -     |
-| spell_checking   | sp     | 94.308 | -       | -     |
-| cola             | c      |      - | -       | -     |
-| thruthfulQA      | th     |  33.07 | -       | -     |
-| MMLU             | m      |  50.26 | -       | -     |
-| NiH              | n      |      - | -       | -     |
-
-
----
-
-## /home/models/experiments/experiments-llama-fine-tuning-sft/llama318-instruct-sft
-
-| Task             | Metric |  Score | Version | Notes |
-| ---------------- | ------ | -----: | ------- | ----- |
-| bias             | b      |  88.78 | -       | -     |
-| toxicity         | tox    |   94.0 | -       | -     |
-| relevance        | r      |   78.0 | -       | -     |
-| faithfulness     | f      |   99.0 | -       | -     |
-| summary          | s      |  57.14 | -       | -     |
-| prompt_alignment | p      |   32.0 | -       | -     |
-| readability      | read   |   77.3 | -       | -     |
-| spell_checking   | sp     | 94.078 | -       | -     |
-| cola             | c      |      - | -       | -     |
-| thruthfulQA      | th     |  48.59 | -       | -     |
-| MMLU             | m      |  43.46 | -       | -     |
-| NiH              | n      |      - | -       | -     |
-
-
----
-
-## qwen-max-latest
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      |  94.9 | -       | -     |
-| toxicity         | tox    |  97.0 | -       | -     |
-| relevance        | r      |  90.0 | -       | -     |
-| faithfulness     | f      | 100.0 | -       | -     |
-| summary          | s      | 95.92 | -       | -     |
-| prompt_alignment | p      |  76.0 | -       | -     |
-| readability      | read   |  78.8 | -       | -     |
-| spell_checking   | sp     | 94.71 | -       | -     |
-| cola             | c      |  95.6 | -       | -     |
-| thruthfulQA      | th     | 74.57 | -       | -     |
-| MMLU             | m      | 64.59 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## qwen-plus (thinking)
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 96.94 | -       | -     |
-| toxicity         | tox    |  94.0 | -       | -     |
-| relevance        | r      |  96.0 | -       | -     |
-| faithfulness     | f      | 100.0 | -       | -     |
-| summary          | s      | 95.92 | -       | -     |
-| prompt_alignment | p      |  74.0 | -       | -     |
-| readability      | read   |  78.4 | -       | -     |
-| spell_checking   | sp     | 93.35 | -       | -     |
-| cola             | c      | 94.54 | -       | -     |
-| thruthfulQA      | th     |  75.9 | -       | -     |
-| MMLU             | m      |     - | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## qwen-plus (non-thinking)
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 93.88 | -       | -     |
-| toxicity         | tox    |  93.0 | -       | -     |
-| relevance        | r      |  93.0 | -       | -     |
-| faithfulness     | f      | 100.0 | -       | -     |
-| summary          | s      | 95.92 | -       | -     |
-| prompt_alignment | p      |  75.0 | -       | -     |
-| readability      | read   |  73.6 | -       | -     |
-| spell_checking   | sp     | 94.61 | -       | -     |
-| cola             | c      | 97.11 | -       | -     |
-| thruthfulQA      | th     | 72.29 | -       | -     |
-| MMLU             | m      | 73.03 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## qwen-turbo (thinking)
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      |  89.8 | -       | -     |
-| toxicity         | tox    |  86.0 | -       | -     |
-| relevance        | r      |  87.0 | -       | -     |
-| faithfulness     | f      | 100.0 | -       | -     |
-| summary          | s      |  89.8 | -       | -     |
-| prompt_alignment | p      |  76.0 | -       | -     |
-| readability      | read   |  75.3 | -       | -     |
-| spell_checking   | sp     |  94.4 | -       | -     |
-| cola             | c      | 95.99 | -       | -     |
-| thruthfulQA      | th     | 77.51 | -       | -     |
-| MMLU             | m      |     - | -       | -     |
-| NiH              | n      |     - | -       |       |
-
-
----
-
-## qwen-turbo (non-thinking)
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 90.82 | -       | -     |
-| toxicity         | tox    |  89.0 | -       | -     |
-| relevance        | r      |  84.0 | -       | -     |
-| faithfulness     | f      |  98.0 | -       | -     |
-| summary          | s      | 93.88 | -       | -     |
-| prompt_alignment | p      |  77.0 | -       | -     |
-| readability      | read   |  75.5 | -       | -     |
-| spell_checking   | sp     | 99.49 | -       | -     |
-| cola             | c      | 94.46 | -       | -     |
-| thruthfulQA      | th     | 78.31 | -       | -     |
-| MMLU             | m      | 65.58 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## TildeAI/TildeOpen-30b
-
-| Task             | Metric | Score | Version | Notes |
-| ---------------- | ------ | ----: | ------- | ----- |
-| bias             | b      | 51.02 | -       | -     |
-| toxicity         | tox    |  75.0 | -       | -     |
-| relevance        | r      |  70.0 | -       | -     |
-| faithfulness     | f      |  95.0 | -       | -     |
-| summary          | s      |  10.2 | -       | -     |
-| prompt_alignment | p      |     - | -       | -     |
-| readability      | read   |  70.9 | -       | -     |
-| spell_checking   | sp     | error | -       | -     |
-| cola             | c      | error | -       | -     |
-| thruthfulQA      | th     | 58.37 | -       | -     |
-| MMLU             | m      |  45.0 | -       | -     |
-| NiH              | n      |     - | -       | -     |
-
-
----
-
-## elte-nlp/Racka-4B
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | - | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | 49.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | - | - | - |
-| cola | c | 98.8 | - | - | - |
-| thruthfulQA | th | - | - | - |
-| MMLU | m |-  | - | - |
-| NiH | n | - | - | - |
-
----
-
-## Qwen/Qwen3-4B
-
-| Task | Metric | Score | Version | Notes |
-|------|--------|------:|---------|------|
-| bias | b | 94.9 | - | - |
-| toxicity | tox | - | - | - |
-| relevance | r | - | - | - |
-| faithfulness | f | - | - | - |
-| summary | s | - | - | - |
-| prompt_alignment | p | 74.0 | - | - |
-| readability | read | - | - | - |
-| spell_checking | sp | - | - | - |
-| cola | c | 85.47 | - | - | - |
-| thruthfulQA | th | 63.34 | - | - |
-| MMLU | m | - | - | - |
-| NiH | n | - | - | - |
-
----
+## Bias
+
+| Model                                       | Score |
+| ------------------------------------------- | ----: |
+| PULI Trio Instruct                          | 63.27 |
+| SambaLingo-7B Chat                          | 79.59 |
+| Llama-3.1-8B-Instruct                       | 73.47 |
+| PULI-LlumiX-Llama-3.1 8B-Chat               | 76.53 |
+| Llama-3.3-70B Instruct                      |  89.8 |
+| GPT-3.5 Turbo                               |  89.8 |
+| GPT-4o-mini                                 |  89.8 |
+| GPT-o3-mini                                 | 97.96 |
+| PULI-llumiX-llama-3.1-8B chat 16k           | 81.63 |
+| PULI-llumiX-llama-3.1-8B chat 32k (epoch 1) | 85.71 |
+| PULI-llumiX-llama-3.1-8B chat 32k (epoch 2) | 90.82 |
+| PULI-trio-q-chat (epoch 1)                  | 81.63 |
+| PULI-trio-q-chat (epoch 2)                  | 80.61 |
+| Qwen2.5-7B-Instruct                         | 87.76 |
+| trio-q-base-sft                             | 78.57 |
+| qwen257-instruct-sft                        | 80.61 |
+| llama318-instruct-sft                       | 88.78 |
+| qwen-max-latest                             |  94.9 |
+| qwen-plus (thinking)                        | 96.94 |
+| qwen-plus (non-thinking)                    | 93.88 |
+| qwen-turbo (thinking)                       |  89.8 |
+| qwen-turbo (non-thinking)                   | 90.82 |
+| TildeOpen-30b                               | 51.02 |
+| Qwen3-4B                                    |  94.9 |
+
+## Toxicity
+
+| Model                         | Score |
+| ----------------------------- | ----: |
+| PULI Trio Instruct            |  77.0 |
+| SambaLingo-7B Chat            |  83.0 |
+| Llama-3.1-8B-Instruct         |  89.0 |
+| PULI-LlumiX-Llama-3.1 8B-Chat |  87.0 |
+| Llama-3.3-70B Instruct        |  94.0 |
+| GPT-3.5 Turbo                 |  72.0 |
+| GPT-4o-mini                   |  91.0 |
+| GPT-o3-mini                   |  89.0 |
+| PULI-llumiX 16k               |  82.0 |
+| PULI-llumiX 32k (epoch 1)     |  85.0 |
+| PULI-llumiX 32k (epoch 2)     |  88.0 |
+| PULI-trio-q-chat (epoch 1)    |  91.0 |
+| PULI-trio-q-chat (epoch 2)    |  82.0 |
+| Qwen2.5-7B-Instruct           |  98.0 |
+| trio-q-base-sft               |  85.0 |
+| qwen257-instruct-sft          |  86.0 |
+| llama318-instruct-sft         |  94.0 |
+| qwen-max-latest               |  97.0 |
+| qwen-plus (thinking)          |  94.0 |
+| qwen-plus (non-thinking)      |  93.0 |
+| qwen-turbo (thinking)         |  86.0 |
+| qwen-turbo (non-thinking)     |  89.0 |
+| TildeOpen-30b                 |  75.0 |
+
+## Relevance
+
+| Model                         | Score |
+| ----------------------------- | ----: |
+| PULI Trio Instruct            |  57.0 |
+| SambaLingo-7B Chat            |  88.0 |
+| Llama-3.1-8B-Instruct         |  65.0 |
+| PULI-LlumiX-Llama-3.1 8B-Chat |  76.0 |
+| Llama-3.3-70B Instruct        |  94.0 |
+| GPT-3.5 Turbo                 |  95.0 |
+| GPT-4o-mini                   |  95.0 |
+| GPT-o3-mini                   |  97.0 |
+| PULI-llumiX 16k               |  91.0 |
+| PULI-llumiX 32k (epoch 1)     |  89.0 |
+| PULI-llumiX 32k (epoch 2)     |  93.0 |
+| PULI-trio-q-chat (epoch 1)    |  84.0 |
+| PULI-trio-q-chat (epoch 2)    |  89.0 |
+| Qwen2.5-7B-Instruct           |  53.0 |
+| trio-q-base-sft               |  87.0 |
+| qwen257-instruct-sft          |  56.0 |
+| llama318-instruct-sft         |  78.0 |
+| qwen-max-latest               |  90.0 |
+| qwen-plus (thinking)          |  96.0 |
+| qwen-plus (non-thinking)      |  93.0 |
+| qwen-turbo (thinking)         |  87.0 |
+| qwen-turbo (non-thinking)     |  84.0 |
+| TildeOpen-30b                 |  70.0 |
+
+## Faithfulness
+
+| Model                         |  Score |
+| ----------------------------- | -----: |
+| PULI Trio Instruct            |   78.0 |
+| SambaLingo-7B Chat            |   74.0 |
+| Llama-3.1-8B-Instruct         |   81.0 |
+| PULI-LlumiX-Llama-3.1 8B-Chat |   91.0 |
+| Llama-3.3-70B Instruct        |   96.0 |
+| GPT-3.5 Turbo                 |   99.0 |
+| GPT-4o-mini                   |   99.0 |
+| GPT-o3-mini                   |  100.0 |
+| PULI-llumiX 16k               |   98.0 |
+| PULI-llumiX 32k (epoch 1)     |   99.0 |
+| PULI-llumiX 32k (epoch 2)     |  100.0 |
+| PULI-trio-q-chat (epoch 1)    |   99.0 |
+| PULI-trio-q-chat (epoch 2)    |   99.0 |
+| Qwen2.5-7B-Instruct           |   98.0 |
+| trio-q-base-sft               |   98.0 |
+| qwen257-instruct-sft          |  100.0 |
+| llama318-instruct-sft         |   99.0 |
+| qwen-max-latest               |  100.0 |
+| qwen-plus (thinking)          |  100.0 |
+| qwen-plus (non-thinking)      |  100.0 |
+| qwen-turbo (thinking)         |  100.0 |
+| qwen-turbo (non-thinking)     |   98.0 |
+| TildeOpen-30b                 |   95.0 |
+
+## Summary
+
+| Model                         |      Score |
+| ----------------------------- | ---------: |
+| PULI Trio Instruct            |      30.61 |
+| SambaLingo-7B Chat            |      63.27 |
+| Llama-3.1-8B-Instruct         |      63.27 |
+| PULI-LlumiX-Llama-3.1 8B-Chat |      61.22 |
+| Llama-3.3-70B Instruct        |      75.51 |
+| GPT-3.5 Turbo                 |      73.47 |
+| GPT-4o-mini                   |      73.47 |
+| GPT-o3-mini                   |       89.8 |
+| PULI-llumiX 16k               |   26.53 |
+| PULI-llumiX 32k (epoch 1)     |   28.57 |
+| PULI-llumiX 32k (epoch 2)     |   34.68 |
+| PULI-trio-q-chat (epoch 1)    |   22.45 |
+| PULI-trio-q-chat (epoch 2)    |   24.29 |
+| Qwen2.5-7B-Instruct           |   30.61 |
+| trio-q-base-sft               |   36.73 |
+| qwen257-instruct-sft          |   32.65 |
+| llama318-instruct-sft         |   57.14 |
+| qwen-max-latest               |   95.92 |
+| qwen-plus (thinking)          |   95.92 |
+| qwen-plus (non-thinking)      |   95.92 |
+| qwen-turbo (thinking)         |    89.8 |
+| qwen-turbo (non-thinking)     |   93.88 |
+| TildeOpen-30b                 |    10.2 |
+
+## Prompt Alignment
+
+| Model                         |      Score |
+| ----------------------------- | ---------: |
+| PULI Trio Instruct            |      19.0 |
+| SambaLingo-7B Chat            |      22.0 |
+| Llama-3.1-8B-Instruct         |      29.0 |
+| PULI-LlumiX-Llama-3.1 8B-Chat |      35.0 |
+| Llama-3.3-70B Instruct        |      47.0 |
+| GPT-3.5 Turbo                 |      74.0 |
+| GPT-4o-mini                   |      77.0 |
+| GPT-o3-mini                   |      85.0 |
+| PULI-llumiX 16k               |   27.0 |
+| PULI-llumiX 32k (epoch 1)     |   32.0 |
+| PULI-llumiX 32k (epoch 2)     |   35.0 |
+| PULI-trio-q-chat (epoch 1)    |   52.0 |
+| PULI-trio-q-chat (epoch 2)    |   51.0 |
+| Qwen2.5-7B-Instruct           |   33.0 |
+| trio-q-base-sft               |   44.0 |
+| qwen257-instruct-sft          |   35.0 |
+| llama318-instruct-sft         |   32.0 |
+| qwen-max-latest               |   76.0 |
+| qwen-plus (thinking)          |   74.0 |
+| qwen-plus (non-thinking)      |   75.0 |
+| qwen-turbo (thinking)         |   76.0 |
+| qwen-turbo (non-thinking)     |   77.0 |
+| elte-nlp/Racka-4B             |   49.0 |
+| Qwen3-4B                      |   74.0 |
+
+## Readabiity
+
+| Model                     |  Score |
+| ------------------------- | -----: |
+| PULI-llumiX 16k               |   79.7 |
+| PULI-llumiX 32k (epoch 1)     |   68.0 |
+| PULI-llumiX 32k (epoch 2)     |   75.9 |
+| PULI-trio-q-chat (epoch 1)    |   78.3 |
+| PULI-trio-q-chat (epoch 2)    |   68.7 |
+| Qwen2.5-7B-Instruct           |   76.1 |
+| trio-q-base-sft               |   73.9 |
+| qwen257-instruct-sft          |   76.5 |
+| llama318-instruct-sft         |   77.3 |
+| qwen-max-latest               |   78.8 |
+| qwen-plus (thinking)          |   78.4 |
+| qwen-plus (non-thinking)      |   73.6 |
+| qwen-turbo (thinking)         |   75.3 |
+| qwen-turbo (non-thinking)     |   75.5 |
+| TildeOpen-30b                 |   70.9 |
+
+## Spell checking
+
+| Model                                                        |  Score |
+| ------------------------------------------------------------ | -----: |
+| PULI Trio Instruct                                           |  95.79 |
+| PULI LlumiX Instruct                                         |  94.7  |
+| gemma-3-4b-it                                         |  93.73 |
+| Phi-4-mini-instruct                                |  91.52 |
+| Phi-4-multimodal-instruct                          |  93.51 |
+| SambaLingo-7B Chat                                           |  95.89 |
+| Llama-3.1-8B-Instruct                             | 94.9 |
+| PULI-LlumiX-Llama-3.1 8B-Chat                                |  94.96 |
+| salamandra-7b-instruct                                |  95.39 |
+| gemma-3-12b-it                                        |  94.87 |
+| gemma-3-27b-it                                        |  95.44 |
+| Qwen2.5-32B-Instruct                                    |  93.81 |
+| Llama-3.3-70B Instruct                            |  95.43 |
+| SambaLingo-70B Chat                                          |  95.68 |
+| Qwen2.5-72B-Instruct                                    |  93.77 |
+| GPT3.5 turbo                                                 |  95.49 |
+| GPT 4o-mini -2024-07-18                                      |  95.43 |
+| GPT-o3-mini -2025-01-31                                      |  94.53 |
+| puli-llumi 16k                                               |  100.0 |
+| puli-llumix 32k (epoch 1)                                    |  100.0 |
+| puli-llumix 32k (epoch 2)                                    | 100.0 |
+| puli-trio-q-chat (epoch 1)                                   | 94.78 |
+| puli-trio-q-chat (epoch 2)                                   | 94.58 |
+| Qwen2.5-7B-Instruct                                     | 93.32 |
+| trio-q-base-sft                         | 94.55 |
+| qwen257-instruct-sft                    | 94.308 |
+| llama318-instruct-sft                       | 94.078 |
+| qwen-max-latest                                              | 94.71 |
+| qwen-plus (thinking)                                         | 93.35 |
+| qwen-plus (non-thinking)                                     | 94.61 |
+| qwen-turbo (thinking)                                        | 94.4 |
+| qwen-turbo (non-thinking)                                    | 99.49 |
+
+## cola
+
+| Model                     |  Score |
+| ------------------------- | -----: |
+| qwen-max-latest               |   95.6 |
+| qwen-plus (thinking)          |   94.54 |
+| qwen-plus (non-thinking)      |   97.11 |
+| qwen-turbo (thinking)         |   95.99 |
+| qwen-turbo (non-thinking)     |   94.46 |
+| elte-nlp/Racka-4B             |   98.8 |
+| Qwen3-4B                      |   85.47 |
+
+## TruthfulQA
+
+| Model                |  Score |
+| -------------------- | -----: |
+| PULI-llumiX 16k               |   25.44 |
+| PULI-llumiX 32k (epoch 1)     |   28.78 |
+| PULI-llumiX 32k (epoch 2)     |   38.55 |
+| PULI-trio-q-chat (epoch 1)    |   50.07 |
+| PULI-trio-q-chat (epoch 2)    |   50.87 |
+| Qwen2.5-7B-Instruct           |   40.03 |
+| trio-q-base-sft               |   51.14 |
+| qwen257-instruct-sft          |   33.07 |
+| llama318-instruct-sft         |   48.69 |
+| qwen-max-latest               |   74.57 |
+| qwen-plus (thinking)          |   75.9 |
+| qwen-plus (non-thinking)      |   72.29 |
+| qwen-turbo (thinking)         |   77.51 |
+| qwen-turbo (non-thinking)     |   78.31 |
+| TildeOpen-30b                 |   58.37 |
+| Qwen3-4B                      |   63.34 |
+
+## MMLU
+
+| Model                     |  Score |
+| ------------------------- | -----: |
+| PULI-llumiX 16k               |   46.98 |
+| PULI-llumiX 32k (epoch 1)     |   45.44 |
+| PULI-llumiX 32k (epoch 2)     |   43.89 |
+| PULI-trio-q-chat (epoch 1)    |   57.69 |
+| PULI-trio-q-chat (epoch 2)    |    57.5 |
+| Qwen2.5-7B-Instruct           |   46.17 |
+| trio-q-base-sft               |   58.14 |
+| qwen257-instruct-sft          |   50.26 |
+| llama318-instruct-sft         |   43.46 |
+| qwen-max-latest               |   64.59 |
+| qwen-plus (non-thinking)      |   73.03 |
+| qwen-turbo (non-thinking)     |   65.58 |
+| TildeOpen-30b                 |    45.0 |
