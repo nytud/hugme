@@ -150,7 +150,7 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
 
 def generate_with_huggingface(prompts: Union[str, List[str]], client, parameters: dict, chat_kwargs) -> ModelOutput:
     tokenizer = client.tokenizer
-    is_chat_model = hasattr(tokenizer, "chat_template") and tokenizer.chat_template is not None
+    is_chat_model = hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template is not None
 
     if isinstance(prompts, list) and is_chat_model:
 
