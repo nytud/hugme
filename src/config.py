@@ -58,6 +58,11 @@ MAX_NEW_TOKENS = {
 DEFAULT_MAX_NEW_TOKENS = 512
 OPENAI_PROVIDER_NAME = "openai"
 
+DEFAULT_CHAT_TEMPLATE_KWARGS = {
+    "tokenize": False,
+    "add_generation_prompt": True
+}
+
 # needle in haystack parameters
 MODEL_DTYPE = torch.float32 # may require torch.bfloat16 or torch.float16 depending on the model
 N_TURNS = os.getenv("N_TURNS")
