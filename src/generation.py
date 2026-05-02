@@ -115,7 +115,7 @@ def create_parameters(args, task_name) -> dict:
 
 def load_chat_template_kwargs(args) -> dict:
     chat_kwargs = config.DEFAULT_CHAT_TEMPLATE_KWARGS.copy()
-    
+
     if args.chat_template:
         read_kwargs = helper.read_json(args.chat_template)
         chat_kwargs.update(read_kwargs)
