@@ -22,8 +22,9 @@ def compute_metric(args, task_name: str):
     client = generation.load_model(args, task_name)
     parameters = generation.create_parameters(args, task_name)
     parameters["max_new_tokens"] = MAX_NEW_TOKENS
+    chat_template_kwargs = generation.load_chat_template_kwargs(args)
 
-    results = generate_results(args, client, parameters)
+    results = generate_results(args, client, parameters, chat_template_kwargs)
     scores = compute_scores(args, results)
     return scores
 
@@ -39,7 +40,7 @@ def check_prerequisites(args, n_turns: int = 5, model_context_len: int = 2048):
         logging.warning("MODEL_CONTEXT_LEN env variable is not set. MODEL_CONTEXT_LEN={model_context_len} is set")
 
 
-def generate_results(args, client, parameters: dict):
+def generate_results(args, client, parameters: dict, chat_template_kwargs: dict):
 
     if args.use_gen_results:
         logging.info(f"Using generation results from path: {args.use_gen_results}")
@@ -47,7 +48,7 @@ def generate_results(args, client, parameters: dict):
         return results
 
     data = create_needle_and_haystack(client.tokenizer.tokenize)
-    results = generate_results_for_context_lengths(data, client, parameters)
+    results = generate_results_for_context_lengths(data, client, parameters, chat_template_kwargs)
 
     if args.save_results:
         generation.save_results(results, config.NIH, args.model_name, False)
@@ -55,7 +56,7 @@ def generate_results(args, client, parameters: dict):
     return results
 
 
-def generate_results_for_context_lengths(data, client, parameters):
+def generate_results_for_context_lengths(data, client, parameters, chat_template_kwargs):
 
     fractions = [i / 10 for i in range(0, 10)] # [0.0, 0.1, ..., 0.9]
     context_lengths = create_context_lengths()
@@ -66,7 +67,7 @@ def generate_results_for_context_lengths(data, client, parameters):
         for fraction in fractions:
             insertion_positions = create_needle_insertion_depths(data, context_lenth, fraction)
             for insertion_position in insertion_positions:
-                output = generate_result(insertion_position, data, client, parameters)
+                output = generate_result(insertion_position, data, client, parameters, chat_template_kwargs)
                 result = format_result(context_lenth, fraction, output, data)
                 results.append(result)
 
@@ -117,11 +118,11 @@ def trim_haystack(data: dict, context_length: int):
     return trimmed_length
 
 
-def generate_result(position, data, client, parameters):
+def generate_result(position, data, client, parameters, chat_template_kwargs):
     tokenized_haystack_with_needle = insert_needle_in_haystack(data["trimmed_haystack"], position, data["needle"])
     haystack_with_needle = client.tokenizer.convert_tokens_to_string(tokenized_haystack_with_needle)
     prompt = template.get_prompt("needle-in-haystack", {"text": haystack_with_needle, "city": data["city"]})
-    output = generation.generate_with_huggingface(prompt, client, parameters)
+    output = generation.generate_with_huggingface(prompt, client, parameters, chat_template_kwargs)
     return output
 
 
