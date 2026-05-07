@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Iterator, List,Optional
+from typing import Any, Callable, Dict, Iterator, List,Optional,Union
 
 import logging
 import pathlib
@@ -34,13 +34,14 @@ def generate_results(
 
     client = load_model(args, task_name)
     parameters = create_parameters(args, task_name)
+    chat_kwargs = load_chat_template_kwargs(args)
 
     results = []
     for idx, entry in enumerate(tqdm(dataset, desc="Generating responses...", unit="query")):
 
         prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
         output = generate(
-            prompt, client, parameters, model_name=args.model_name, provider=args.provider
+            prompt, client, parameters, chat_kwargs, args
         )
         formatted_result = format_fn(entry, prompt, output)
         results.append(formatted_result)
@@ -82,7 +83,6 @@ def initialize_huggingface_model(args):
     args.model_name = model_name_or_path.name.lower()
     return pipe
 
-
 def initialize_openai_client():
     client = openai.OpenAI(api_key=config.PROVIDER_API_KEY, base_url=config.PROVIDER_URL)
     logging.info(f"Initialized OpenAI client with base URL {config.PROVIDER_URL}.")
@@ -113,18 +113,26 @@ def create_parameters(args, task_name) -> dict:
     logging.info(f"Using generation parameters: {parameters}")
     return parameters
 
+def load_chat_template_kwargs(args) -> dict:
+    chat_kwargs = config.DEFAULT_CHAT_TEMPLATE_KWARGS.copy()
+
+    if args.chat_template:
+        read_kwargs = helper.read_json(args.chat_template)
+        chat_kwargs.update(read_kwargs)
+
+    return chat_kwargs
 
 def generate(
         prompt: Any,
         client: Any,
         parameters: dict,
-        model_name: Optional[str] = None,
-        provider: Optional[str] = None
+        chat_kwargs: dict,
+        args
     ) -> ModelOutput:
-    if provider:
-        assert model_name is not None, "Model name must be provided when using OpenAI API."
-        return generate_with_openai(prompt, client, model_name, parameters)
-    return generate_with_huggingface(prompt, client, parameters)
+    if args.provider:
+        assert args.model_name is not None, "Model name must be provided when using OpenAI API."
+        return generate_with_openai(prompt, client, args.model_name, parameters)
+    return generate_with_huggingface(prompt, client, parameters, chat_kwargs)
 
 
 def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
@@ -140,18 +148,34 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_with_huggingface(prompts: List[str], client, parameters: dict) -> ModelOutput:
-    # TODO implement batch generation for openai package, then reimplement here
+def generate_with_huggingface(prompts: Union[str, List[str]], client, parameters: dict, chat_kwargs) -> ModelOutput:
+    tokenizer = client.tokenizer
+    is_chat_model = hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template is not None
+
+    if isinstance(prompts, list) and is_chat_model:
+
+        rendered_prompt = tokenizer.apply_chat_template(
+            prompts,
+            **chat_kwargs
+        )
+    else:
+        rendered_prompt = prompts
+
     try:
         with torch.inference_mode():
-            results = client(prompts, **parameters)
-            generated_texts = results[0]["generated_text"]
-    except Exception as e:
-        logging.error(f"HuggingFace model generation failed for prompts: {prompts} with parameters: {parameters}")
-        logging.error(f"HuggingFace model generation failed: {e}")
-        raise e
-    return ModelOutput(generated_texts) # TODO implement total tokens for huggingface
 
+            results = client(
+                rendered_prompt,
+                **parameters
+            )
+
+        generated = results[0]["generated_text"]
+
+    except Exception as e:
+        logging.error(f"HuggingFace generation failed: {e}")
+        raise e
+
+    return ModelOutput(generated) # TODO implement total tokens for huggingface
 
 def generate_batches(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
     for i in range(0, len(dataset), batch_size):
