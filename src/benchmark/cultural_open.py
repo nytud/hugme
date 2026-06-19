@@ -204,14 +204,12 @@ def parse_judge_response(text: str) -> Tuple[str, float, str]:
 
 
 def load_judge_client(args):
-    # Prefer OpenAI-based judge if a provider API key is configured.
     if config.PROVIDER_API_KEY:
         return generation.initialize_openai_client(), True
 
-    # Fallback to a local judge model if OpenAI access is unavailable.
     from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
-    logging.info(f"Loading local judge model for cultural_open evaluation: {args.judge}")
+    logging.info(f"Loading local judge model: {args.judge}")
     tokenizer = AutoTokenizer.from_pretrained(
         args.judge,
         token=config.HF_TOKEN,
@@ -233,19 +231,47 @@ def load_judge_client(args):
 
 def compute_scores(args, results: list) -> dict:
     score = 0.0
+    output = []
+    
     for entry in tqdm(results, desc="Calculating scores", unit="query"):
-        score_val = judge_item_with_llm(entry, entry["output"], args)
-        entry["score"] = score_val
-        score += score_val
+        verdict = judge_wrapper(entry, entry["output_raw"], args)
 
-    total_score = score / len(results)
+        score += verdict[1]
+        output.append({
+            "question_id": entry.get("question_id"),
+            "question": entry.get("question"),
+            "output_raw": entry.get("output_raw"),
+            "output_normalized": entry.get("output_normalized"),
+            "target": entry.get("target"),
+            "answer_type": entry.get("answer_type"),
+            "verdict": verdict[0],
+            "score": verdict[1],
+            "judgment_detail": verdict[2]
+        })
+
+    total_score = score / len(output) if output else 0.0
     logging.info(f"Cultural open benchmark score: {round(total_score * 100, 2)}%")
+    logging.info(f"Uncertain cases: {len([r for r in output if r['verdict'] == 'uncertain'])} / {len(output)}")
 
     if args.save_results:
         helper.save_json(
-            results,
+            output,
             config.RESULTS_DIR,
             f"{config.CULTURAL_OPEN}-{args.model_name}-{args.thinking}-eval-results.json"
         )
 
-    return helper.group_by_category(results, total_score)
+        
+    verdicts = [e.get("verdict") for e in output]
+    stat_summary = {
+        "total": len(output),
+        "correct": verdicts.count("correct"),
+        "partially_correct": verdicts.count("partially_correct"),
+        "incorrect": verdicts.count("incorrect"),
+        "uncertain": verdicts.count("uncertain"),
+        "score": round(total_score * 100, 2)
+    }
+    
+    return {
+        "category_scores": helper.group_by_category(output, total_score),
+        "stat_summary": stat_summary
+    }
