@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import random
 import logging
 import re
@@ -7,7 +7,6 @@ from tqdm import tqdm
 import config
 import helper
 import generation
-
 
 def compute_metric(args, task_name: str) -> dict:
     dataset = helper.read_json(config.CULTURAL_OPEN_DATASET)
@@ -18,33 +17,45 @@ def compute_metric(args, task_name: str) -> dict:
 
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+    raw_output = output.text.strip()
     return {
         "question_id": entry.get("question_id"),
         "prompt": prompt,
-        "output": output.text.strip(),
+        "output_raw": raw_output,
+        "output_normalized": normalize_answer(raw_output, entry.get("answer_type")),
         "target": get_target_text(entry),
         "answer_type": entry.get("answer_type"),
         "category": entry.get("category"),
-        "token_usage": output.total_tokens
+        "total_tokens": output.total_tokens
     }
 
 
 def get_target_text(entry: Dict[str, Any]) -> Any:
-    if "target" in entry:
-        return entry["target"]
-
-    for key in ["answer", "reference", "references", "correct_answer", "correct_answers"]:
-        if key in entry:
-            return entry[key]
-
-    raise KeyError("No target field found in cultural_open dataset entry")
+    if "gold_answer" in entry:
+        return entry["gold_answer"]
 
 
-def normalize_text(text: str) -> str:
+def normalize_text(
+    text: str,
+    remove_punctuation: bool = False,
+) -> str:
+
     text = str(text).strip().lower()
-    text = re.sub(r"[\s\n]+", " ", text)
-    text = text.strip(" \t\n\r\f\v")
+    text = re.sub(r'\s+', ' ', text).strip()
+    if remove_punctuation:
+        text = re.sub(r'[.,;:!?\'"()[\]{}—–-]+', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+
     return text
+
+
+def normalize_answer(text: str, answer_type: Optional[str] = None) -> str:
+    if answer_type == "entity":
+        return normalize_text(text, remove_punctuation=True)
+    elif answer_type == "short_answer":
+        return normalize_text(text, remove_punctuation=True)
+    else:
+        return normalize_text(text, remove_punctuation=False)
 
 
 def build_target_candidates(target: Any) -> List[str]:
@@ -53,7 +64,7 @@ def build_target_candidates(target: Any) -> List[str]:
     else:
         candidates = [str(target)]
 
-    split_pattern = r"\s*(?:\||,|;|/|vagy)\s*"
+    split_pattern = r'\s*(?:\||,|;|/|vagy)\s*'
     expanded = []
     for candidate in candidates:
         if re.search(split_pattern, candidate):
@@ -61,7 +72,7 @@ def build_target_candidates(target: Any) -> List[str]:
         else:
             expanded.append(candidate)
 
-    return [normalize_text(item) for item in expanded if item and normalize_text(item)]
+    return [normalize_text(item, remove_punctuation=True) for item in expanded if item and normalize_text(item, remove_punctuation=True)]
 
 
 def is_entity_correct(output: str, target: Any) -> bool:
