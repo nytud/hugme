@@ -130,49 +130,77 @@ def judge_item_with_llm(entry: Dict[str, Any], generated: str, args) -> Tuple[st
         return "uncertain", 0.0, f"Judge error: {str(e)}"
 
 
-def build_judge_prompt(answer_type: str, question: str, reference: Any, generated: str) -> Any:
-    reference_text = reference if isinstance(reference, str) else " ".join(map(str, reference))
+def build_judge_prompt(
+    answer_type: str,
+    question: str,
+    generated: str,
+    reference_answer: Optional[str] = None,
+    scoring_rubric: Optional[Dict[str, Any]] = None,
+) -> Any:
     generated_text = generated.strip()
 
-    system_message = {
-        "role": "system",
-        "content": (
-            "You are a Hungarian evaluation assistant. Compare the generated response to the reference answer. "
-            "Answer only with 'IGEN' if the generated answer is correct and appropriate, or 'NEM' otherwise. "
-            "Do not add any extra explanation."
-        )
-    }
+    rubric = scoring_rubric or {}
+    req = rubric.get("required_elements", [])
+    opt = rubric.get("optional_elements", [])
+    crit = rubric.get("critical_errors", [])
+
+    def list_to_str(items):
+        if not items:
+            return "(nincs megadva)"
+        return "; ".join([str(x) for x in items])
+
+    rubric_text = (
+        f"Required elements: {list_to_str(req)}\n"
+        f"Optional elements: {list_to_str(opt)}\n"
+        f"Critical errors: {list_to_str(crit)}"
+    )
 
     if answer_type == "short_answer":
-        user_content = (
-            f"Kérdés: {question}\n"
-            f"Referencia válasz: {reference_text}\n"
-            f"Generált válasz: {generated_text}\n"
-            "A generált válasz legyen rövid és pontos. Ha a generált szöveg helyes és a kérdésre válaszol, válaszolj IGENNEL. "
-            "Ha téves, hiányos vagy nem a kérdésre válaszol, válaszolj NEMMEL."
-        )
+        prompt_text = f"""Értékeld az alábbi rövid választ az alábbi rubrika alapján. Válaszd ki az egyik lehetőséget.
+        Kérdés: {question}
+        Referencia (vagy gold): {reference_answer}
+        Modell válasza: {generated_text}
+        Értékelési rubrika:
+        {rubric_text}
+        Szabályok:
+        1) Ha a válasz tartalmazza a rubrikában megadott minden required elemet és nincs kritikus hiba, válaszolj: CORRECT
+        2) Ha a válasz tartalmaz néhány required vagy több optional elemet, válaszolj: PARTIALLY_CORRECT
+        3) Ha hiányoznak a required elemek vagy kritikus hibák vannak: INCORRECT
+        4) Ha nem tudsz dönteni: UNCERTAIN
+
+        Válasz formátuma: Csak az egyik szó legyen: CORRECT, PARTIALLY_CORRECT, INCORRECT vagy UNCERTAIN."""
     else:
-        user_content = (
-            f"Kérdés: {question}\n"
-            f"Referencia magyarázat: {reference_text}\n"
-            f"Generált magyarázat: {generated_text}\n"
-            "Ellenőrizd, hogy a generált magyarázat pontos, objektív és a kérdésre válaszol-e. "
-            "Ha megfelel a referenciának és tartalmazza a legfontosabb tényeket, válaszolj IGENNEL. "
-            "Ha pontatlan, túl szubjektív vagy irreleváns, válaszolj NEMMEL."
-        )
+        prompt_text = f"""Értékeld az alábbi magyarázatot az alábbi rubrika alapján. Válaszd ki az egyik lehetőséget.
+        Kérdés: {question}
+        Referencia magyarázat: {reference_answer}
+        Modell magyarázata: {generated_text}
+        Értékelési rubrika:
+        {rubric_text}
+        Szabályok:
+        1) Ha a magyarázat tartalmazza a rubrikában megadott minden required elemet és nincs kritikus hiba: CORRECT
+        2) Ha részben megfelel: PARTIALLY_CORRECT
+        3) Ha hiányos vagy hibás: INCORRECT
+        4) Ha bizonytalan vagy többértelmű: UNCERTAIN
+        Válasz formátuma: Csak az egyik szó legyen: CORRECT, PARTIALLY_CORRECT, INCORRECT vagy UNCERTAIN."""
 
-    return [system_message, {"role": "user", "content": user_content}]
+    return [{"role": "user", "content": prompt_text}]
 
 
-def parse_judge_response(text: str) -> float:
+def parse_judge_response(text: str) -> Tuple[str, float, str]:
     normalized = normalize_text(text)
-    if "igen" in normalized or normalized.startswith("1") or "yes" in normalized:
-        return 1.0
-    if "nem" in normalized or normalized.startswith("0") or "no" in normalized:
-        return 0.0
-
-    logging.warning(f"Judge did not return a clear label for cultural_open: {text}")
-    return 0.0
+    
+    if "correct" in normalized and "partially" not in normalized:
+        return "correct", 1.0, "LLM verdict: correct"
+    if "partially_correct" in normalized or "partial" in normalized:
+        return "partially_correct", 0.5, "LLM verdict: partially_correct"
+    if "incorrect" in normalized or "nem" in normalized:
+        return "incorrect", 0.0, "LLM verdict: incorrect"
+    if "uncertain" in normalized or "bizonytalan" in normalized:
+        return "uncertain", 0.0, "LLM verdict: uncertain"
+    
+    # Ha nem érthető a válasz
+    logging.warning(f"Judge response unclear, marking as uncertain: {text}")
+    return "uncertain", 0.0, f"Unclear LLM response: {text[:50]}"
 
 
 def load_judge_client(args):
