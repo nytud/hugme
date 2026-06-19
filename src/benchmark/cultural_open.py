@@ -19,6 +19,7 @@ def compute_metric(args, task_name: str) -> dict:
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
     return {
+        "question_id": entry.get("question_id"),
         "prompt": prompt,
         "output": output.text.strip(),
         "target": get_target_text(entry),

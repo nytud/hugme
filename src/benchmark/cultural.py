@@ -43,6 +43,7 @@ def post_process_llama(output: str):
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
     actual_output_text = post_process_llama(output.text)
     return {
+        "question_id": entry.get("question_id"),
         "prompt": prompt,
         "output": actual_output_text,
         "target": entry['target'],
