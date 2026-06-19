@@ -75,51 +75,59 @@ def build_target_candidates(target: Any) -> List[str]:
     return [normalize_text(item, remove_punctuation=True) for item in expanded if item and normalize_text(item, remove_punctuation=True)]
 
 
-def is_entity_correct(output: str, target: Any) -> bool:
-    output_norm = normalize_text(output)
-    if not output_norm:
-        return False
+def judge_wrapper(entry: Dict[str, Any], generated: str, args) -> Tuple[str, float, str]:
+    answer_type = entry.get("answer_type")
+    
+    if answer_type == "entity":
+        return judge_entity_item(entry, generated)
+    else:
+        return judge_item_with_llm(entry, generated, args)
 
-    candidates = build_target_candidates(target)
+def judge_entity_item(entry: Any, output: str) -> Tuple[str, float, str]:
+    output_norm = normalize_text(output, remove_punctuation=True)
+    if not output_norm:
+        return "incorrect", 0.0, "Empty output"
+
+    candidates = entry.get("gold_answer") + entry.get("accepted_aliases", [])
+    
     for candidate in candidates:
         if not candidate:
             continue
 
         if output_norm == candidate:
-            return True
-        if output_norm.startswith(candidate):
-            return True
-        if candidate in output_norm:
-            return True
+            return "correct", 1.0, "Exact match"
+        if output_norm.startswith(candidate) or candidate.startswith(output_norm):
+            return "partially_correct", 1.0, "Prefix match"
+        if len(candidate) > 3 and candidate in output_norm:
+            return "partially_correct", 1.0, "Substring match"
 
-        output_words = re.findall(r"[\wáéíóöőúüű]+", output_norm)
-        candidate_words = re.findall(r"[\wáéíóöőúüű]+", candidate)
-        if output_words and candidate_words and output_words[: len(candidate_words)] == candidate_words:
-            return True
-
-    return False
+    return "incorrect", 0.0, "No match"
 
 
-def judge_item_with_llm(entry: Dict[str, Any], generated: str, args) -> float:
+def judge_item_with_llm(entry: Dict[str, Any], generated: str, args) -> Tuple[str, float, str]:
     answer_type = entry.get("answer_type")
-    target = get_target_text(entry)
     question = entry.get("question", "")
+    reference_answer = entry.get("reference_answer")
+    scoring_rubric = entry.get("scoring_rubric", {})
 
-    if answer_type == "entity":
-        return 1.0 if is_entity_correct(generated, target) else 0.0
-
-    prompt = build_judge_prompt(answer_type, question, target, generated)
-    judge_model, is_openai = load_judge_client(args)
-    response = None
-
-    if is_openai:
-        response = generation.generate_with_openai(prompt, judge_model, args.judge, {})
-        score_text = response.text
-    else:
-        response = generation.generate_with_huggingface(prompt, judge_model, {}, {})
-        score_text = response.text
-
-    return parse_judge_response(score_text)
+    prompt = build_judge_prompt(answer_type, question, generated, reference_answer, scoring_rubric)
+    
+    try:
+        judge_model, is_openai = load_judge_client(args)
+        
+        if is_openai:
+            response = generation.generate_with_openai(prompt, judge_model, args.judge, {})
+            judge_text = response.text
+        else:
+            response = generation.generate_with_huggingface(prompt, judge_model, {}, {})
+            judge_text = response.text
+        
+        verdict, score, detail = parse_judge_response(judge_text)
+        return verdict, score, detail
+    
+    except Exception as e:
+        logging.error(f"LLM judge failed: {e}")
+        return "uncertain", 0.0, f"Judge error: {str(e)}"
 
 
 def build_judge_prompt(answer_type: str, question: str, reference: Any, generated: str) -> Any:
