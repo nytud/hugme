@@ -20,6 +20,7 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
     raw_output = output.text.strip()
     return {
         "question_id": entry.get("question_id"),
+        "question": entry.get("question"),
         "prompt": prompt,
         "output_raw": raw_output,
         "output_normalized": normalize_answer(raw_output, entry.get("answer_type")),
@@ -88,7 +89,12 @@ def judge_entity_item(entry: Any, output: str) -> Tuple[str, float, str]:
     if not output_norm:
         return "incorrect", 0.0, "Empty output"
 
-    candidates = entry.get("gold_answer") + entry.get("accepted_aliases", [])
+    candidates = []
+
+    if "gold_answer" in entry:
+        candidates.append(gold_answer)
+
+        candidates.extend(accepted_aliases)
     
     for candidate in candidates:
         if not candidate:
@@ -240,6 +246,7 @@ def compute_scores(args, results: list) -> dict:
         output.append({
             "question_id": entry.get("question_id"),
             "question": entry.get("question"),
+            "category": entry.get("category"),
             "output_raw": entry.get("output_raw"),
             "output_normalized": entry.get("output_normalized"),
             "target": entry.get("target"),
