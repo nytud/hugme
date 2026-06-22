@@ -18,7 +18,7 @@ def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union
         "toxicity": get_toxicity_template,
         "truthfulqa": get_truthful_qa_template,
         "cultural": get_cultural_template,
-        "cultural_open": get_cultural_open_template
+        "cultural-open": get_cultural_open_template
     }
     template_fn = templates[task_name]
     if alpaca_prompt:
