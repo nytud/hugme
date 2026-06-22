@@ -63,18 +63,26 @@ def load_model(args, task_name):
 
 
 def initialize_huggingface_model(args):
-    logging.info(f"Loading HuggingFace model and tokenizer from: {args.model_name}")
+    # The model_name attribute of `args` is mutated to save results correctly. However, if multiple
+    # tasks are passed inside CLI arguments, the model has to be loaded multiple times, and after
+    # mutation, the modified `model_name` attribute is not found on the Hugging Face Hub.
+    model_id = getattr(args, "original_model_name", args.model_name)
+    if not hasattr(args, "original_model_name"):
+        args.original_model_name = args.model_name
+        args.model_name = pathlib.Path(args.model_name).name.lower()
+
+    logging.info(f"Loading HuggingFace model and tokenizer from: {model_id}")
     tokenizer = AutoTokenizer.from_pretrained(
-        args.model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left"
+        model_id, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left"
     )
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(
-        args.model_name, device_map="auto", token=config.HF_TOKEN,
+        model_id, device_map="auto", token=config.HF_TOKEN,
         trust_remote_code=True, torch_dtype=config.MODEL_DTYPE
     )
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
     pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
-    logging.info(f"Finished loading {args.model_name} model and tokenizer from HuggingFace (or from locally).")
+    logging.info(f"Finished loading {model_id} model and tokenizer from HuggingFace (or from locally).")
 
     # extract model name from full repo name or local model path, necessary for saving results later, e.g.
     # "/home/models/models/meta-llama-3.1-8B-instruct" -> meta-llama-3.1-8b-instruct
