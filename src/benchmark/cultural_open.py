@@ -257,14 +257,27 @@ def compute_scores(args, results: list) -> dict:
         })
 
     total_score = score / len(output) if output else 0.0
+
+    uncertain_cases = [r for r in output if r["verdict"] == "uncertain"]
+    explanation_or_short = [
+        r for r in output
+        if r.get("answer_type") in ("explanation", "short_answer")
+    ]
+
     logging.info(f"Cultural open benchmark score: {round(total_score * 100, 2)}%")
-    logging.info(f"Uncertain cases: {len([r for r in output if r['verdict'] == 'uncertain'])} / {len(output)}")
+    logging.info(f"Uncertain cases: {len(uncertain_cases)} / {len(explanation_or_short)}")
 
     if args.save_results:
         helper.save_json(
             output,
             config.RESULTS_DIR,
             f"{config.CULTURAL_OPEN}-{args.model_name}-{args.thinking}-eval-results.json"
+        )
+
+        helper.save_json(
+            uncertain_cases,
+            config.RESULTS_DIR,
+            f"{config.CULTURAL_OPEN}-{args.model_name}-{args.thinking}-uncertain-cases.json"
         )
 
         
@@ -275,7 +288,6 @@ def compute_scores(args, results: list) -> dict:
         "partially_correct": verdicts.count("partially_correct"),
         "incorrect": verdicts.count("incorrect"),
         "uncertain": verdicts.count("uncertain"),
-        "score": round(total_score * 100, 2)
     }
     
     return {
