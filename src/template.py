@@ -162,10 +162,14 @@ def get_cultural_explanation(entry: Dict) -> str:
     )
 
 def get_cultural_open_template(entry: Dict) -> str:
-    template_dict ={
+    template_dict = {
         "entity": get_cultural_entity(entry),
         "short_answer": get_cultural_short_answer(entry),
         "explanation": get_cultural_explanation(entry)
     }
 
-    return template_dict.get(entry.get("answer_type"), get_cultural_entity(entry))
+    answer_type = entry.get("answer_type")
+    if not isinstance(answer_type, str):
+        answer_type = "entity"
+
+    return template_dict.get(answer_type, get_cultural_entity(entry))
