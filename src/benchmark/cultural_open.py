@@ -27,18 +27,11 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
         "prompt": prompt,
         "output_raw": raw_output,
         "output_normalized": normalize_answer(raw_output, entry.get("answer_type")),
-        "target": get_target_text(entry),
+        "target": entry.get("gold_answer"),
         "answer_type": entry.get("answer_type"),
         "category": entry.get("category"),
         "total_tokens": output.total_tokens
     }
-
-
-def get_target_text(entry: Dict[str, Any]) -> Any:
-    if "gold_answer" in entry:
-        return entry["gold_answer"]
-    return None
-
 
 def normalize_text(
     text: str,
