@@ -1,21 +1,10 @@
-#!/usr/bin/env python3
-
 import argparse
-import json
 from pathlib import Path
 import pandas as pd
 
+from src.helper import read_json
 
-def load_json(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def strict_open_correct(score):
-    return score >= 1.0
-
-
-def abcd_correct(score):
+def is_correct(score):
     return score >= 1.0
 
 
@@ -39,12 +28,12 @@ def determine_outcome(abcd_is_correct, open_is_correct):
 
 
 def load_question_map(path):
-    return {item["question_id"]: item for item in load_json(path)}
+    return {item["question_id"]: item for item in read_json(path)}
 
 
 def make_comparison_row(model_name, question_id, abcd_item, open_item):
-    abcd_is_correct = abcd_correct(abcd_item["score"])
-    open_is_correct = strict_open_correct(open_item["score"])
+    abcd_is_correct = is_correct(abcd_item["score"])
+    open_is_correct = is_correct(open_item["score"])
 
     return {
         "model": model_name,
