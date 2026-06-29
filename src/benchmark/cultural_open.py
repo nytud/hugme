@@ -48,9 +48,7 @@ def normalize_text(
 
 
 def normalize_answer(text: str, answer_type: Optional[str] = None) -> str:
-    if answer_type == "entity":
-        return normalize_text(text, remove_punctuation=True)
-    if answer_type == "short_answer":
+    if answer_type in ["entity", "short_answer"]:
         return normalize_text(text, remove_punctuation=True)
     return normalize_text(text, remove_punctuation=False)
 
