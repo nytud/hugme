@@ -1,3 +1,5 @@
+import logging
+
 import argparse
 from pathlib import Path
 import pandas as pd
@@ -179,8 +181,8 @@ def main():
     _, _, _, differences = summaries
     write_report_csvs(output_dir, merged_df, differences, summaries)
 
-    print(f"Processed {len(merged_df)} questions")
-    print(f"Output written to: {output_dir}")
+    logging.info(f"Processed {len(merged_df)} questions")
+    logging.info(f"Output written to: {output_dir}")
 
 
 if __name__ == "__main__":
