@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 import pandas as pd
 
-from src.helper import read_json
+from helper import read_json
 
 def is_correct(score):
     return score >= 1.0
@@ -139,7 +139,7 @@ def build_reports(df):
 
 
 def write_report_csvs(output_dir, merged_df, differences, summaries):
-    model_summary, category_summary, outcome_summary = summaries
+    model_summary, category_summary, outcome_summary, _ = summaries
 
     for model in merged_df["model"].unique():
         merged_df[merged_df["model"] == model].to_csv(
