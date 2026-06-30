@@ -18,6 +18,7 @@ def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union
         "toxicity": get_toxicity_template,
         "truthfulqa": get_truthful_qa_template,
         "cultural": get_cultural_template,
+        "cultural-open": get_cultural_open_template
     }
     template_fn = templates[task_name]
     if alpaca_prompt:
@@ -125,3 +126,50 @@ def get_cultural_template(entry: Dict) -> str:
             "Alább van egy kérdés, és négy válasz. Kizárólag a helyes választ előtti betűt add vissza! "
             f"Kérdés: {question}\nVálaszok: {a}, {b}, {c}, {d}"
         )
+
+def get_cultural_entity(entry: Dict) -> str:
+    return (
+        f"""
+        Feladatod egy magyar nyelvű tudáskérdés megválaszolása.
+        Kérdés:
+        {entry.get('question', 'Nincs megadva kérdés')}
+        Utasítások:
+        * A válasz egy konkrét személy, hely, tárgy, fogalom, étel, ital, szervezet vagy egyéb entitás neve legyen.
+        * Ne adj magyarázatot vagy indoklást, csak az entitás nevét."""
+    )
+
+def get_cultural_short_answer(entry: Dict) -> str:
+    return (
+        f"""
+        Válaszold meg a következő kérdést magyarul.
+        Kérdés:
+        {entry.get('question', 'Nincs megadva kérdés')}
+        Követelmények:
+        * Egyetlen rövid mondat.
+        * Csak a legfontosabb tényt tartalmazza.
+        * Ne adj magyarázatot vagy indoklást, csak a választ."""
+    )
+
+def get_cultural_explanation(entry: Dict) -> str:
+    return (
+        f"""Feladatod egy enciklopédikus magyarázat, válasz megírása magyarul.
+            Kérdés:
+            {entry.get('question', 'Nincs megadva kérdés')}
+            Követelmények:
+            tartalmazza a legfontosabb háttérinformációkat;
+            semleges, lexikonszerű stílusú;
+            nem tartalmaz véleményt, példákat vagy felesleges részleteket."""
+    )
+
+def get_cultural_open_template(entry: Dict) -> str:
+    template_dict = {
+        "entity": get_cultural_entity(entry),
+        "short_answer": get_cultural_short_answer(entry),
+        "explanation": get_cultural_explanation(entry)
+    }
+
+    answer_type = entry.get("answer_type")
+    if not isinstance(answer_type, str):
+        answer_type = "entity"
+
+    return template_dict.get(answer_type, get_cultural_entity(entry))

@@ -5,5 +5,6 @@ from . import nih
 from . import cola
 from . import spelling
 from . import readability
+from . import cultural_open
 from . import metrics
 from . import cultural

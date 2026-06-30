@@ -25,6 +25,7 @@ READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.j
 COLA_DATASET = DATASETS + os.getenv("COLA_DATASET", "summarization.json")
 MMLU_DATASET = DATASETS + os.getenv("MMLU_DATASET", "mmlu.json")
 CULTURAL_DATASET = DATASETS + os.getenv("CULTURAL_DATASET", "cultural.json")
+CULTURAL_OPEN_DATASET = DATASETS + os.getenv("CULTURAL_OPEN_DATASET", "cultural-open.json")
 
 
 METRIC_DATASETES = {
@@ -38,6 +39,7 @@ METRIC_DATASETES = {
 
 MMLU = "mmlu"
 CULTURAL = "cultural"
+CULTURAL_OPEN = "cultural-open"
 NIH = "needle-in-haystack"
 SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"
@@ -51,6 +53,7 @@ HUSPACY_MODEL_NAME = "hu_core_news_lg"
 MAX_NEW_TOKENS = {
     MMLU: 20,
     CULTURAL: 20,
+    CULTURAL_OPEN: 128,
     TRUTHFUL_QA: 20,
     PROMPT_ALIGNMENT: 256,
     READABILITY: 256
