@@ -31,8 +31,10 @@ def compute_metric(args, task_name: str) -> float:
 
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+    input_text = entry.get('query', entry.get('input', str(prompt)))
+
     return {
-        "input": prompt,
+        "input": input_text,
         "output": output.text,
         "context": entry.get("context"),
         "questions": entry.get("questions"),
