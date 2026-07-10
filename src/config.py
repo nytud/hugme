@@ -53,7 +53,7 @@ HUSPACY_MODEL_NAME = "hu_core_news_lg"
 MAX_NEW_TOKENS = {
     MMLU: 20,
     CULTURAL: 20,
-    CULTURAL_OPEN: 128,
+    CULTURAL_OPEN: 2048, # for thinking mode also
     TRUTHFUL_QA: 20,
     PROMPT_ALIGNMENT: 256,
     READABILITY: 256
