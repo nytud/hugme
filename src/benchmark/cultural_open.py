@@ -3,7 +3,6 @@ import random
 import logging
 import re
 from tqdm import tqdm
-import openai
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
