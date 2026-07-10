@@ -22,16 +22,23 @@ def compute_metric(args, task_name: str) -> dict:
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
     raw_output = output.text.strip()
     return {
-        "question_id": entry.get("question_id"),
-        "question": entry.get("question"),
+        "question_id": entry["question_id"],
+        "question": entry["question"],
         "prompt": prompt,
         "output_raw": raw_output,
-        "output_normalized": normalize_answer(raw_output, entry.get("answer_type")),
-        "target": entry.get("gold_answer"),
-        "answer_type": entry.get("answer_type"),
-        "category": entry.get("category"),
-        "total_tokens": output.total_tokens
+        "output_normalized": normalize_answer(raw_output, entry["answer_type"]),
+        "gold_answer": entry["gold_answer"],
+        "answer_type": entry["answer_type"],
+        "category": entry["category"],
+        "total_tokens": output.total_tokens,
+        "scoring_rubric": {
+            "required_elements": entry["required_elements"],
+            "optional_elements": entry["optional_elements"],
+            "critical_errors": entry["critical_errors"]
+        },
+        "accepted_aliases": entry["accepted_aliases"],
     }
+
 
 def normalize_text(
     text: str,
@@ -60,6 +67,7 @@ def judge_wrapper(entry: Dict[str, Any], generated: str, args) -> Tuple[str, flo
         return judge_entity_item(entry, generated)
 
     return judge_item_with_llm(entry, generated, args)
+
 
 def _judge_entity_candidate(output_norm: str, candidate: str) -> Optional[Tuple[str, float, str]]:
     if output_norm == candidate:
@@ -99,59 +107,38 @@ def judge_entity_item(entry: Any, output: str) -> Tuple[str, float, str]:
 
 
 def judge_item_with_llm(entry: Dict[str, Any], generated: str, args) -> Tuple[str, float, str]:
-    answer_type = entry.get("answer_type")
-    if not isinstance(answer_type, str):
-        answer_type = ""
 
-    question = entry.get("question", "")
-    reference_answer = entry.get("reference_answer")
-    scoring_rubric = entry.get("scoring_rubric", {})
+    prompt = build_judge_prompt(entry, generated)
 
-    prompt = build_judge_prompt(answer_type, question, generated, reference_answer, scoring_rubric)
+    judge_model, is_openai = load_judge_client(args)
 
-    try:
-        judge_model, is_openai = load_judge_client(args)
+    if is_openai:
+        response = generation.generate_with_openai(prompt, judge_model, args.judge, {})
+    else:
+        response = generation.generate_with_huggingface(prompt, judge_model, {}, {})
 
-        if is_openai:
-            response = generation.generate_with_openai(prompt, judge_model, args.judge, {})
-        else:
-            response = generation.generate_with_huggingface(prompt, judge_model, {}, {})
-
-        return parse_judge_response(response.text)
-    except (RuntimeError, ValueError, openai.OpenAIError) as e:
-        logging.error(f"LLM judge failed: {e}")
-        return "uncertain", 0.0, f"Judge error: {str(e)}"
+    return parse_judge_response(response.text)
 
 
-def build_judge_prompt(
-    answer_type: str,
-    question: str,
-    generated: str,
-    reference_answer: Optional[str] = None,
-    scoring_rubric: Optional[Dict[str, Any]] = None,
-) -> Any:
+def build_judge_prompt(entry: Dict, generated: str) -> Any:
+
+    answer_type = entry["answer_type"]
+
+    question = entry["question"]
+    gold_answer = entry["gold_answer"]
     generated_text = generated.strip()
 
-    rubric = scoring_rubric or {}
-    req = rubric.get("required_elements", [])
-    opt = rubric.get("optional_elements", [])
-    crit = rubric.get("critical_errors", [])
-
-    def list_to_str(items):
-        if not items:
-            return "(nincs megadva)"
-        return "; ".join([str(x) for x in items])
-
+    scoring_rubric = entry["scoring_rubric"]
     rubric_text = (
-        f"Required elements: {list_to_str(req)}\n"
-        f"Optional elements: {list_to_str(opt)}\n"
-        f"Critical errors: {list_to_str(crit)}"
+        f"Required elements: {scoring_rubric['required_elements']}\n"
+        f"Optional elements: {scoring_rubric['optional_elements']}\n"
+        f"Critical errors: {scoring_rubric['critical_errors']}"
     )
 
     if answer_type == "short_answer":
         prompt_text = f"""Értékeld az alábbi rövid választ az alábbi rubrika alapján. Válaszd ki az egyik lehetőséget.
         Kérdés: {question}
-        Referencia (vagy gold): {reference_answer}
+        Referencia (vagy gold): {gold_answer}
         Modell válasza: {generated_text}
         Értékelési rubrika:
         {rubric_text}
@@ -165,7 +152,7 @@ def build_judge_prompt(
     else:
         prompt_text = f"""Értékeld az alábbi magyarázatot az alábbi rubrika alapján. Válaszd ki az egyik lehetőséget.
         Kérdés: {question}
-        Referencia magyarázat: {reference_answer}
+        Referencia magyarázat: {gold_answer}
         Modell magyarázata: {generated_text}
         Értékelési rubrika:
         {rubric_text}
@@ -191,9 +178,7 @@ def parse_judge_response(text: str) -> Tuple[str, float, str]:
     if "uncertain" in normalized or "bizonytalan" in normalized:
         return "uncertain", 0.0, "LLM verdict: uncertain"
 
-    # Ha nem érthető a válasz
-    logging.warning(f"Judge response unclear, marking as uncertain: {text}")
-    return "uncertain", 0.0, f"Unclear LLM response: {text[:50]}"
+    raise ValueError(f"Judge response unclear. Trigger error. Responded with: {text}")
 
 
 def load_judge_client(args):
@@ -237,14 +222,16 @@ def compute_scores(args, results: list) -> dict:
             "category": entry.get("category"),
             "output_raw": entry.get("output_raw"),
             "output_normalized": entry.get("output_normalized"),
-            "target": entry.get("target"),
+            "gold_answer": entry.get("gold_answer"),
             "answer_type": entry.get("answer_type"),
+            "scoring_rubric": entry["scoring_rubric"],
+            "accepted_aliases": entry["accepted_aliases"],
             "verdict": verdict[0],
             "score": verdict[1],
-            "judgment_detail": verdict[2]
+            "judgment_detail": verdict[2],
         })
 
-    total_score = score / len(output) if output else 0.0
+    total_score = score / len(output)
 
     uncertain_cases = [r for r in output if r["verdict"] == "uncertain"]
     explanation_or_short = [
@@ -259,13 +246,13 @@ def compute_scores(args, results: list) -> dict:
         helper.save_json(
             output,
             config.RESULTS_DIR,
-            f"{config.CULTURAL_OPEN}-{args.model_name}-{args.thinking}-eval-results.json"
+            f"{config.CULTURAL_OPEN}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
         )
 
         helper.save_json(
             uncertain_cases,
             config.RESULTS_DIR,
-            f"{config.CULTURAL_OPEN}-{args.model_name}-{args.thinking}-uncertain-cases.json"
+            f"{config.CULTURAL_OPEN}-{args.model_name}-{str(args.thinking).lower()}-uncertain-cases.json"
         )
 
 
