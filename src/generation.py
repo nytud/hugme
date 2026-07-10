@@ -1,7 +1,6 @@
 from typing import Any, Callable, Dict, Iterator, List,Optional,Union
 
 import logging
-import pathlib
 from dataclasses import dataclass
 from tqdm import tqdm
 import openai
