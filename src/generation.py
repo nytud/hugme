@@ -28,6 +28,7 @@ def generate_results(
     ) -> List[Dict[str, Any]]:
 
     if args.use_gen_results:
+        helper.cleanup_model_name(args)
         logging.info(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
         return results
@@ -75,12 +76,8 @@ def initialize_huggingface_model(args):
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
     pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
     logging.info(f"Finished loading {args.model_name} model and tokenizer from HuggingFace (or from locally).")
+    helper.cleanup_model_name(args)
 
-    # extract model name from full repo name or local model path, necessary for saving results later, e.g.
-    # "/home/models/models/meta-llama-3.1-8B-instruct" -> meta-llama-3.1-8b-instruct
-    # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
-    model_name_or_path = pathlib.Path(args.model_name)
-    args.model_name = model_name_or_path.name.lower()
     return pipe
 
 def initialize_openai_client():
@@ -98,16 +95,16 @@ def create_parameters(args, task_name) -> dict:
     if not args.provider: # huggingface's transformers lib is used
         return parameters
 
-    # openai's lib specific parameter handling
+    # TODO fix: make parameters fiully configurable
     p = ("return_full_text", "do_sample", "repetition_penalty")
     for param in p:
         if param in parameters:
             parameters.pop(param)
 
     if parameters.get("max_new_tokens"):
-        parameters["max_tokens"] = parameters.pop("max_new_tokens")
+        parameters["max_completion_tokens"] = parameters.pop("max_new_tokens")
 
-    if args.provider and args.thinking:  # openai's thinking mode
+    if args.provider and args.thinking:  # TODO fix: only apply to qwen, make it generic
         parameters.update({"extra_body": {"enable_thinking": True, "result_format": "message"}})
 
     logging.info(f"Using generation parameters: {parameters}")
