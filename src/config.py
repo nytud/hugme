@@ -24,7 +24,7 @@ PROMPT_ALIGNMENT_DATASET = DATASETS + os.getenv("PROMPT_ALIGNMENT_DATASET", "pro
 READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.json")
 COLA_DATASET = DATASETS + os.getenv("COLA_DATASET", "summarization.json")
 MMLU_DATASET = DATASETS + os.getenv("MMLU_DATASET", "mmlu.json")
-CULTURAL_DATASET = DATASETS + os.getenv("CULTURAL_DATASET", "cultural.json")
+CULTURAL_ABCD_DATASET = DATASETS + os.getenv("CULTURAL_ABCD_DATASET", "cultural-abcd.json")
 CULTURAL_OPEN_DATASET = DATASETS + os.getenv("CULTURAL_OPEN_DATASET", "cultural-open.json")
 
 
@@ -38,7 +38,7 @@ METRIC_DATASETES = {
 }
 
 MMLU = "mmlu"
-CULTURAL = "cultural"
+CULTURAL_ABCD = "cultural-abcd"
 CULTURAL_OPEN = "cultural-open"
 NIH = "needle-in-haystack"
 SPELLING = "spelling"
@@ -52,7 +52,7 @@ HUSPACY_MODEL_NAME = "hu_core_news_lg"
 
 MAX_NEW_TOKENS = {
     MMLU: 20,
-    CULTURAL: 20,
+    CULTURAL_ABCD: 2048, # for thinking mode also
     CULTURAL_OPEN: 2048, # for thinking mode also
     TRUTHFUL_QA: 20,
     PROMPT_ALIGNMENT: 256,

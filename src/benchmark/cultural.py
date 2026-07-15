@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any, Dict
 
 import random
 import logging
@@ -8,53 +8,33 @@ import config
 import helper
 import generation
 
+
 def compute_metric(args, task_name: str) -> dict:
-    dataset = helper.read_json(config.CULTURAL_DATASET)
+    dataset = helper.read_json(config.CULTURAL_ABCD_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    dataset = preprocess(dataset)
+    dataset = helper.preprocess(dataset)
     gen_results = generation.generate_results(args, task_name, dataset, format_result)
     return compute_scores(args, gen_results)
 
-def preprocess(dataset: List[Dict]) -> List[Dict]:
-    for entry in dataset:
-        entry["A"] = "A " + str(entry["A"])
-        entry["B"] = "B " + str(entry["B"])
-        entry["C"] = "C " + str(entry["C"])
-        entry["D"] = "D " + str(entry["D"])
-
-    return dataset
-
-def post_process_llama(output: str):
-    """Cleans model outputs by extracting the final answer after the 
-    'válasz' keyword (if present), removing leading explanation text 
-    to ensure consistent comparison with target answers.
-    """
-    keyword = "válasz"
-    index = output.lower().find(keyword)
-
-    if index != -1:
-
-        if index + len(keyword) < len(output) and output[index + len(keyword)] == ":":
-            return output[index + len(keyword) + 1:].strip()
-        return output[index + len(keyword):].strip()
-    return output
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
-    actual_output_text = post_process_llama(output.text)
+    actual_output_text = helper.post_process_llama(output.text)
     return {
-        "question_id": entry.get("question_id"),
-        "prompt": prompt,
-        "output": actual_output_text,
-        "target": entry['target'],
+        "question_id": entry["question_id"],
         "category": entry['category'],
+        "prompt": prompt,
+        "output_raw": output.text,
+        "output": actual_output_text,
+        "correct_answer": entry['correct_answer'],
         "total_tokens": output.total_tokens
     }
+
 
 def compute_scores(args, results: list):
     score = 0.0
     for entry in tqdm(results, desc="Calculating scores", unit="query"):
-        if entry['output'].strip() == entry['target'] or entry['output'].startswith(entry['target']):
+        if entry['output'].strip() == entry['correct_answer'] or entry['output'].startswith(entry['correct_answer']):
             entry['score'] = 1.0
             score += 1.0
         else:
@@ -66,7 +46,6 @@ def compute_scores(args, results: list):
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.CULTURAL}-{args.model_name}-{args.thinking}-eval-results.json"
+            f"{config.CULTURAL_ABCD}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
         )
-
     return helper.group_by_category(results, total_score)
