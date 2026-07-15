@@ -19,7 +19,7 @@ def compute_metric(args, task_name: str) -> dict:
 
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
-    actual_output_text = helper.post_process_llama(output.text)
+    actual_output_text = helper.extract_abcd_answer(output.text)
     return {
         "question_id": entry["question_id"],
         "category": entry['category'],

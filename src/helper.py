@@ -200,3 +200,35 @@ def post_process_llama(output: str):
             return output[index + len(keyword) + 1:].strip()
         return output[index + len(keyword):].strip()
     return output
+
+
+def extract_abcd_answer(output: str) -> str:
+
+    # drop thinking block
+    text = re.sub(r"<think>.*?</think>", "", output, flags=re.DOTALL)
+
+    # if </think> is missing (truncated generation),
+    # take what's after the last <think>
+    # or split on the last </think> if only the opening was matched oddly
+    if "<think>" in text:
+        return ""
+    text = text.strip()
+
+    # find answer letters, prefer the LAST occurrence
+    # matches: "C", "**C**", "C:", "(C)",
+    # "a helyes válasz: C", "válasz a **C**" etc.
+    for pattern in [
+        r"\*\*([ABCD])\*\*",
+        r"[Vv]álasz[^ABCD]{0,20}([ABCD])\b",
+        r"^\s*([ABCD])\s*[:.)]?\s*$",
+    ]:
+        m = re.findall(pattern, text, flags=re.MULTILINE)
+        if m:
+            return m[-1]
+
+    # fallback: any standalone A/B/C/D letter, but not part of a word (e.g., "A" article)
+    matches = re.findall(r"\b([ABCD])\b(?![\w-])", text)
+    if matches:
+        return matches[-1]
+
+    return ""
