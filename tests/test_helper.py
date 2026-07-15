@@ -75,6 +75,8 @@ def test_lowercase_letter_not_matched():
     assert extract_abcd_answer("ez a kérdés nehéz volt") == ""
 
 
+# real examples
+
 def test_real_example_from_dataset():
     output_raw = (
         "<think>\nOkay, let's tackle this question... maybe A or B. "
@@ -84,3 +86,16 @@ def test_real_example_from_dataset():
         "Viszont a megadott válaszok közül a legvalószínűbb, hogy az **C**. \n\n**C**"
     )
     assert extract_abcd_answer(output_raw) == "C"
+
+def test_valasz_then_letter_with_explanation():
+    text = "A helyes válasz a D: 2 dl bor + 2 dl szóda esetén van. A helyes válasz előtti betű tehát: D."
+    assert extract_abcd_answer(text) == "D"
+
+def test_valasz_a_betu():
+    assert extract_abcd_answer("A helyes válasz a betű: A") == "A"
+
+def test_valasz_letter_in_quotes():
+    assert extract_abcd_answer('A válaszok alapján a helyes válasz a "A" lehet.') == "A"
+
+def test_valasz_betujele():
+    assert extract_abcd_answer("A helyes válasz betűjele: C") == "C"

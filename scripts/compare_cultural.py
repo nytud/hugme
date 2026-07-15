@@ -87,7 +87,7 @@ def build_report(results, args) -> None:
     abcd_accuracy = df["abcd_score"].mean()
     open_strict_accuracy = (df["open_score"] == 1).mean()
     open_partial_score = (df["open_score"] == 0.5).mean()
-    diff = abcd_accuracy - open_partial_score
+    diff = abcd_accuracy - open_strict_accuracy
 
     console = Console(record=True)
 
@@ -99,7 +99,7 @@ def build_report(results, args) -> None:
     table.add_row("ABCD accuracy", f"{abcd_accuracy:.2%}")
     table.add_row("Open-answer strict accuracy", f"{open_strict_accuracy:.2%}")
     table.add_row("Open-answer partial-credit score", f"{open_partial_score:.2%}")
-    table.add_row("ABCD - Open difference", f"{diff:+.2%}")
+    table.add_row("ABCD - Open strict difference", f"{diff:+.2%}")
 
     console.print(table)
 
@@ -119,7 +119,7 @@ def build_report(results, args) -> None:
             f"{group['abcd_score'].mean():.2%}",
             f"{(group['open_score'] == 1).mean():.2%}",
             f"{(group['open_score'] == 0.5).mean():.2%}",
-            f"{group['abcd_score'].mean() - group['open_score'].mean():+.2%}",
+            f"{group['abcd_score'].mean() - (group['open_score'] == 1).mean():+.2%}",
         )
 
     console.print(cat_table)
