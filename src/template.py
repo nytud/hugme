@@ -132,7 +132,7 @@ def get_cultural_entity(entry: Dict) -> str:
         f"""
         Feladatod egy magyar nyelvű tudáskérdés megválaszolása.
         Kérdés:
-        {entry.get('question', 'Nincs megadva kérdés')}
+        {entry['question']}
         Utasítások:
         * A válasz egy konkrét személy, hely, tárgy, fogalom, étel, ital, szervezet vagy egyéb entitás neve legyen.
         * Ne adj magyarázatot vagy indoklást, csak az entitás nevét."""
@@ -143,7 +143,7 @@ def get_cultural_short_answer(entry: Dict) -> str:
         f"""
         Válaszold meg a következő kérdést magyarul.
         Kérdés:
-        {entry.get('question', 'Nincs megadva kérdés')}
+        {entry['question']}
         Követelmények:
         * Egyetlen rövid mondat.
         * Csak a legfontosabb tényt tartalmazza.
@@ -154,7 +154,7 @@ def get_cultural_explanation(entry: Dict) -> str:
     return (
         f"""Feladatod egy enciklopédikus magyarázat, válasz megírása magyarul.
             Kérdés:
-            {entry.get('question', 'Nincs megadva kérdés')}
+            {entry['question']}
             Követelmények:
             tartalmazza a legfontosabb háttérinformációkat;
             semleges, lexikonszerű stílusú;
@@ -167,9 +167,5 @@ def get_cultural_open_template(entry: Dict) -> str:
         "short_answer": get_cultural_short_answer(entry),
         "explanation": get_cultural_explanation(entry)
     }
-
-    answer_type = entry.get("answer_type")
-    if not isinstance(answer_type, str):
-        answer_type = "entity"
-
+    answer_type = entry["answer_type"]
     return template_dict.get(answer_type, get_cultural_entity(entry))
