@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any, Dict
 
 import random
 import logging
@@ -13,18 +13,9 @@ def compute_metric(args, task_name: str) -> dict:
     dataset = helper.read_json(config.MMLU_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset))) # at least 1 sample
     dataset = random.sample(dataset, sample_size)
-    dataset = preprocess(dataset)
+    dataset = helper.preprocess(dataset)
     gen_results = generation.generate_results(args, task_name, dataset, format_result)
     return compute_scores(args, gen_results)
-
-
-def preprocess(dataset: List[Dict]) -> List[Dict]:
-    for entry in dataset:
-        entry["A"] = "A " + str(entry["A"])
-        entry["B"] = "B " + str(entry["B"])
-        entry["C"] = "C " + str(entry["C"])
-        entry["D"] = "D " + str(entry["D"])
-    return dataset
 
 
 def post_process_llama(output: str):
