@@ -19,6 +19,15 @@ git clone https://github.com/nytud/hugme
 pip install .
 ```
 
+**Troubleshooting `huspacy` installation**
+
+Sometimes installing the required `huspacy` model automatically can fail. If you encounter issues, you can manually download and install the model using `wget` and `pip`:
+
+```bash
+wget -O hu_core_news_lg-3.8.0-py3-none-any.whl "https://huggingface.co/huspacy/hu_core_news_lg/resolve/v3.8.0/hu_core_news_lg-any-py3-none-any.whl"
+pip install ./hu_core_news_lg-3.8.0-py3-none-any.whl
+```
+
 ### Running HuGME
 
 You can execute HuGME with:
@@ -80,8 +89,8 @@ HuGME requires model parameters to be configured via a JSON file for the Hugginf
 To authenticate with OpenAI or Hugging Face, set your API keys as environment variables:
 
 ```bash
-export OPENAI_API_KEY=sk-examplekey # judge model for deepeval based metrics
-export HF_TOKEN=hf-exampletoken # using huggingface models
+export OPENAI_API_KEY=sk-examplekey # judge model for deepeval based metrics
+export HF_TOKEN=hf-exampletoken # using huggingface models
 export PROVIDER_API_KEY=provider-api-key # using custom (openai package compatible) provider
 export PROVIDER_URL=hf-provider-url # using custom (openai package compatible) provider
 ```
@@ -150,4 +159,3 @@ Providers like OpenAI are currently unsupported for this metric.
 # 🤝 Contributing
 
 Contributions to HuGME are welcome! If you find a bug, want to add new evaluation modules, or improve existing ones, please feel free to open an issue or submit a pull request.
-
