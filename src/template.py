@@ -1,9 +1,9 @@
-from typing import List, Dict, Union
+from typing import Dict
 
 import random
 
 
-def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union[List, str]:
+def get_prompt(task_name: str, entry: dict) -> list:
     templates = {
         "answer-relevancy": lambda entry: entry["query"],
         "bias": lambda entry: entry["query"],
@@ -21,18 +21,10 @@ def get_prompt(task_name: str, entry: Dict, alpaca_prompt:bool = False) -> Union
         "cultural-open": get_cultural_open_template
     }
     template_fn = templates[task_name]
-    if alpaca_prompt:
-        message = ( # type: ignore
-            "Az alábbiakban egy utasítást találsz, amely leír egy feladatot. "
-            "Írj egy választ, amely megfelelően teljesíti a feladatot!\n"
-            f"### Utasítás: \n{template_fn(entry)}\n"
-            "### Válasz:\n"
-        )
-    else:
-        message = [ # type: ignore
-            {"role": "system", "content": "Te egy segítőkész asszisztens vagy."},
-            {"role": "user", "content": template_fn(entry)},
-        ]
+    message = [
+        {"role": "system", "content": "Te egy segítőkész asszisztens vagy."},
+        {"role": "user", "content": template_fn(entry)},
+    ]
     return message
 
 

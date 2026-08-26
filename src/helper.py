@@ -14,24 +14,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def set_seeds(args) -> None:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
-
-
-def set_device(args) -> None:
-    use_cuda = args.use_cuda and torch.cuda.is_available()
-    if use_cuda:
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        # os.environ["CUDA_VISIBLE_DEVICES"] = ''.join(args.cuda_ids)
-        device = torch.device('cuda')
-    else:
-        device = torch.device("cpu")
-    logging.info(f"Using device: {device}")
-    args.device = device
-
-
 def cleanup():
     gc.collect()
     torch.cuda.empty_cache()
@@ -170,8 +152,8 @@ def cleanup_model_name(args):
     # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
     print(f"Model orig name: {args.model_name}")
     model_name_or_path = pathlib.Path(args.model_name)
-    args.model_name = model_name_or_path.name.lower()
-    print(f"Model name for saving results: {args.model_name}")
+    args.model_short_name = model_name_or_path.name.lower()
+    print(f"Model name for saving results: {args.model_short_name}")
     print(f"Model path: {model_name_or_path}")
     return args
 
@@ -202,18 +184,30 @@ def post_process_llama(output: str):
     return output
 
 
-def extract_abcd_answer(output: str) -> str:
+def remove_reasoning_traces(result: dict) -> dict: # if necessary
+    # every task's formatted_result contains an output key holding the generated text;
+    # for reasoning models the text between thinking tokens is not needed for eval,
+    # separate handling as vllm's suppressing reasoning output do not work
+    # https://docs.vllm.ai/en/latest/features/reasoning_outputs/?h=enable_thinking#suppressing-reasoning-output
 
-    # drop thinking block
-    text = re.sub(r"<think>.*?</think>", "", output, flags=re.DOTALL)
+    # no reasoning traces to remove (thinking mode disabled / note exist)
+    if "<think>" not in result["output"]:
+        return result
 
-    # if </think> is missing (truncated generation),
-    # take what's after the last <think>
-    # or split on the last </think> if only the opening was matched oddly
-    if "<think>" in text:
-        return ""
-    text = text.strip()
+    if "</think>" not in result["output"]:
+        print(f"Missing closing </think> tag in output:\n'{result['output']}'\n")
+        result["thinking_output"] = result["output"]
+        result["output"] = ""
+        return result
 
+    # drop thinking block, preserve reasoning traces to check later if necessary
+    result["thinking_output"] = result["output"]
+    result["output"] = re.sub(r"<think>.*?</think>", "", result["output"], flags=re.DOTALL)
+    result["output"] = result["output"].strip()
+    return result
+
+
+def extract_abcd_answer(text: str) -> str:
     # find answer letters, prefer the LAST occurrence
     # matches: "C", "**C**", "C:", "(C)",
     # "a helyes válasz: C", "válasz a **C**" etc.

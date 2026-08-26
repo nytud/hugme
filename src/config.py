@@ -51,14 +51,14 @@ METRICS = list(METRIC_DATASETES.keys())
 HUSPACY_MODEL_NAME = "hu_core_news_lg"
 
 MAX_NEW_TOKENS = {
-    MMLU: 20,
-    CULTURAL_ABCD: 2048, # for thinking mode also
-    CULTURAL_OPEN: 2048, # for thinking mode also
-    TRUTHFUL_QA: 20,
-    PROMPT_ALIGNMENT: 256,
-    READABILITY: 256
+    MMLU: 4096,
+    CULTURAL_ABCD: 4096, # for thinking mode also
+    CULTURAL_OPEN: 4096, # for thinking mode also
+    TRUTHFUL_QA: 4096,
+    PROMPT_ALIGNMENT: 4096,
+    READABILITY: 4096
 }
-DEFAULT_MAX_NEW_TOKENS = 512
+DEFAULT_MAX_NEW_TOKENS = 4096
 OPENAI_PROVIDER_NAME = "openai"
 
 DEFAULT_CHAT_TEMPLATE_KWARGS = {

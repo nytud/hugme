@@ -1,4 +1,12 @@
-from src.helper import extract_abcd_answer
+from src.helper import extract_abcd_answer, cleanup_model_name
+
+
+
+class Args:
+    def __init__(self, model_name):
+        self.model_name = model_name
+        self.model_short_name = None
+
 
 # basic answers
 
@@ -99,3 +107,24 @@ def test_valasz_letter_in_quotes():
 
 def test_valasz_betujele():
     assert extract_abcd_answer("A helyes válasz betűjele: C") == "C"
+
+
+def test_cleanup_model_name_with_full_path():
+    args1 = Args("/home/models/models/meta-llama-3.1-8B-instruct")
+    cleanup_model_name(args1)
+    assert args1.model_short_name == "meta-llama-3.1-8b-instruct"
+
+def test_cleanup_model_name_with_repo_name():
+    args2 = Args("meta-llama/Meta-Llama-3.1-8B-Instruct")
+    cleanup_model_name(args2)
+    assert args2.model_short_name == "meta-llama-3.1-8b-instruct"
+
+def test_cleanup_model_name_with_simple_name():
+    args3 = Args("simple-model-name")
+    cleanup_model_name(args3)
+    assert args3.model_short_name == "simple-model-name"
+
+def test_cleanup_model_name_with_uppercase():
+    args4 = Args("meta-llama/Llama-2-7b-chat-hf")
+    cleanup_model_name(args4)
+    assert args4.model_short_name == "llama-2-7b-chat-hf"
