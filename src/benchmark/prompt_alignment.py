@@ -23,6 +23,7 @@ def compute_metric(args, task_name: str) -> Dict:
 def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> dict:
     return {
         "prompt": prompt,
+        "input": prompt if isinstance(prompt, str) else prompt[1]["content"], # see template.py 24-35 rows
         "output": output.text,
         "prompt_instructions": entry["prompt_instructions"],
         "token_usage": output.total_tokens
@@ -35,7 +36,7 @@ def compute_scores(args, results: List[Dict]) -> Dict:
     total_score = 0.0
 
     for entry in results:
-        test_case = LLMTestCase(input=entry["prompt"], actual_output=entry["output"])
+        test_case = LLMTestCase(input=entry["input"], actual_output=entry["output"])
         metric = PromptAlignmentMetric(
             prompt_instructions=entry["prompt_instructions"],
             model=args.judge,
@@ -46,20 +47,23 @@ def compute_scores(args, results: List[Dict]) -> Dict:
         total_score += metric.score
         if metric.score >= THRESHOLD:
             passed += 1
+            entry["success"] = True
+        else:
+            entry["success"] = False
 
         entry["reason"] = metric.reason
 
     avg_score = total_score / len(results)
     success_rate = passed / len(results)
 
-    logging.info(f"Average score: {avg_score:.2f}")
-    logging.info(f"Success rate ({THRESHOLD}+): {success_rate:.2%}")
+    print(f"Average score: {avg_score:.2f}")
+    print(f"Success rate ({THRESHOLD}+): {success_rate:.2%}")
 
     if args.save_results:
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.PROMPT_ALIGNMENT}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+            f"{config.PROMPT_ALIGNMENT}-{args.model_name.replace("/", "_").lower()}-eval-results.json"
         )
     return {"success_rate": success_rate, "average_score": avg_score }
 

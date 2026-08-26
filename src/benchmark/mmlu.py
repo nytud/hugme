@@ -36,7 +36,7 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
         "prompt": prompt,
         "output": actual_output_text,
         "target": entry['target'],
-        "category": entry['category'],
+        "category": entry['subject'],
         "total_tokens": output.total_tokens
     }
 
@@ -56,7 +56,7 @@ def compute_scores(args, results: list):
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.MMLU}-{args.model_name}-{args.thinking}-eval-results.json"
+            f"{config.MMLU}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
         )
 
     return helper.group_by_category(results, total_score)

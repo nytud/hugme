@@ -27,7 +27,6 @@ def generate_results(
     ) -> List[Dict[str, Any]]:
 
     if args.use_gen_results:
-        helper.cleanup_model_name(args)
         print(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
         return results
@@ -73,7 +72,6 @@ def load_model(args):
     client = openai.OpenAI(api_key=api_key, base_url=args.model_url)
     print(f"Initialized OpenAI client with base URL {args.model_url}.")
 
-    # curl bolka:8001/v1/models
     response = requests.get(f"{args.model_url}/models")
     print(f"Available models: {response.json()}")
 
