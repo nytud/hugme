@@ -14,6 +14,9 @@ import template
 if not spacy.util.is_package(config.HUSPACY_MODEL_NAME):
     logging.info(f"Downloading {config.HUSPACY_MODEL_NAME}...")
     huspacy.download(config.HUSPACY_MODEL_NAME)
+    # in case of error, run these:
+    # wget -O hu_core_news_lg-3.8.0-py3-none-any.whl "https://huggingface.co/huspacy/hu_core_news_lg/resolve/v3.8.0/hu_core_news_lg-any-py3-none-any.whl"
+    # pip install ./hu_core_news_lg-3.8.0-py3-none-any.whl
 
 nlp = huspacy.load()
 
@@ -122,7 +125,11 @@ def compute_scores(args, results):
         total_sentences += len(sentence_scores)
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.COLA}-{args.model_name}-eval-results.json")
+        helper.save_json(
+            results,
+            config.RESULTS_DIR,
+            f"{config.COLA}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
+        )
 
     accuracy = ((grammatical_sentence_count / total_sentences) * 100) if total_sentences else 0.0
     logging.info(f"CoLA benchmark accuracy: {accuracy:.2f}%")
