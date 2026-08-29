@@ -69,7 +69,10 @@ def check_spelling(text: str):
     texts = text.split()
     text_len = len(texts)
     misspelled = list(spell.unknown(texts))
-    correct_rate = 1 - len(misspelled) / text_len
+    try:
+        correct_rate = 1 - len(misspelled) / text_len
+    except ZeroDivisionError:
+        correct_rate = 0
     return text_len, misspelled, correct_rate
 
 
