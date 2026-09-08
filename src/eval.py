@@ -1,5 +1,4 @@
 import time
-import logging
 from datetime import datetime
 
 import config
@@ -10,7 +9,7 @@ import benchmark
 TASK_HANDLERS = {
     **{task: benchmark.metrics.compute_metric for task in config.METRICS}, # deepeval-based metrics
     config.MMLU: benchmark.mmlu.compute_metric,
-    config.CULTURAL: benchmark.cultural.compute_metric,
+    config.CULTURAL_ABCD: benchmark.cultural.compute_metric,
     config.CULTURAL_OPEN: benchmark.cultural_open.compute_metric,
     config.TRUTHFUL_QA: benchmark.truthfulqa.compute_metric,
     config.SPELLING: benchmark.spelling.compute_metric,
@@ -21,13 +20,13 @@ TASK_HANDLERS = {
 }
 
 def evaluate(args) -> None:
-    logging.info("Evaluation started for tasks: " + ", ".join(args.tasks))
+    print("Evaluation started for tasks: " + ", ".join(args.tasks))
     score_results = {}
     eval_start_time = time.time()
 
     for task_name in args.tasks:
 
-        logging.info(f"Started evaluation on {task_name}.")
+        print(f"Started evaluation on {task_name}.")
         task_start_time = time.time()
 
         if task_name not in TASK_HANDLERS:
@@ -36,13 +35,9 @@ def evaluate(args) -> None:
         score = TASK_HANDLERS[task_name](args, task_name)
         score_results[task_name] = score
 
-        logging.info(f"Task {task_name} took {time.time() - task_start_time:.3f} seconds on {args.device}.")
-
-    logging.info(
-        f"Evaluation took {time.time() - eval_start_time:.3f} seconds "
-        f"on {args.device} for tasks: {', '.join(args.tasks)}."
-    )
+        print(f"Task {task_name} took {time.time() - task_start_time:.3f} seconds.")
+    print(f"Evaluation took {time.time() - eval_start_time:.3f} seconds for tasks: {', '.join(args.tasks)}.")
 
     if args.save_results:
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-{args.model_name}-results-{current_time}.json")
+        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-{args.model_name.replace('/', '-').lower()}-results-{current_time}.json")

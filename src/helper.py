@@ -1,33 +1,17 @@
+from typing import List, Dict
+
 import os
 import re
 import gc
+import zlib
 import json
-import random
 import logging
 import pathlib
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-def set_seeds(args) -> None:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
-
-
-def set_device(args) -> None:
-    use_cuda = args.use_cuda and torch.cuda.is_available()
-    if use_cuda:
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        # os.environ["CUDA_VISIBLE_DEVICES"] = ''.join(args.cuda_ids)
-        device = torch.device('cuda')
-    else:
-        device = torch.device("cpu")
-    logging.info(f"Using device: {device}")
-    args.device = device
 
 
 def cleanup():
@@ -168,7 +152,110 @@ def cleanup_model_name(args):
     # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
     print(f"Model orig name: {args.model_name}")
     model_name_or_path = pathlib.Path(args.model_name)
-    args.model_name = model_name_or_path.name.lower()
-    print(f"Model name for saving results: {args.model_name}")
+    args.model_short_name = model_name_or_path.name.lower()
+    print(f"Model name for saving results: {args.model_short_name}")
     print(f"Model path: {model_name_or_path}")
     return args
+
+
+def preprocess(dataset: List[Dict]) -> List[Dict]:
+    for entry in dataset:
+        entry["A"] = "A: " + str(entry["A"])
+        entry["B"] = "B: " + str(entry["B"])
+        entry["C"] = "C: " + str(entry["C"])
+        entry["D"] = "D: " + str(entry["D"])
+    return dataset
+
+
+def post_process_llama(output: str):
+    """
+    Cleans model outputs by extracting the final answer after the
+    'válasz' keyword (if present), removing leading explanation text
+    to ensure consistent comparison with target answers.
+    """
+    keyword = "válasz"
+    index = output.lower().find(keyword)
+
+    if index != -1:
+
+        if index + len(keyword) < len(output) and output[index + len(keyword)] == ":":
+            return output[index + len(keyword) + 1:].strip()
+        return output[index + len(keyword):].strip()
+    return output
+
+
+def remove_reasoning_traces(result: dict) -> dict: # if necessary
+    # every task's formatted_result contains an output key holding the generated text;
+    # for reasoning models the text between thinking tokens is not needed for eval,
+    # separate handling as vllm's suppressing reasoning output do not work
+    # https://docs.vllm.ai/en/latest/features/reasoning_outputs/?h=enable_thinking#suppressing-reasoning-output
+
+    # no reasoning traces to remove (thinking mode disabled / note exist)
+    if "<think>" not in result["output"]:
+        return result
+
+    if "</think>" not in result["output"]:
+        print(f"Missing closing </think> tag in output:\n'{result['output']}'\n")
+        result["thinking_output"] = result["output"]
+        result["output"] = ""
+        return result
+
+    # drop thinking block, preserve reasoning traces to check later if necessary
+    result["thinking_output"] = result["output"]
+    result["output"] = re.sub(r"<think>.*?</think>", "", result["output"], flags=re.DOTALL)
+    result["output"] = result["output"].strip()
+    return result
+
+
+def extract_abcd_answer(text: str) -> str:
+    # find answer letters, prefer the LAST occurrence
+    # matches: "C", "**C**", "C:", "(C)",
+    # "a helyes válasz: C", "válasz a **C**" etc.
+    for pattern in [
+        r"\*\*([ABCD])\*\*",
+        r"[Vv]álasz[^ABCD]{0,20}([ABCD])\b",
+        r"^\s*([ABCD])\s*[:.)]?\s*$",
+    ]:
+        m = re.findall(pattern, text, flags=re.MULTILINE)
+        if m:
+            return m[-1]
+
+    # fallback: any standalone A/B/C/D letter, but not part of a word (e.g., "A" article)
+    matches = re.findall(r"\b([ABCD])\b(?![\w-])", text)
+    if matches:
+        return matches[-1]
+
+    return ""
+
+
+def is_repetitive(
+    text: str,
+    ngram: int = 5,
+    min_words: int = 50,
+    unique_ratio_threshold: float = 0.35,
+    compression_threshold: float = 0.12,
+) -> bool:
+    """Flag outputs dominated by repetition.
+
+    Two independent signals, either of which suffices:
+      - low ratio of distinct n-grams to total n-grams
+      - high compressibility (zlib), which catches repetition at any scale
+    """
+    words = text.split()
+    if len(words) < min_words:
+        return False
+
+    grams = [" ".join(words[i:i + ngram]) for i in range(len(words) - ngram)]
+    if grams and len(set(grams)) / len(grams) < unique_ratio_threshold:
+        return True
+
+    data = text.encode("utf-8")
+    if len(data) > 500 and len(zlib.compress(data, 9)) / len(data) < compression_threshold:
+        return True
+
+    # unstructured numeric or token dump
+    numeric = sum(1 for w in words if w.strip(",.:;").isdigit())
+    if numeric / len(words) > 0.7:
+        return True
+
+    return False

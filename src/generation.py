@@ -1,12 +1,12 @@
-from typing import Any, Callable, Dict, Iterator, List,Optional,Union
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
-import logging
+import os
+import requests
 from dataclasses import dataclass
-from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
+
 import openai
-import torch
-from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from tqdm import tqdm
 
 import config
 import helper
@@ -27,116 +27,63 @@ def generate_results(
     ) -> List[Dict[str, Any]]:
 
     if args.use_gen_results:
-        helper.cleanup_model_name(args)
-        logging.info(f"Using generation results from path: {args.use_gen_results}")
+        print(f"Using generation results from path: {args.use_gen_results}")
         results = helper.read_json(args.use_gen_results)
         return results
 
-    client = load_model(args, task_name)
-    parameters = create_parameters(args, task_name)
-    chat_kwargs = load_chat_template_kwargs(args)
+    client = load_model(args)
+
+    if args.parameters:
+        parameters = helper.read_json(args.parameters)
+    else:
+        raise ValueError("No generation parameters provided.")
+    print(f"Parameters: {parameters}")
 
     results = []
-    for idx, entry in enumerate(tqdm(dataset, desc="Generating responses...", unit="query")):
+    with tqdm(total=len(dataset), desc="Generating responses...", unit="query") as pbar:
+        for batch in batch_dataset(dataset, args.batch_size):
 
-        prompt = template.get_prompt(task_name, entry, args.use_alpaca_prompt)
-        output = generate(
-            prompt, client, parameters, chat_kwargs, args
-        )
-        formatted_result = format_fn(entry, prompt, output)
-        results.append(formatted_result)
+            batched_prompts = [ template.get_prompt(task_name, entry) for entry in batch ]
 
-        if args.save_results and (idx + 1) % 10 == 0: # save intermediate results every 10 generations
-            save_results(results, task_name, args.model_name, args.thinking)
+            outputs = generate_batch(client, batched_prompts, args.model_name, parameters)
+
+            for entry, prompt, output in zip(batch, batched_prompts, outputs):
+
+                formatted_result = format_fn(entry, prompt, output)
+
+                formatted_result = helper.remove_reasoning_traces(formatted_result)
+
+                results.append(formatted_result)
+
+            pbar.update(len(batch))
+
+            if args.save_results:
+                print(f"Saving intermediate generation results for {task_name} at batch size {args.batch_size}.")
+                save_results(results, task_name, args.model_name)
 
     if args.save_results:
-        save_results(results, task_name, args.model_name, args.thinking)
+        save_results(results, task_name, args.model_name)
     return results
 
 
-def load_model(args, task_name):
-    if task_name == config.NIH and args.provider:
-        raise ValueError("The NIH task is not supported with OpenAI API. Use local model instead.")
-    if args.provider:
-        return initialize_openai_client()
-    return initialize_huggingface_model(args)
+def load_model(args):
+    api_key = os.getenv("MODEL_API_KEY")
 
+    client = openai.OpenAI(api_key=api_key, base_url=args.model_url)
+    print(f"Initialized OpenAI client with base URL {args.model_url}.")
 
-def initialize_huggingface_model(args):
-    logging.info(f"Loading HuggingFace model and tokenizer from: {args.model_name}")
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model_name, token=config.HF_TOKEN, trust_remote_code=True, padding_side="left"
-    )
-    tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_name, device_map="auto", token=config.HF_TOKEN,
-        trust_remote_code=True, torch_dtype=config.MODEL_DTYPE
-    )
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
-    pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
-    logging.info(f"Finished loading {args.model_name} model and tokenizer from HuggingFace (or from locally).")
-    helper.cleanup_model_name(args)
+    response = requests.get(f"{args.model_url}/models")
+    print(f"Available models: {response.json()}")
 
-    return pipe
-
-def initialize_openai_client():
-    client = openai.OpenAI(api_key=config.PROVIDER_API_KEY, base_url=config.PROVIDER_URL)
-    logging.info(f"Initialized OpenAI client with base URL {config.PROVIDER_URL}.")
     return client
 
 
-def create_parameters(args, task_name) -> dict:
-    parameters = helper.read_json(args.parameters) if args.parameters else {}
-
-    parameters["max_new_tokens"] = config.MAX_NEW_TOKENS.get( # limit max new tokens for some tasks
-        task_name, parameters.get("max_new_tokens", config.DEFAULT_MAX_NEW_TOKENS)
-    )
-    if not args.provider: # huggingface's transformers lib is used
-        return parameters
-
-    # TODO fix: make parameters fiully configurable
-    p = ("return_full_text", "do_sample", "repetition_penalty")
-    for param in p:
-        if param in parameters:
-            parameters.pop(param)
-
-    if parameters.get("max_new_tokens"):
-        parameters["max_completion_tokens"] = parameters.pop("max_new_tokens")
-
-    if args.provider and args.thinking:  # TODO fix: only apply to qwen, make it generic
-        parameters.update({"extra_body": {"enable_thinking": True, "result_format": "message"}})
-
-    logging.info(f"Using generation parameters: {parameters}")
-    return parameters
-
-def load_chat_template_kwargs(args) -> dict:
-    chat_kwargs = config.DEFAULT_CHAT_TEMPLATE_KWARGS.copy()
-
-    if args.chat_template:
-        read_kwargs = helper.read_json(args.chat_template)
-        chat_kwargs.update(read_kwargs)
-
-    return chat_kwargs
-
-def generate(
-        prompt: Any,
-        client: Any,
-        parameters: dict,
-        chat_kwargs: dict,
-        args
-    ) -> ModelOutput:
-    if args.provider:
-        assert args.model_name is not None, "Model name must be provided when using OpenAI API."
-        return generate_with_openai(prompt, client, args.model_name, parameters)
-    return generate_with_huggingface(prompt, client, parameters, chat_kwargs)
-
-
-def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, parameters: dict) -> ModelOutput:
+def generate(client: openai.OpenAI, messages: list, model_name: str, parameters: dict) -> ModelOutput:
     try:
-        completion = client.chat.completions.create(model=model_name, messages=prompt, **parameters)
+        completion = client.chat.completions.create(model=model_name, messages=messages, **parameters)
     except openai.BadRequestError as e:
-        logging.error(f"OpenAI API request failed for: \n{prompt}\n with parameters: {parameters}")
-        logging.error(f"OpenAI API request failed: {e}")
+        print(f"OpenAI API request failed for: \n{messages}\n with parameters: {parameters}")
+        print(f"OpenAI API request failed: {e}")
         inappropriate_content_message = "Input data may contain inappropriate content."
         if e.status_code == 400 and e.code == "data_inspection_failed" and inappropriate_content_message in e.message:
             return ModelOutput(inappropriate_content_message)
@@ -144,47 +91,30 @@ def generate_with_openai(prompt, client: openai.OpenAI, model_name: str, paramet
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_with_huggingface(prompts: Union[str, List[str]], client, parameters: dict, chat_kwargs) -> ModelOutput:
-    tokenizer = client.tokenizer
-    is_chat_model = hasattr(tokenizer, "apply_chat_template") and tokenizer.chat_template is not None
-
-    if isinstance(prompts, list) and is_chat_model:
-
-        rendered_prompt = tokenizer.apply_chat_template(
-            prompts,
-            **chat_kwargs
-        )
-    else:
-        rendered_prompt = prompts
-
-    try:
-        with torch.inference_mode():
-
-            results = client(
-                rendered_prompt,
-                **parameters
+def generate_batch(client: openai.OpenAI, messages: List, model_name: str, parameters: dict) -> List[ModelOutput]:
+    # the OpenAI chat completions API takes one prompt per request, so a "batch" here means
+    # firing the requests concurrently and letting vLLM's continuous batching do the actual batching
+    with ThreadPoolExecutor(max_workers=len(messages)) as executor:
+        return list(
+            executor.map(
+                lambda message: generate(client, message, model_name, parameters),
+                messages
             )
+        )
 
-        generated = results[0]["generated_text"]
 
-    except Exception as e:
-        logging.error(f"HuggingFace generation failed: {e}")
-        raise e
-
-    return ModelOutput(generated) # TODO implement total tokens for huggingface
-
-def generate_batches(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
+def batch_dataset(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
     for i in range(0, len(dataset), batch_size):
         yield dataset[i:i + batch_size]
 
 
-def save_results(results: List[Dict], task_name: str, model_name: str, thinking: bool) -> None:
+def save_results(results: List[Dict], task_name: str, model_name: str) -> None:
     if not results:
-        logging.warning("No results to save.")
+        print("No results to save.")
         return
     helper.save_json(
         results,
         config.RESULTS_DIR,
-        f"{task_name}-{model_name}-{str(thinking).lower()}-generation-results.json"
+        f"{task_name}-{model_name.replace("/", "-").lower()}-generation-results.json"
     )
-    logging.info(f"Saved generation results to {config.RESULTS_DIR} directory.")
+    print(f"Saved generation results to {config.RESULTS_DIR} directory.")

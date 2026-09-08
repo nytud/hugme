@@ -245,13 +245,13 @@ def compute_scores(args, results: list) -> dict:
         helper.save_json(
             output,
             config.RESULTS_DIR,
-            f"{config.CULTURAL_OPEN}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+            f"{config.CULTURAL_OPEN}-{args.model_name.replace('/', '_').lower()}-{str(args.thinking).lower()}-eval-results.json"
         )
 
         helper.save_json(
             uncertain_cases,
             config.RESULTS_DIR,
-            f"{config.CULTURAL_OPEN}-{args.model_name}-{str(args.thinking).lower()}-uncertain-cases.json"
+            f"{config.CULTURAL_OPEN}-{args.model_name.replace('/', '_').lower()}-{str(args.thinking).lower()}-uncertain-cases.json"
         )
 
 

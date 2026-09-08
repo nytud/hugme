@@ -1,7 +1,10 @@
 {
-  "max_new_tokens": 512,
-  "temperature": 0.3,
-  "top_p": 0.95,
-  "repetition_penalty": 1.1,
-  "return_full_text": false
+    "max_completion_tokens": 4096,
+    "temperature": 0.95,
+    "top_p": 0.6,
+    "extra_body": {
+        "top_k": 20,
+        "min_p": 0,
+        "chat_template_kwargs": {"enable_thinking": true}
+    }
 }

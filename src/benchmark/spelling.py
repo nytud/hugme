@@ -55,7 +55,7 @@ def compute_score(args, results: List[Dict]):
         helper.save_json(
             spelling_results,
             config.RESULTS_DIR,
-            f"{config.SPELLING}-{args.model_name}-{args.thinking}-eval-results.json"
+            f"{config.SPELLING}-{args.model_name.replace("/", "_").lower()}-eval-results.json"
         )
     spelling_score = (1 - misspelled_count / text_lens) * 100
 
@@ -69,7 +69,10 @@ def check_spelling(text: str):
     texts = text.split()
     text_len = len(texts)
     misspelled = list(spell.unknown(texts))
-    correct_rate = 1 - len(misspelled) / text_len
+    try:
+        correct_rate = 1 - len(misspelled) / text_len
+    except ZeroDivisionError:
+        correct_rate = 0
     return text_len, misspelled, correct_rate
 
 
