@@ -96,6 +96,8 @@ def get_cola_prompt_for_model(sentence):
                 "postpositions, wrong use of definite/indefinite conjugation, or other violations "
                 "of Hungarian grammar). "
                 "Ignore stylistic or semantic issues unless they affect grammatical correctness. "
+                "If the sentence is not written in Hungarian, or is only partially in Hungarian, output 0 "
+                "regardless of whether it would be grammatical in its own language. "
                 "Do not correct the sentence, only classify it. "
                 "Always output exactly one number: 1 for 'grammatical' and 0 for 'ungrammatical'."
             )

@@ -1,5 +1,4 @@
 import time
-import logging
 from datetime import datetime
 
 import config
@@ -17,7 +16,7 @@ TASK_HANDLERS = {
     config.PROMPT_ALIGNMENT: benchmark.prompt_alignment.compute_metric,
     config.READABILITY: benchmark.readability.compute_metric,
     config.NIH: benchmark.nih.compute_metric,
-    # config.COLA: benchmark.cola.compute_metric,
+    config.COLA: benchmark.cola.compute_metric,
 }
 
 def evaluate(args) -> None:

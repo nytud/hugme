@@ -15,6 +15,7 @@ def cli() -> None:
 
     parser.add_argument("--save-results", action="store_true", help='save results')
     parser.add_argument("--use-gen-results", type=Path, default=None, help='use generation results from path')
+    parser.add_argument("--use-eval-results", type=Path, default=None, help='use evaluation results from path')
     parser.add_argument("--sample-size", type=float, default=1.0, help="sample size for evaluation")
     parser.add_argument("--batch-size", type=int, default=8, help="batch size for generation")
 

@@ -87,7 +87,13 @@ def classify_sentences(sentences, classifier, judge):
 
 def classify_sentences_with_bert(sentence, classifier):
     # grammatical 1, ungrammatical 0
-    result = classifier(sentence)
+    try:
+        result = classifier(sentence)
+    except RuntimeError as e:
+        print(f"Error classifying sentence with BERT: {e}")
+        # fallback to ungrammatical if BERT fails, let openai model do the work
+        return {"sentence": sentence, "label": 0, "score": 1.0}
+
     return {"sentence": sentence, "label": int(result[0]['label']), "score": result[0]['score']}
 
 

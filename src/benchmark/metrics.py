@@ -1,7 +1,9 @@
 from typing import Any, Dict
 
 import random
+
 from transformers import pipeline
+import openai
 from deepeval import metrics
 from deepeval.test_case import LLMTestCase
 
@@ -9,6 +11,8 @@ import config
 import helper
 import generation
 
+
+TRUNCATION_LENGTH = 3000
 
 def compute_metric(args, task_name: str) -> float:
     _metrics = {
@@ -44,27 +48,73 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
 def compute_score(args, results: list, metric, task_name: str) -> float:
     total_score = 0.0
     measurement_results = []
+
+    if args.use_eval_results is not None:
+        measurement_results = helper.read_json(args.use_eval_results)
+        print(f"Loaded {len(measurement_results)} evaluation results from {args.use_eval_results}")
+
     for i, entry in enumerate(results):
-        test_case = LLMTestCase(
-            input = entry["input"], actual_output = entry["output"],
-            retrieval_context = entry.get("context"), context = entry.get("context")
-        )
-        if task_name == "summarization":
-            metric.assessment_questions = entry["questions"]
-        metric.measure(test_case)
-        total_score += int(metric.success)
+
+        if i < len(measurement_results):
+            print(f"Using preloaded / precomputed evaluation result for index {i}")
+            total_score += int(bool(measurement_results[i]["success"]))
+            continue
+
+        # no output or repetitive output
+        if not entry["output"].strip() or helper.is_repetitive(entry["output"], ngram=5, min_words=50, unique_ratio_threshold=0.35, compression_threshold=0.12):
+            success = False
+            score = 0.0
+            reason = "Model output is empty or repetitive (ngram=5, min_words=50, unique_ratio_threshold=0.35, compression_threshold=0.12)"
+            total_score += 0
+
+        else:
+            try:
+                test_case = LLMTestCase(
+                    input = entry["input"], actual_output = entry["output"],
+                    retrieval_context = entry.get("context"), context = entry.get("context")
+                )
+                if task_name == "summarization":
+                    metric.assessment_questions = entry["questions"]
+                metric.measure(test_case)
+                truncated = False
+            except openai.LengthFinishReasonError as e:
+                print(f"OpenAI LengthFinishReasonError error occurred: {e}")
+                # try again with truncated input
+                test_case = LLMTestCase(
+                    input = entry["input"], actual_output = entry["output"][:TRUNCATION_LENGTH],
+                    retrieval_context = entry.get("context"), context = entry.get("context")
+                )
+                if task_name == "summarization":
+                    metric.assessment_questions = entry["questions"]
+                metric.measure(test_case)
+                truncated = True
+
+            total_score += int(metric.success)
+
+            success = metric.success
+            score = metric.score
+            reason = metric.reason
+
         measurement_results.append(
             {
                 "index": i,
-                "success": metric.success,
-                "score": metric.score,
-                "reason": metric.reason,
+                "success":success,
+                "score": score,
+                "reason": reason,
                 "input": entry["input"],
                 "output": entry["output"],
                 "context": entry.get("context"),
                 "questions": entry.get("questions"),
-                "token_used": entry.get("token_usage")
+                "token_used": entry.get("token_usage"),
+                "truncated": truncated
             }
+        )
+        # connection to judge can be lead to timeout, save at every test case measurement
+        print(f"Saved {i + 1}/{len(results)} result for task {task_name}.")
+        helper.save_json(
+            measurement_results,
+            config.RESULTS_DIR,
+            f"{task_name}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
         )
     final_score = round( (total_score / len(results)) * 100, 2)
     print(f"{task_name.capitalize()} final score: {final_score}")

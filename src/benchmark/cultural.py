@@ -19,13 +19,11 @@ def compute_metric(args, task_name: str) -> dict:
 
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
-    actual_output_text = helper.extract_abcd_answer(output.text)
     return {
         "question_id": entry["question_id"],
         "category": entry['category'],
         "prompt": prompt,
-        "output_raw": output.text,
-        "output": actual_output_text,
+        "output": output.text,
         "correct_answer": entry['correct_answer'],
         "total_tokens": output.total_tokens
     }
@@ -34,7 +32,11 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
 def compute_scores(args, results: list):
     score = 0.0
     for entry in tqdm(results, desc="Calculating scores", unit="query"):
-        if entry['output'].strip() == entry['correct_answer']:
+
+        output_extraced = helper.extract_abcd_answer(entry['output'])
+        entry['output_extracted'] = output_extraced
+
+        if entry['output_extracted'].strip() == entry['correct_answer']:
             entry['score'] = 1.0
             score += 1.0
         else:
@@ -46,6 +48,6 @@ def compute_scores(args, results: list):
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.CULTURAL_ABCD}-{args.model_name}-{str(args.thinking).lower()}-eval-results.json"
+            f"{config.CULTURAL_ABCD}-{args.model_name.replace('/', '_').lower()}-{str(args.thinking).lower()}-eval-results.json"
         )
     return helper.group_by_category(results, total_score)

@@ -3,11 +3,11 @@ from typing import List, Dict
 import os
 import re
 import gc
+import zlib
 import json
-import random
 import logging
 import pathlib
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 import torch
 import numpy as np
@@ -226,3 +226,36 @@ def extract_abcd_answer(text: str) -> str:
         return matches[-1]
 
     return ""
+
+
+def is_repetitive(
+    text: str,
+    ngram: int = 5,
+    min_words: int = 50,
+    unique_ratio_threshold: float = 0.35,
+    compression_threshold: float = 0.12,
+) -> bool:
+    """Flag outputs dominated by repetition.
+
+    Two independent signals, either of which suffices:
+      - low ratio of distinct n-grams to total n-grams
+      - high compressibility (zlib), which catches repetition at any scale
+    """
+    words = text.split()
+    if len(words) < min_words:
+        return False
+
+    grams = [" ".join(words[i:i + ngram]) for i in range(len(words) - ngram)]
+    if grams and len(set(grams)) / len(grams) < unique_ratio_threshold:
+        return True
+
+    data = text.encode("utf-8")
+    if len(data) > 500 and len(zlib.compress(data, 9)) / len(data) < compression_threshold:
+        return True
+
+    # unstructured numeric or token dump
+    numeric = sum(1 for w in words if w.strip(",.:;").isdigit())
+    if numeric / len(words) > 0.7:
+        return True
+
+    return False
