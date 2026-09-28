@@ -1,14 +1,28 @@
-from typing import Any, Dict, Optional, Tuple
-import random
-import logging
-import re
-from tqdm import tqdm
+from typing import Any, Tuple
 
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+import random
+import textwrap
+from tqdm import tqdm
+from enum import Enum
+
+import openai
 
 import config
 import helper
 import generation
+
+
+class AnswerType(str, Enum):
+    ENTITY = "entity"
+    SHORT_ANSWER = "short_answer"
+    EXPLANATION = "explanation"
+
+class Verdict(str, Enum):
+    CORRECT = "correct"
+    PARTIALLY_CORRECT = "partially_correct"
+    INCORRECT = "incorrect"
+    UNCERTAIN = "uncertain"
+
 
 def compute_metric(args, task_name: str) -> dict:
     dataset = helper.read_json(config.CULTURAL_OPEN_DATASET)
@@ -18,68 +32,90 @@ def compute_metric(args, task_name: str) -> dict:
     return compute_scores(args, gen_results)
 
 
-def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
-    raw_output = output.text.strip()
+def format_result(entry: dict, prompt: Any, output: generation.ModelOutput) -> dict:
+
+    remove_punctuation = entry["answer_type"] in [AnswerType.ENTITY, AnswerType.SHORT_ANSWER]
+
     return {
-        "question_id": entry["question_id"],
-        "question": entry["question"],
-        "prompt": prompt,
-        "output_raw": raw_output,
-        "output_normalized": normalize_answer(raw_output, entry["answer_type"]),
-        "gold_answer": entry["gold_answer"],
-        "answer_type": entry["answer_type"],
-        "category": entry["category"],
-        "total_tokens": output.total_tokens,
+        "id":                   entry["question_id"],
+        "question":             entry["question"],
+        "prompt":               prompt,
+        "output":               output.text,
+        "output_normalized":    helper.normalize_text(output.text, remove_punctuation=remove_punctuation),
+        "gold_answer":          entry["gold_answer"],
+        "answer_type":          entry["answer_type"],
+        "category":             entry["category"],
+        "total_tokens":         output.total_tokens,
         "scoring_rubric": {
             "required_elements": entry["required_elements"],
             "optional_elements": entry["optional_elements"],
-            "critical_errors": entry["critical_errors"]
+            "critical_errors":   entry["critical_errors"]
         },
-        "accepted_aliases": entry["accepted_aliases"],
+        "accepted_aliases":      entry["accepted_aliases"],
     }
 
 
-def normalize_text(
-    text: str,
-    remove_punctuation: bool = False,
-) -> str:
+def compute_scores(args, results: list) -> dict:
+    score = 0.0
+    outputs = []
 
-    text = str(text).strip().lower()
-    text = re.sub(r'\s+', ' ', text).strip()
-    if remove_punctuation:
-        text = re.sub(r'[.,;:!?\'"()[\]{}—–-]+', ' ', text)
-        text = re.sub(r'\s+', ' ', text).strip()
+    for entry in tqdm(results, desc="Calculating scores", unit="query"):
 
-    return text
+        verdict = grade_entry(entry, args)
+        score += verdict[1]
+        outputs.append({
+            "id":               entry["question_id"],
+            "question":         entry["question"],
+            "category":         entry["category"],
+            "output":           entry["output"],
+            "output_thinking":  entry["thinking_output"],
+            "output_normalized": entry["output_normalized"],
+
+            "answer_type":      entry["answer_type"],
+            "gold_answer":      entry["gold_answer"],
+
+            "scoring_rubric": entry["scoring_rubric"],
+            "accepted_aliases": entry["accepted_aliases"],
+            "verdict": verdict[0],
+            "score": verdict[1],
+            "judgment_detail": verdict[2],
+        })
+    total_score = score / len(outputs)
+    print(f"Cultural open benchmark score: {round(total_score * 100, 2)}%")
+
+    uncertain_cases = [r for r in outputs if r["verdict"] == "uncertain"]
+    explanation_or_short = [r for r in outputs if r["answer_type"] in ["explanation", "short_answer"]]
+    print(f"Uncertain cases: {len(uncertain_cases)} / {len(explanation_or_short)}")
+
+    if args.save_results:
+        model_name = helper.cleanup_model_name(args.model_name)
+        helper.save_json(outputs, config.RESULTS_DIR, f"{config.CULTURAL_OPEN}-{model_name}-eval-results.json")
+        helper.save_json(uncertain_cases, config.RESULTS_DIR, f"{config.CULTURAL_OPEN}-{model_name}-uncertain-cases.json")
+
+    return {
+        "category_scores": helper.group_by_category(outputs, total_score),
+        "summary_statistics": create_summary_statistics(outputs)
+    }
 
 
-def normalize_answer(text: str, answer_type: Optional[str] = None) -> str:
-    if answer_type in ["entity", "short_answer"]:
-        return normalize_text(text, remove_punctuation=True)
-    return normalize_text(text, remove_punctuation=False)
+def grade_entry(entry: dict, args) -> Tuple[str, float, str]:
+    if entry["answer_type"] == AnswerType.ENTITY:
+        return grade_entry_manually_with_entity_answer_type(entry)
+    return grade_entry_by_judge(entry, args)
 
 
-def judge_wrapper(entry: Dict[str, Any], generated: str, args) -> Tuple[str, float, str]:
-    answer_type = entry.get("answer_type")
+def grade_entry_manually_with_entity_answer_type(entry: dict) -> Tuple[str, float, str]:
 
-    if answer_type == "entity":
-        return judge_entity_item(entry, generated)
+    def grade_candidate(output_norm: str, candidate: str):
+        if output_norm == candidate:
+            return "correct", 1.0, "Exact match"
+        if output_norm.startswith(candidate) or candidate.startswith(output_norm):
+            return "partially_correct", 1.0, "Prefix match"
+        if len(candidate) > 3 and candidate in output_norm:
+            return "partially_correct", 1.0, "Substring match"
+        return None
 
-    return judge_item_with_llm(entry, generated, args)
-
-
-def _judge_entity_candidate(output_norm: str, candidate: str) -> Optional[Tuple[str, float, str]]:
-    if output_norm == candidate:
-        return "correct", 1.0, "Exact match"
-    if output_norm.startswith(candidate) or candidate.startswith(output_norm):
-        return "partially_correct", 1.0, "Prefix match"
-    if len(candidate) > 3 and candidate in output_norm:
-        return "partially_correct", 1.0, "Substring match"
-    return None
-
-
-def judge_entity_item(entry: Any, output: str) -> Tuple[str, float, str]:
-    output_norm = normalize_text(output, remove_punctuation=True)
+    output_norm = entry["output_normalized"]
     if not output_norm:
         return "incorrect", 0.0, "Empty output"
 
@@ -98,173 +134,85 @@ def judge_entity_item(entry: Any, output: str) -> Tuple[str, float, str]:
         if not candidate:
             continue
 
-        match = _judge_entity_candidate(output_norm, candidate)
+        match = grade_candidate(output_norm, candidate)
         if match:
             return match
 
     return "incorrect", 0.0, "No match"
 
 
-def judge_item_with_llm(entry: Dict[str, Any], generated: str, args) -> Tuple[str, float, str]:
-
-    prompt = build_judge_prompt(entry, generated)
-
-    judge_model, is_openai = load_judge_client(args)
-
-    if is_openai:
-        response = generation.generate_with_openai(prompt, judge_model, args.judge, {})
-    else:
-        response = generation.generate_with_huggingface(prompt, judge_model, {}, {})
-
-    return parse_judge_response(response.text)
+def grade_entry_by_judge(entry: dict, args) -> Tuple[str, float, str]:
+    parameters = {}
+    prompt = build_judge_prompt(entry)
+    judge_client = load_judge_model(args)
+    response = generation.generate(judge_client, prompt, args.judge, parameters)
+    verdict = parse_judge_response(response.text)
+    return verdict
 
 
-def build_judge_prompt(entry: Dict, generated: str) -> Any:
+def build_judge_prompt(entry: dict) -> list:
 
-    answer_type = entry["answer_type"]
+    is_short = entry["answer_type"] == AnswerType.SHORT_ANSWER
+    kind = "rövid választ" if is_short else "magyarázatot"
+    rubric = entry["scoring_rubric"]
 
-    question = entry["question"]
-    gold_answer = entry["gold_answer"]
-    generated_text = generated.strip()
+    prompt_text = textwrap.dedent(f"""\
+        Értékeld az alábbi {kind} a rubrika alapján.
 
-    scoring_rubric = entry["scoring_rubric"]
-    rubric_text = (
-        f"Required elements: {scoring_rubric['required_elements']}\n"
-        f"Optional elements: {scoring_rubric['optional_elements']}\n"
-        f"Critical errors: {scoring_rubric['critical_errors']}"
-    )
+        Kérdés: {entry["question"]}
+        Referencia: {entry["gold_answer"]}
+        Modell válasza: {entry["output"]}
 
-    if answer_type == "short_answer":
-        prompt_text = f"""Értékeld az alábbi rövid választ az alábbi rubrika alapján. Válaszd ki az egyik lehetőséget.
-        Kérdés: {question}
-        Referencia (vagy gold): {gold_answer}
-        Modell válasza: {generated_text}
-        Értékelési rubrika:
-        {rubric_text}
-        Szabályok:
-        1) Ha a válasz tartalmazza a rubrikában megadott minden required elemet és nincs kritikus hiba, válaszolj: CORRECT
-        2) Ha a válasz tartalmaz néhány required vagy több optional elemet, válaszolj: PARTIALLY_CORRECT
-        3) Ha hiányoznak a required elemek vagy kritikus hibák vannak: INCORRECT
-        4) Ha nem tudsz dönteni: UNCERTAIN
+        Rubrika:
+        Szükséges (required) elemek: {rubric["required_elements"]}
+        Opcionális (optional) elemek: {rubric["optional_elements"]}
+        Kritikus (critical) hibák: {rubric["critical_errors"]}
 
-        Válasz formátuma: Csak az egyik szó legyen: CORRECT, PARTIALLY_CORRECT, INCORRECT vagy UNCERTAIN."""
-    else:
-        prompt_text = f"""Értékeld az alábbi magyarázatot az alábbi rubrika alapján. Válaszd ki az egyik lehetőséget.
-        Kérdés: {question}
-        Referencia magyarázat: {gold_answer}
-        Modell magyarázata: {generated_text}
-        Értékelési rubrika:
-        {rubric_text}
-        Szabályok:
-        1) Ha a magyarázat tartalmazza a rubrikában megadott minden required elemet és nincs kritikus hiba: CORRECT
-        2) Ha részben megfelel: PARTIALLY_CORRECT
-        3) Ha hiányos vagy hibás: INCORRECT
-        4) Ha bizonytalan vagy többértelmű: UNCERTAIN
-        Válasz formátuma: Csak az egyik szó legyen: CORRECT, PARTIALLY_CORRECT, INCORRECT vagy UNCERTAIN."""
+        Szabályok (az első illeszkedő érvényes):
+        1) Ha van kritikus hiba: INCORRECT
+        2) Ha minden szükséges (required) elem megvan: CORRECT
+        3) Ha a szükséges (required) elemek egy része megvan: PARTIALLY_CORRECT
+        4) Ha egyetlen szükséges (required) elem sincs meg: INCORRECT
+        5) Ha a rubrika alapján nem tudsz dönteni: UNCERTAIN
+
+        Csak az egyik szóval válaszolj: CORRECT, PARTIALLY_CORRECT, INCORRECT vagy UNCERTAIN.""")
 
     return [{"role": "user", "content": prompt_text}]
 
 
 def parse_judge_response(text: str) -> Tuple[str, float, str]:
-    normalized = normalize_text(text)
+    normalized = helper.normalize_text(text)
 
-    if "correct" in normalized and "partially" not in normalized:
-        return "correct", 1.0, "LLM verdict: correct"
-    if "partially_correct" in normalized or "partial" in normalized:
-        return "partially_correct", 0.5, "LLM verdict: partially_correct"
-    if "incorrect" in normalized or "nem" in normalized:
-        return "incorrect", 0.0, "LLM verdict: incorrect"
-    if "uncertain" in normalized or "bizonytalan" in normalized:
-        return "uncertain", 0.0, "LLM verdict: uncertain"
+    if "incorrect" in normalized or "nem" in normalized.split():
+        verdict, score = Verdict.INCORRECT, 0.0
+    elif "partial" in normalized:
+            verdict, score = Verdict.PARTIALLY_CORRECT, 0.5
+    elif "uncertain" in normalized or "bizonytalan" in normalized:
+        verdict, score = Verdict.UNCERTAIN, 0.0
+    elif "correct" in normalized:
+        verdict, score = Verdict.CORRECT, 1.0
+    else:
+        raise ValueError(f"Unclear judge response: '{text}'")
 
-    raise ValueError(f"Judge response unclear. Trigger error. Responded with: {text}")
-
-
-def load_judge_client(args):
-    if config.PROVIDER_API_KEY:
-        return generation.initialize_openai_client(), True
-
-    logging.info(f"Loading local judge model: {args.judge}")
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.judge,
-        token=config.HF_TOKEN,
-        trust_remote_code=True,
-        padding_side="left"
-    )
-    if tokenizer.eos_token is not None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        args.judge,
-        device_map="auto",
-        token=config.HF_TOKEN,
-        trust_remote_code=True,
-        torch_dtype=config.MODEL_DTYPE
-    )
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device_map="auto")
-    if pipe.tokenizer is not None and pipe.model is not None and hasattr(pipe.tokenizer, "pad_token_id"):
-        pipe.model.config.pad_token_id = pipe.tokenizer.pad_token_id
-    return pipe, False
+    return verdict, score, f"LLM verdict: {verdict.value}"
 
 
-def compute_scores(args, results: list) -> dict:
-    score = 0.0
-    output = []
+def load_judge_model(args):
+    assert args.judge is not None, "Judge model must be specified."
+    assert config.PROVIDER_API_KEY is not None, "Provider API key must be specified."
+    assert config.PROVIDER_URL is not None, "Provider URL must be specified."
 
-    for entry in tqdm(results, desc="Calculating scores", unit="query"):
-        verdict = judge_wrapper(entry, entry["output_raw"], args)
-
-        score += verdict[1]
-        output.append({
-            "question_id": entry.get("question_id"),
-            "question": entry.get("question"),
-            "category": entry.get("category"),
-            "output_raw": entry.get("output_raw"),
-            "output_normalized": entry.get("output_normalized"),
-            "gold_answer": entry.get("gold_answer"),
-            "answer_type": entry.get("answer_type"),
-            "scoring_rubric": entry["scoring_rubric"],
-            "accepted_aliases": entry["accepted_aliases"],
-            "verdict": verdict[0],
-            "score": verdict[1],
-            "judgment_detail": verdict[2],
-        })
-
-    total_score = score / len(output)
-
-    uncertain_cases = [r for r in output if r["verdict"] == "uncertain"]
-    explanation_or_short = [
-        r for r in output
-        if r.get("answer_type") in ("explanation", "short_answer")
-    ]
-
-    logging.info(f"Cultural open benchmark score: {round(total_score * 100, 2)}%")
-    logging.info(f"Uncertain cases: {len(uncertain_cases)} / {len(explanation_or_short)}")
-
-    if args.save_results:
-        helper.save_json(
-            output,
-            config.RESULTS_DIR,
-            f"{config.CULTURAL_OPEN}-{args.model_name.replace('/', '_').lower()}-{str(args.thinking).lower()}-eval-results.json"
-        )
-
-        helper.save_json(
-            uncertain_cases,
-            config.RESULTS_DIR,
-            f"{config.CULTURAL_OPEN}-{args.model_name.replace('/', '_').lower()}-{str(args.thinking).lower()}-uncertain-cases.json"
-        )
+    client = openai.OpenAI(api_key=config.PROVIDER_API_KEY, base_url=config.PROVIDER_URL)
+    return client
 
 
-    verdicts = [e.get("verdict") for e in output]
-    stat_summary = {
-        "total": len(output),
-        "correct": verdicts.count("correct"),
+def create_summary_statistics(outputs: list) -> dict:
+    verdicts = [e.get("verdict") for e in outputs]
+    summary_stats = {
+        "total":             len(outputs),
+        "correct":           verdicts.count("correct"),
         "partially_correct": verdicts.count("partially_correct"),
-        "incorrect": verdicts.count("incorrect"),
-        "uncertain": verdicts.count("uncertain"),
+        "incorrect":         verdicts.count("incorrect"),
+        "uncertain":         verdicts.count("uncertain"),
     }
-
-    return {
-        "category_scores": helper.group_by_category(output, total_score),
-        "stat_summary": stat_summary
-    }
+    return summary_stats

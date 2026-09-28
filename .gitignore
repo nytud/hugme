@@ -1,4 +1,9 @@
 models-results/
+results-new/
+logs-*/
+parameters-*.json
+# logs2/
+# logs3/
 logs/
 results/
 .deepeval/

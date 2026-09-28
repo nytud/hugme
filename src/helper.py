@@ -259,3 +259,20 @@ def is_repetitive(
         return True
 
     return False
+
+
+def normalize_text(
+    text: str,
+    remove_punctuation: bool = False,
+) -> str:
+
+    text = str(text).strip().lower()
+    text = re.sub(r'\s+', ' ', text).strip()
+    if remove_punctuation:
+        text = re.sub(r'[.,;:!?\'"()[\]{}—–-]+', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
+
+def cleanup_model_name(model_name: str) -> str:
+    return model_name.replace('/', '_').lower()

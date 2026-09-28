@@ -32,18 +32,13 @@ def generate_results(
         return results
 
     client = load_model(args)
-
-    if args.parameters:
-        parameters = helper.read_json(args.parameters)
-    else:
-        raise ValueError("No generation parameters provided.")
-    print(f"Parameters: {parameters}")
+    parameters = load_parameters(args)
 
     results = []
     with tqdm(total=len(dataset), desc="Generating responses...", unit="query") as pbar:
         for batch in batch_dataset(dataset, args.batch_size):
 
-            batched_prompts = [ template.get_prompt(task_name, entry) for entry in batch ]
+            batched_prompts = [template.get_prompt(task_name, entry) for entry in batch]
 
             outputs = generate_batch(client, batched_prompts, args.model_name, parameters)
 
@@ -58,24 +53,30 @@ def generate_results(
             pbar.update(len(batch))
 
             if args.save_results:
-                print(f"Saving intermediate generation results for {task_name} at batch size {args.batch_size}.")
+                print(f"Saving intermediate generation results for {task_name} with {args.batch_size} batch size.")
                 save_results(results, task_name, args.model_name)
 
     if args.save_results:
         save_results(results, task_name, args.model_name)
+        print(f"Finished saving generation results for {task_name} with {args.model_name}.")
     return results
 
 
 def load_model(args):
-    api_key = os.getenv("MODEL_API_KEY")
-
-    client = openai.OpenAI(api_key=api_key, base_url=args.model_url)
+    client = openai.OpenAI(api_key=os.getenv("MODEL_API_KEY"), base_url=args.model_url)
     print(f"Initialized OpenAI client with base URL {args.model_url}.")
-
     response = requests.get(f"{args.model_url}/models")
     print(f"Available models: {response.json()}")
-
     return client
+
+
+def load_parameters(args) -> dict:
+    if args.parameters:
+        parameters = helper.read_json(args.parameters)
+    else:
+        raise ValueError("No generation parameters provided.")
+    print(f"Parameters: {parameters}")
+    return parameters
 
 
 def generate(client: openai.OpenAI, messages: list, model_name: str, parameters: dict) -> ModelOutput:

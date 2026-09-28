@@ -40,4 +40,8 @@ def evaluate(args) -> None:
 
     if args.save_results:
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        helper.save_json(score_results, config.RESULTS_DIR, f"hugme-{args.model_name.replace('/', '-').lower()}-results-{current_time}.json")
+        helper.save_json(
+            score_results,
+            config.RESULTS_DIR,
+            f"hugme-{args.model_name.replace('/', '-').lower()}-results-{current_time}.json"
+        )
