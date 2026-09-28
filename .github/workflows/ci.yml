@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pylint ruff mypy types-requests
+          pip install pylint ruff mypy types-requests pytest torch numpy matplotlib
 
       - name: Linter
         run: ruff check . --ignore F401
@@ -40,3 +40,7 @@ jobs:
       - name: Static code analysis
         run: |
           env PYTHONPATH="." python3 -m pylint src/ --disable=R0801
+
+      - name: Run tests
+        run: |
+          env PYTHONPATH="." python3 -m pytest tests/
