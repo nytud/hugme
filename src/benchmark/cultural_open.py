@@ -142,10 +142,9 @@ def grade_entry_manually_with_entity_answer_type(entry: dict) -> Tuple[str, floa
 
 
 def grade_entry_by_judge(entry: dict, args) -> Tuple[str, float, str]:
-    parameters = {}
     prompt = build_judge_prompt(entry)
     judge_client = load_judge_model(args)
-    response = generation.generate(judge_client, prompt, args.judge, parameters)
+    response = generation.generate(judge_client, prompt, args.judge, parameters={})
     verdict = parse_judge_response(response.text)
     return verdict
 
@@ -183,16 +182,17 @@ def build_judge_prompt(entry: dict) -> list:
 def parse_judge_response(text: str) -> Tuple[str, float, str]:
     normalized = helper.normalize_text(text)
 
-    if "incorrect" in normalized or "nem" in normalized.split():
+    # order matters: "correct" is a substring of "incorrect" and "partially_correct"
+    if Verdict.INCORRECT.value in normalized or "nem" in normalized.split():
         verdict, score = Verdict.INCORRECT, 0.0
-    elif "partial" in normalized:
-            verdict, score = Verdict.PARTIALLY_CORRECT, 0.5
-    elif "uncertain" in normalized or "bizonytalan" in normalized:
+    elif Verdict.PARTIALLY_CORRECT.value in normalized:
+        verdict, score = Verdict.PARTIALLY_CORRECT, 0.5
+    elif Verdict.UNCERTAIN.value in normalized or "bizonytalan" in normalized:
         verdict, score = Verdict.UNCERTAIN, 0.0
-    elif "correct" in normalized:
+    elif Verdict.CORRECT.value in normalized:
         verdict, score = Verdict.CORRECT, 1.0
     else:
-        raise ValueError(f"Unclear judge response: '{text}'")
+        raise ValueError(f"Unclear judge response: {text!r}")
 
     return verdict, score, f"LLM verdict: {verdict.value}"
 
@@ -200,8 +200,6 @@ def parse_judge_response(text: str) -> Tuple[str, float, str]:
 def load_judge_model(args):
     assert args.judge is not None, "Judge model must be specified."
     assert config.PROVIDER_API_KEY is not None, "Provider API key must be specified."
-    assert config.PROVIDER_URL is not None, "Provider URL must be specified."
-
     client = openai.OpenAI(api_key=config.PROVIDER_API_KEY, base_url=config.PROVIDER_URL)
     return client
 
