@@ -24,7 +24,7 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
         "category": entry['category'],
         "prompt": prompt,
         "output": output.text,
-        "correct_answer": entry['correct_answer'],
+        "correct_answer": entry['correct'],
         "total_tokens": output.total_tokens
     }
 
@@ -48,6 +48,6 @@ def compute_scores(args, results: list):
         helper.save_json(
             results,
             config.RESULTS_DIR,
-            f"{config.CULTURAL_ABCD}-{args.model_name.replace('/', '_').lower()}-{str(args.thinking).lower()}-eval-results.json"
+            f"{config.CULTURAL_ABCD}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
         )
     return helper.group_by_category(results, total_score)

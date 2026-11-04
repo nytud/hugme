@@ -44,7 +44,7 @@ def compute_scores(args, results: List[Dict]) -> Dict:
             continue
 
         # no output or repetitive output
-        if not entry["output"].strip() or helper.is_degenerate(
+        if not entry["output"].strip() or helper.is_repetitive(
             entry["output"], ngram=5, min_words=50, unique_ratio_threshold=0.35, compression_threshold=0.12
         ):
             success = False

@@ -146,18 +146,6 @@ def plot_needle_in_haystack(
     logging.info(f"Saved figure to {save_path}")
 
 
-def cleanup_model_name(args):
-    # extract model name from full repo name or local model path, necessary for saving results later, e.g.
-    # "/home/models/models/meta-llama-3.1-8B-instruct" -> meta-llama-3.1-8b-instruct
-    # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
-    print(f"Model orig name: {args.model_name}")
-    model_name_or_path = pathlib.Path(args.model_name)
-    args.model_short_name = model_name_or_path.name.lower()
-    print(f"Model name for saving results: {args.model_short_name}")
-    print(f"Model path: {model_name_or_path}")
-    return args
-
-
 def preprocess(dataset: List[Dict]) -> List[Dict]:
     for entry in dataset:
         entry["A"] = "A: " + str(entry["A"])

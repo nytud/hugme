@@ -63,10 +63,14 @@ def generate_results(
 
 
 def load_model(args):
-    client = openai.OpenAI(api_key=os.getenv("MODEL_API_KEY"), base_url=args.model_url)
+    if args.model_url == "not_given":
+        base_url = openai.not_given
+    else:
+        base_url = args.model_url
+        response = requests.get(f"{args.model_url}/models")
+        print(f"Available models: {response.json()}")
+    client = openai.OpenAI(api_key=os.getenv("MODEL_API_KEY"), base_url=base_url)
     print(f"Initialized OpenAI client with base URL {args.model_url}.")
-    response = requests.get(f"{args.model_url}/models")
-    print(f"Available models: {response.json()}")
     return client
 
 

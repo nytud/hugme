@@ -33,15 +33,11 @@ def compute_metric(args, task_name: str) -> dict:
 
 
 def format_result(entry: dict, prompt: Any, output: generation.ModelOutput) -> dict:
-
-    remove_punctuation = entry["answer_type"] in [AnswerType.ENTITY, AnswerType.SHORT_ANSWER]
-
     return {
         "id":                   entry["question_id"],
         "question":             entry["question"],
         "prompt":               prompt,
         "output":               output.text,
-        "output_normalized":    helper.normalize_text(output.text, remove_punctuation=remove_punctuation),
         "gold_answer":          entry["gold_answer"],
         "answer_type":          entry["answer_type"],
         "category":             entry["category"],
@@ -61,14 +57,17 @@ def compute_scores(args, results: list) -> dict:
 
     for entry in tqdm(results, desc="Calculating scores", unit="query"):
 
+        remove_punctuation = entry["answer_type"] in [AnswerType.ENTITY, AnswerType.SHORT_ANSWER]
+        entry["output_normalized"] = helper.normalize_text(entry["output"], remove_punctuation=remove_punctuation)
+
         verdict = grade_entry(entry, args)
         score += verdict[1]
         outputs.append({
-            "id":               entry["question_id"],
-            "question":         entry["question"],
-            "category":         entry["category"],
-            "output":           entry["output"],
-            "output_thinking":  entry["thinking_output"],
+            "id":                entry["id"],
+            "question":          entry["question"],
+            "category":          entry["category"],
+            "output":            entry["output"],
+            "output_thinking":   entry.get("thinking_output"),
             "output_normalized": entry["output_normalized"],
 
             "answer_type":      entry["answer_type"],
@@ -122,7 +121,7 @@ def grade_entry_manually_with_entity_answer_type(entry: dict) -> Tuple[str, floa
     candidates = []
 
     if "gold_answer" in entry:
-        candidates.append(entry["gold_answer"])
+        candidates.append(str(entry["gold_answer"]))
 
     if "accepted_aliases" in entry:
         aliases = entry["accepted_aliases"]
@@ -130,13 +129,20 @@ def grade_entry_manually_with_entity_answer_type(entry: dict) -> Tuple[str, floa
             for alias in aliases:
                 candidates.append(str(alias))
 
-    for candidate in candidates:
-        if not candidate:
-            continue
+    try:
+        for candidate in candidates:
+            if not candidate:
+                continue
 
-        match = grade_candidate(output_norm, candidate)
-        if match:
-            return match
+            match = grade_candidate(output_norm, candidate)
+            if match:
+                return match
+    except Exception as e:
+        print(f"Error grading entry manually: {e}")
+        print(f"Entry: {entry}")
+        print(f"Candidates: {candidates}")
+        print(f"Output normalized: {output_norm}")
+        raise e
 
     return "incorrect", 0.0, "No match"
 
