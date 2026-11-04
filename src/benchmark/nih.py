@@ -9,7 +9,7 @@ import template
 import generation
 
 
-MAX_NEW_TOKENS = 20
+MAX_NEW_TOKENS = 4096
 MODEL_MIN_CONTEXT_LEN = 1024
 GOOD_SOLUTION = 1.0
 BAD_SOLUTION = 0.0
@@ -51,7 +51,7 @@ def generate_results(args, client, parameters: dict, chat_template_kwargs: dict)
     results = generate_results_for_context_lengths(data, client, parameters, chat_template_kwargs)
 
     if args.save_results:
-        generation.save_results(results, config.NIH, args.model_name, False)
+        generation.save_results(results, config.NIH, args.model_name.replace('/', '_').lower(), False)
 
     return results
 
@@ -84,7 +84,7 @@ def create_needle_and_haystack(tokenize_fn):
     anniversary = random.randint(1, 100)
     needle_text = f"Ezen a napon ünnepelte {random_city} város a {anniversary}. évfordulóját."
     tokenized_needle = tokenize_fn(needle_text)
-    logging.info(f"Created and tokenzied needle for city: {random_city}, anniversary: {anniversary}")
+    logging.info(f"Created and tokenized needle for city: {random_city}, anniversary: {anniversary}")
 
     haystack = helper.read_file(config.HAYSTACK_DATASET)
     tokenized_haystack = tokenize_fn(haystack)
@@ -151,7 +151,7 @@ def compute_scores(args, results: list) -> dict:
 
     logging.info("NIH benchmark results computed.")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.NIH}-{args.model_name}-eval-results.json")
+        helper.save_json(results, config.RESULTS_DIR, f"{config.NIH}-{args.model_name.replace('/', '_').lower()}-eval-results.json")
 
     return compute_average_score(args, results)
 
@@ -181,7 +181,7 @@ def compute_average_score(args, results: list) -> dict:
 
     helper.plot_needle_in_haystack(
         aggregated_results,
-        save_path=f"{config.RESULTS_DIR}/{config.NIH}-{args.model_name}-nih-plot.png",
+        save_path=f"{config.RESULTS_DIR}/{config.NIH}-{args.model_name.replace('/', '_').lower()}-nih-plot.png",
         )
 
     return aggregated_results
