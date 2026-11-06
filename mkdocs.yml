@@ -22,7 +22,7 @@ theme:
       - Results.md
     - Downloads:
       - Downloads.md
-    - News: 
+    - News:
       - News.md
     - About:
       - About.md
@@ -62,3 +62,7 @@ repo_url: https://github.com/nytud/hugme
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - javascripts/tablesort.js
