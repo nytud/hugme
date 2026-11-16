@@ -1,14 +1,13 @@
 from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import os
-import requests
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
+import requests
 
 import openai
 from tqdm import tqdm
 
-import config
 import helper
 import template
 
@@ -37,29 +36,22 @@ def generate_results(
     results = []
     with tqdm(total=len(dataset), desc="Generating responses...", unit="query") as pbar:
         for batch in batch_dataset(dataset, args.batch_size):
-
             batched_prompts = [template.get_prompt(task_name, entry) for entry in batch]
-
             outputs = generate_batch(client, batched_prompts, args.model_name, parameters)
-
-            for entry, prompt, output in zip(batch, batched_prompts, outputs):
-
-                formatted_result = format_fn(entry, prompt, output)
-
-                formatted_result = helper.remove_reasoning_traces(formatted_result)
-
-                results.append(formatted_result)
-
+            results.extend(format_batch(batch, batched_prompts, outputs, format_fn))
             pbar.update(len(batch))
-
             if args.save_results:
-                print(f"Saving intermediate generation results for {task_name} with {args.batch_size} batch size.")
-                save_results(results, task_name, args.model_name)
-
-    if args.save_results:
-        save_results(results, task_name, args.model_name)
-        print(f"Finished saving generation results for {task_name} with {args.model_name}.")
+                helper.save_results(results, task_name, args.model_name)
+    print(f"Finished saving generation results for {task_name} with {args.model_name}.")
     return results
+
+
+def format_batch(batch, prompts, outputs, format_fn) -> List[Dict[str, Any]]:
+    formatted = []
+    for entry, prompt, output in zip(batch, prompts, outputs):
+        result = format_fn(entry, prompt, output)
+        formatted.append(helper.remove_reasoning_traces(result))
+    return formatted
 
 
 def load_model(args):
@@ -67,7 +59,7 @@ def load_model(args):
         base_url = openai.not_given
     else:
         base_url = args.model_url
-        response = requests.get(f"{args.model_url}/models")
+        response = requests.get(f"{args.model_url}/models", timeout=30)
         print(f"Available models: {response.json()}")
     client = openai.OpenAI(api_key=os.getenv("MODEL_API_KEY"), base_url=base_url)
     print(f"Initialized OpenAI client with base URL {args.model_url}.")
@@ -83,12 +75,31 @@ def load_parameters(args) -> dict:
     return parameters
 
 
+def tokenize(text: str, args) -> List[int]:
+    return _post_to_server(args, "tokenize", {"prompt": text, "add_special_tokens": False})["tokens"]
+
+
+def detokenize(tokens: List[int], args) -> str:
+    return _post_to_server(args, "detokenize", {"tokens": tokens})["prompt"]
+
+
+def _post_to_server(args, endpoint: str, payload: dict) -> dict:
+    api_key = os.getenv("MODEL_API_KEY")
+    response = requests.post(
+        f"{args.model_url.rstrip('/').removesuffix('/v1')}/{endpoint}",
+        json={"model": args.model_name, **payload},
+        headers={"Authorization": f"Bearer {api_key}"} if api_key else {},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def generate(client: openai.OpenAI, messages: list, model_name: str, parameters: dict) -> ModelOutput:
     try:
         completion = client.chat.completions.create(model=model_name, messages=messages, **parameters)
     except openai.BadRequestError as e:
         print(f"OpenAI API request failed for: \n{messages}\n with parameters: {parameters}")
-        print(f"OpenAI API request failed: {e}")
         inappropriate_content_message = "Input data may contain inappropriate content."
         if e.status_code == 400 and e.code == "data_inspection_failed" and inappropriate_content_message in e.message:
             return ModelOutput(inappropriate_content_message)
@@ -98,7 +109,7 @@ def generate(client: openai.OpenAI, messages: list, model_name: str, parameters:
 
 def generate_batch(client: openai.OpenAI, messages: List, model_name: str, parameters: dict) -> List[ModelOutput]:
     # the OpenAI chat completions API takes one prompt per request, so a "batch" here means
-    # firing the requests concurrently and letting vLLM's continuous batching do the actual batching
+    # firing the requests concurrently and letting vLLM's continuous batching do the actual work
     with ThreadPoolExecutor(max_workers=len(messages)) as executor:
         return list(
             executor.map(
@@ -111,15 +122,3 @@ def generate_batch(client: openai.OpenAI, messages: List, model_name: str, param
 def batch_dataset(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
     for i in range(0, len(dataset), batch_size):
         yield dataset[i:i + batch_size]
-
-
-def save_results(results: List[Dict], task_name: str, model_name: str) -> None:
-    if not results:
-        print("No results to save.")
-        return
-    helper.save_json(
-        results,
-        config.RESULTS_DIR,
-        f"{task_name}-{model_name.replace("/", "-").lower()}-generation-results.json"
-    )
-    print(f"Saved generation results to {config.RESULTS_DIR} directory.")

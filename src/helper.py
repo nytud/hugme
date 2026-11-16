@@ -2,21 +2,16 @@ from typing import List, Dict
 
 import os
 import re
-import gc
 import zlib
 import json
 import logging
 import pathlib
-from collections import Counter, defaultdict
+from collections import defaultdict
 
-import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def cleanup():
-    gc.collect()
-    torch.cuda.empty_cache()
+import config
 
 
 def read_file(file_path, readlines: bool = False):
@@ -50,32 +45,29 @@ def save_json(data, dir_path, file_name: str) -> None:
         raise OSError(f"Could not save file: {file_path}") from e
 
 
-def split_sentences(text: str):
-    return [sentence.strip() for sentence in text.split('.') if sentence]
-
-
 def group_by_category(results: list, acc: float) -> dict:
     score_sums = defaultdict(float)
     counts = defaultdict(int)
-
     for entry in results:
         category = entry["category"]
         score_sums[category] += entry["score"]
         counts[category] += 1
-
     percentages = {}
     for category in score_sums:
         avg = score_sums[category] / counts[category] if counts[category] else 0
         percentages[category] = round(avg * 100, 2)
-
     percentages["total"] = round(acc * 100, 2)
-
     return percentages
 
 
 def clean_answer(answer):
     return re.sub(r"\D", "", str(answer))
 
+
+def grab_first_number(answer) -> str:
+    """return the first number in the model output, or an empty string if there is none."""
+    match = re.search(r"\d+", str(answer))
+    return match.group() if match else ""
 
 # pylint: disable=too-many-locals, too-many-arguments, too-many-statements, too-many-positional-arguments
 def plot_needle_in_haystack(
@@ -259,8 +251,17 @@ def normalize_text(
     if remove_punctuation:
         text = re.sub(r'[.,;:!?\'"()[\]{}—–-]+', ' ', text)
         text = re.sub(r'\s+', ' ', text).strip()
-
     return text
+
 
 def cleanup_model_name(model_name: str) -> str:
     return model_name.replace('/', '_').lower()
+
+
+def save_results(results: List[Dict], task_name: str, model_name: str, is_gen_results: bool = True) -> None:
+    if not results:
+        return
+    name = cleanup_model_name(model_name)
+    results_type = "generation" if is_gen_results else "eval"
+    save_json(results, config.RESULTS_DIR, f"{task_name}-{name}-{results_type}-results.json")
+    print(f"Saved {results_type} results to {config.RESULTS_DIR} directory.")

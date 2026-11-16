@@ -52,11 +52,8 @@ def compute_score(args, results: List[Dict]):
         misspelled_count += len(misspelled)
 
     if args.save_results:
-        helper.save_json(
-            spelling_results,
-            config.RESULTS_DIR,
-            f"{config.SPELLING}-{args.model_name.replace("/", "_").lower()}-eval-results.json"
-        )
+        model_name = helper.cleanup_model_name(args.model_name)
+        helper.save_json(spelling_results, config.RESULTS_DIR, f"{config.SPELLING}-{model_name}-eval-results.json")
     spelling_score = (1 - misspelled_count / text_lens) * 100
 
     logging.info(f"Spell checking results score: {spelling_score}")

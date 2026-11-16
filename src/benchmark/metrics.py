@@ -36,6 +36,7 @@ def compute_metric(args, task_name: str) -> float:
 
 def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
     return {
+        "id": entry["id"],
         "prompt": prompt,
         "input": prompt if isinstance(prompt, str) else prompt[1]["content"], # see template.py 24-35 rows
         "output": output.text,
@@ -45,86 +46,90 @@ def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOu
     }
 
 
+REPETITION_PARAMS = {"ngram": 5, "min_words": 50, "unique_ratio_threshold": 0.35, "compression_threshold": 0.12}
+REPETITION_DETAILS = ", ".join(f"{k}={v}" for k, v in REPETITION_PARAMS.items())
+REPETITION_REASON = f"Model output is empty or repetitive ({REPETITION_DETAILS})"
+
 def compute_score(args, results: list, metric, task_name: str) -> float:
-    total_score = 0.0
-    measurement_results = []
+    if not results:
+        return 0.0
 
-    if args.use_eval_results is not None:
-        measurement_results = helper.read_json(args.use_eval_results)
-        print(f"Loaded {len(measurement_results)} evaluation results from {args.use_eval_results}")
+    measurement_results = load_precomputed_results(args)[:len(results)]
+    start = len(measurement_results)
 
-    for i, entry in enumerate(results):
-
-        if i < len(measurement_results):
-            print(f"Using preloaded / precomputed evaluation result for index {i}")
-            total_score += int(bool(measurement_results[i]["success"]))
-            continue
-
-        # no output or repetitive output
-        if not entry["output"].strip() or helper.is_repetitive(entry["output"], ngram=5, min_words=50, unique_ratio_threshold=0.35, compression_threshold=0.12):
-            success = False
-            score = 0.0
-            reason = "Model output is empty or repetitive (ngram=5, min_words=50, unique_ratio_threshold=0.35, compression_threshold=0.12)"
-            total_score += 0
-
-        else:
-            try:
-                test_case = LLMTestCase(
-                    input = entry["input"], actual_output = entry["output"],
-                    retrieval_context = entry.get("context"), context = entry.get("context")
-                )
-                if task_name == "summarization":
-                    metric.assessment_questions = entry["questions"]
-                metric.measure(test_case)
-                truncated = False
-            except openai.LengthFinishReasonError as e:
-                print(f"OpenAI LengthFinishReasonError error occurred: {e}")
-                # try again with truncated input
-                test_case = LLMTestCase(
-                    input = entry["input"], actual_output = entry["output"][:TRUNCATION_LENGTH],
-                    retrieval_context = entry.get("context"), context = entry.get("context")
-                )
-                if task_name == "summarization":
-                    metric.assessment_questions = entry["questions"]
-                metric.measure(test_case)
-                truncated = True
-
-            total_score += int(metric.success)
-
-            success = metric.success
-            score = metric.score
-            reason = metric.reason
-
-        measurement_results.append(
-            {
-                "index": i,
-                "success":success,
-                "score": score,
-                "reason": reason,
-                "input": entry["input"],
-                "output": entry["output"],
-                "context": entry.get("context"),
-                "questions": entry.get("questions"),
-                "token_used": entry.get("token_usage"),
-                "truncated": truncated
-            }
-        )
-        # connection to judge can be lead to timeout, save at every test case measurement
+    for i, entry in enumerate(results[start:], start=start):
+        measurement_results.append(evaluate_entry(i, entry, metric, task_name))
+        # the judge connection can time out, so save after every measurement
+        helper.save_results(measurement_results, task_name, args.model_name, is_gen_results=False)
         print(f"Saved {i + 1}/{len(results)} result for task {task_name}.")
-        helper.save_json(
-            measurement_results,
-            config.RESULTS_DIR,
-            f"{task_name}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
-        )
-    final_score = round( (total_score / len(results)) * 100, 2)
-    print(f"{task_name.capitalize()} final score: {final_score}")
-    if args.save_results:
-        helper.save_json(
-            measurement_results,
-            config.RESULTS_DIR,
-            f"{task_name}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
-        )
-    return final_score
+
+    total_score = sum(int(bool(r["success"])) for r in measurement_results)
+    return round(total_score / len(results) * 100, 2)
+
+
+def load_precomputed_results(args) -> list:
+    if args.use_eval_results is None:
+        return []
+    loaded = helper.read_json(args.use_eval_results)
+    print(f"Loaded {len(loaded)} evaluation results from {args.use_eval_results}")
+    return loaded
+
+
+def evaluate_entry(i: int, entry: Dict[str, Any], metric, task_name: str) -> Dict[str, Any]:
+    truncated, judge_error = False, None
+
+    if is_degenerate(entry["output"]):
+        success, score, reason = False, 0.0, REPETITION_REASON
+    else:
+        try:
+            truncated = run_metric(metric, entry, task_name)
+            success, score, reason = metric.success, metric.score, metric.reason
+        except openai.LengthFinishReasonError as e:
+            print(f"Judge failed on index {i}: {e}")
+            success, score, reason = False, 0.0, "Judge hit its length limit"
+            judge_error = "length_limit"
+
+    return {
+        "index": i,
+        "success": success,
+        "score": score,
+        "reason": reason,
+        "input": entry["input"],
+        "output": entry["output"],
+        "context": entry.get("context"),
+        "questions": entry.get("questions"),
+        "token_used": entry.get("token_usage"),
+        "truncated": truncated,
+        "judge_error": judge_error,
+    }
+
+
+def is_degenerate(output: str) -> bool:
+    return not output.strip() or helper.is_repetitive(output, **REPETITION_PARAMS)
+
+
+def run_metric(metric, entry: Dict[str, Any], task_name: str) -> bool:
+    """Measure the entry with the metric. Returns True if the output had to be truncated."""
+    if task_name == "summarization":
+        metric.assessment_questions = entry["questions"]
+    try:
+        metric.measure(build_test_case(entry, entry["output"]))
+        return False
+    except openai.LengthFinishReasonError:
+        if len(entry["output"]) <= TRUNCATION_LENGTH:
+            raise  # truncating would resend the identical prompt
+        print("Judge hit its length limit, retrying with truncated output")
+        metric.measure(build_test_case(entry, entry["output"][:TRUNCATION_LENGTH]))
+        return True
+
+
+def build_test_case(entry: Dict[str, Any], actual_output: str) -> LLMTestCase:
+    return LLMTestCase(
+        input=entry["input"],
+        actual_output=actual_output,
+        retrieval_context=entry.get("context"),
+        context=entry.get("context"),
+    )
 
 
 def evaluate_toxicity_with_bert(args, results) -> None:

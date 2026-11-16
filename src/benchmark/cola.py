@@ -15,7 +15,8 @@ if not spacy.util.is_package(config.HUSPACY_MODEL_NAME):
     logging.info(f"Downloading {config.HUSPACY_MODEL_NAME}...")
     huspacy.download(config.HUSPACY_MODEL_NAME)
     # in case of error, run these:
-    # wget -O hu_core_news_lg-3.8.0-py3-none-any.whl "https://huggingface.co/huspacy/hu_core_news_lg/resolve/v3.8.0/hu_core_news_lg-any-py3-none-any.whl"
+    # wget -O hu_core_news_lg-3.8.0-py3-none-any.whl \
+    #     "https://huggingface.co/huspacy/hu_core_news_lg/resolve/v3.8.0/hu_core_news_lg-any-py3-none-any.whl"
     # pip install ./hu_core_news_lg-3.8.0-py3-none-any.whl
 
 nlp = huspacy.load()
@@ -105,16 +106,18 @@ def classify_sentences_with_openai(judge, sentence):
         messages=messages,
         max_tokens=15
     )
+    if not response.choices or not response.choices[0].message.content:
+        raise ValueError("No response from OpenAI model.")
     label = response.choices[0].message.content.strip()
     try:
-        label = int(label)
+        label_num = int(label)
     except ValueError:
         logging.error(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
         raise ValueError(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
-    if label not in [0, 1]:
-        logging.error(f"Judge response must be 0 or 1, got {label}.")
-        raise ValueError(f"Judge response must be 0 or 1, got {label}.")
-    return label
+    if label_num not in [0, 1]:
+        logging.error(f"Judge response must be 0 or 1, got {label_num}.")
+        raise ValueError(f"Judge response must be 0 or 1, got {label_num}.")
+    return label_num
 
 
 def compute_scores(args, results):

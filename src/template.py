@@ -8,7 +8,7 @@ def get_prompt(task_name: str, entry: dict) -> list:
         "cola": get_cola_template,
         "faithfulness": get_faithfulness_template,
         "mmlu": get_mmlu_template,
-        "needle-in-haystack": get_needle_in_haystack_template,
+        "nih": get_needle_in_haystack_template,
         "prompt-alignment": lambda entry: entry["query"],
         "readability": get_readability_template,
         "spelling": get_spelling_template,
@@ -79,7 +79,7 @@ def get_needle_in_haystack_template(entry: dict) -> str:
     return (
         f"Kizárólag a következő szöveg alapján, "
         f"hanyadik évfordulóját ünnepelte {entry['city']} város?\n"
-        f"Csak egy számot adj vissza!\n {entry['text']}"
+        f"Csak egy számot adj vissza!\n"
     )
 
 

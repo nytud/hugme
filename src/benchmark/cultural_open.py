@@ -2,8 +2,8 @@ from typing import Any, Tuple
 
 import random
 import textwrap
-from tqdm import tqdm
 from enum import Enum
+from tqdm import tqdm
 
 import openai
 
@@ -89,7 +89,9 @@ def compute_scores(args, results: list) -> dict:
     if args.save_results:
         model_name = helper.cleanup_model_name(args.model_name)
         helper.save_json(outputs, config.RESULTS_DIR, f"{config.CULTURAL_OPEN}-{model_name}-eval-results.json")
-        helper.save_json(uncertain_cases, config.RESULTS_DIR, f"{config.CULTURAL_OPEN}-{model_name}-uncertain-cases.json")
+        helper.save_json(
+            uncertain_cases, config.RESULTS_DIR, f"{config.CULTURAL_OPEN}-{model_name}-uncertain-cases.json"
+        )
 
     return {
         "category_scores": helper.group_by_category(outputs, total_score),
@@ -217,6 +219,6 @@ def create_summary_statistics(outputs: list) -> dict:
         "correct":           verdicts.count("correct"),
         "partially_correct": verdicts.count("partially_correct"),
         "incorrect":         verdicts.count("incorrect"),
-        "uncertain":         verdicts.count("uncertain"),
+        "uncertain":         verdicts.count("uncertain")
     }
     return summary_stats

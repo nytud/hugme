@@ -1,5 +1,4 @@
 import os
-import torch
 
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -40,7 +39,7 @@ METRIC_DATASETES = {
 MMLU = "mmlu"
 CULTURAL_ABCD = "cultural-abcd"
 CULTURAL_OPEN = "cultural-open"
-NIH = "needle-in-haystack"
+NIH = "nih"
 SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"
 PROMPT_ALIGNMENT = "prompt-alignment"
@@ -50,23 +49,4 @@ METRICS = list(METRIC_DATASETES.keys())
 
 HUSPACY_MODEL_NAME = "hu_core_news_lg"
 
-MAX_NEW_TOKENS = {
-    MMLU: 4096,
-    CULTURAL_ABCD: 4096, # for thinking mode also
-    CULTURAL_OPEN: 4096, # for thinking mode also
-    TRUTHFUL_QA: 4096,
-    PROMPT_ALIGNMENT: 4096,
-    READABILITY: 4096
-}
-DEFAULT_MAX_NEW_TOKENS = 4096
 OPENAI_PROVIDER_NAME = "openai"
-
-DEFAULT_CHAT_TEMPLATE_KWARGS = {
-    "tokenize": False,
-    "add_generation_prompt": True
-}
-
-# needle in haystack parameters
-MODEL_DTYPE = torch.float32 # may require torch.bfloat16 or torch.float16 depending on the model
-N_TURNS = os.getenv("N_TURNS")
-MODEL_CONTEXT_LEN = os.getenv("MODEL_CONTEXT_LEN")

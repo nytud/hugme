@@ -56,5 +56,6 @@ def compute_scores(args, results: list):
     acc = total_score / len(results)
     logging.info(f"{config.TRUTHFUL_QA} benchmark results accuracy: {round(acc * 100, 2)}")
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-{args.model_name.replace("/", "_").lower()}-eval-results.json")
+        model_name = helper.cleanup_model_name(args.model_name)
+        helper.save_json(results, config.RESULTS_DIR, f"{config.TRUTHFUL_QA}-{model_name}-eval-results.json")
     return helper.group_by_category(results, acc)
