@@ -1,15 +1,14 @@
-from typing import Any, Tuple
-
 import random
 import textwrap
 from enum import Enum
-from tqdm import tqdm
+from typing import Any, Tuple
 
 import openai
+from tqdm import tqdm
 
 import config
-import helper
 import generation
+import helper
 
 
 class AnswerType(str, Enum):

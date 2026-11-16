@@ -1,21 +1,19 @@
-from typing import Dict
-
 import os
 import random
-from statistics import mean
 from collections import defaultdict
+from statistics import mean
+from typing import Dict
 
 import config
+import generation
 import helper
 import template
-import generation
-
 
 BAD_SOLUTION = 0.0
 GOOD_SOLUTION = 1.0
 N_TURNS = int(os.getenv("N_TURNS", 2))
 FRACTION_STEP = 0.1
-FRACTIONS = [i / 10 for i in range(0, 10)]  # [0.0, 0.1, ..., 0.9]
+FRACTIONS = [i / 10 for i in range(10)]  # [0.0, 0.1, ..., 0.9]
 # MODEL_CONTEXT_LEN = int(os.getenv("MODEL_CONTEXT_LEN", 32_768))
 MODEL_CONTEXT_LEN = int(os.getenv("MODEL_CONTEXT_LEN", 2048))
 # [1024,2048,...,MODEL_CONTEXT_LEN]

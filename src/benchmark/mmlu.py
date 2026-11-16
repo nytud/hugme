@@ -1,12 +1,12 @@
+import logging
+import random
 from typing import Any, Dict
 
-import random
-import logging
 from tqdm import tqdm
 
 import config
-import helper
 import generation
+import helper
 
 
 def compute_metric(args, task_name: str) -> dict:

@@ -1,11 +1,10 @@
+import os
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterator, List, Optional
 
-import os
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
-import requests
-
 import openai
+import requests
 from tqdm import tqdm
 
 import helper

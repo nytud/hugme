@@ -1,15 +1,14 @@
-from typing import List, Dict
-
-import os
-import re
-import zlib
 import json
 import logging
+import os
 import pathlib
+import re
+import zlib
 from collections import defaultdict
+from typing import Dict, List
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import config
 
@@ -80,7 +79,7 @@ def plot_needle_in_haystack(
     dpi: int = 200,
 ) -> None:
     # sort x-axis numerically (context lengths stored as strings)
-    x_vals = sorted((int(k) for k in results.keys()))
+    x_vals = sorted(int(k) for k in results.keys())
     x_labels = [str(x) for x in x_vals]
 
     # collect all fraction bins and sort by their numeric start (e.g. "0.1-0.2" -> 0.1)

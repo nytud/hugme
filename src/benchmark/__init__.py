@@ -1,10 +1,12 @@
-from . import mmlu
-from . import truthfulqa
-from . import prompt_alignment
-from . import nih
-from . import cola
-from . import spelling
-from . import readability
-from . import cultural_open
-from . import metrics
-from . import cultural_abcd
+from . import (
+    cola,
+    cultural_abcd,
+    cultural_open,
+    metrics,
+    mmlu,
+    nih,
+    prompt_alignment,
+    readability,
+    spelling,
+    truthfulqa,
+)

@@ -1,12 +1,12 @@
-from typing import List, Dict, Any
 import random
-from deepeval.test_case import LLMTestCase
+from typing import Any, Dict, List
+
 from deepeval.metrics import PromptAlignmentMetric
+from deepeval.test_case import LLMTestCase
 
 import config
-import helper
 import generation
-
+import helper
 
 THRESHOLD = 0.5
 

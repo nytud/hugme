@@ -1,15 +1,15 @@
 import logging
 import random
-import openai
+
 import huspacy
+import openai
 import spacy.util
-from transformers import BertTokenizer, BertForSequenceClassification, pipeline
+from transformers import BertForSequenceClassification, BertTokenizer, pipeline
 
 import config
-import helper
 import generation
+import helper
 import template
-
 
 if not spacy.util.is_package(config.HUSPACY_MODEL_NAME):
     logging.info(f"Downloading {config.HUSPACY_MODEL_NAME}...")

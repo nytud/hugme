@@ -1,10 +1,9 @@
 import time
 from datetime import datetime
 
+import benchmark
 import config
 import helper
-import benchmark
-
 
 TASK_HANDLERS = {
     **{task: benchmark.metrics.compute_metric for task in config.METRICS}, # deepeval-based metrics
