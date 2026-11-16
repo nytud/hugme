@@ -1,19 +1,22 @@
-import logging
 import random
-import openai
+
 import huspacy
+import openai
 import spacy.util
-from transformers import BertTokenizer, BertForSequenceClassification, pipeline
+from transformers import BertForSequenceClassification, BertTokenizer, pipeline
 
 import config
-import helper
 import generation
+import helper
 import template
 
-
 if not spacy.util.is_package(config.HUSPACY_MODEL_NAME):
-    logging.info(f"Downloading {config.HUSPACY_MODEL_NAME}...")
+    print(f"Downloading {config.HUSPACY_MODEL_NAME}...")
     huspacy.download(config.HUSPACY_MODEL_NAME)
+    # in case of error, run these:
+    # wget -O hu_core_news_lg-3.8.0-py3-none-any.whl \
+    #     "https://huggingface.co/huspacy/hu_core_news_lg/resolve/v3.8.0/hu_core_news_lg-any-py3-none-any.whl"
+    # pip install ./hu_core_news_lg-3.8.0-py3-none-any.whl
 
 nlp = huspacy.load()
 
@@ -60,7 +63,7 @@ def load_classifier():
     tokenizer = BertTokenizer.from_pretrained(config.BERT_MODEL)
     model = BertForSequenceClassification.from_pretrained(config.BERT_MODEL)
     classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, device_map="auto")
-    logging.info(f"Loaded BERT model from {config.BERT_MODEL} for CoLA evaluation.")
+    print(f"Loaded BERT model from {config.BERT_MODEL} for CoLA evaluation.")
     return classifier
 
 
@@ -84,7 +87,13 @@ def classify_sentences(sentences, classifier, judge):
 
 def classify_sentences_with_bert(sentence, classifier):
     # grammatical 1, ungrammatical 0
-    result = classifier(sentence)
+    try:
+        result = classifier(sentence)
+    except RuntimeError as e:
+        print(f"Error classifying sentence with BERT: {e}")
+        # fallback to ungrammatical if BERT fails, let openai model do the work
+        return {"sentence": sentence, "label": 0, "score": 1.0}
+
     return {"sentence": sentence, "label": int(result[0]['label']), "score": result[0]['score']}
 
 
@@ -96,16 +105,18 @@ def classify_sentences_with_openai(judge, sentence):
         messages=messages,
         max_tokens=15
     )
+    if not response.choices or not response.choices[0].message.content:
+        raise ValueError("No response from OpenAI model.")
     label = response.choices[0].message.content.strip()
     try:
-        label = int(label)
+        label_num = int(label)
     except ValueError:
-        logging.error(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
+        print(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
         raise ValueError(f"Invalid judge response: {label}. Expected an integer (0 or 1).")
-    if label not in [0, 1]:
-        logging.error(f"Judge response must be 0 or 1, got {label}.")
-        raise ValueError(f"Judge response must be 0 or 1, got {label}.")
-    return label
+    if label_num not in [0, 1]:
+        print(f"Judge response must be 0 or 1, got {label_num}.")
+        raise ValueError(f"Judge response must be 0 or 1, got {label_num}.")
+    return label_num
 
 
 def compute_scores(args, results):
@@ -122,8 +133,12 @@ def compute_scores(args, results):
         total_sentences += len(sentence_scores)
 
     if args.save_results:
-        helper.save_json(results, config.RESULTS_DIR, f"{config.COLA}-{args.model_name}-eval-results.json")
+        helper.save_json(
+            results,
+            config.RESULTS_DIR,
+            f"{config.COLA}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
+        )
 
     accuracy = ((grammatical_sentence_count / total_sentences) * 100) if total_sentences else 0.0
-    logging.info(f"CoLA benchmark accuracy: {accuracy:.2f}%")
+    print(f"CoLA benchmark accuracy: {accuracy:.2f}%")
     return accuracy

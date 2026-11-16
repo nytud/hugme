@@ -1,6 +1,4 @@
 import os
-import torch
-
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 RESULTS_DIR = os.getenv("RESULTS_DIR", "./results/")
@@ -24,7 +22,7 @@ PROMPT_ALIGNMENT_DATASET = DATASETS + os.getenv("PROMPT_ALIGNMENT_DATASET", "pro
 READABILITY_DATASET = DATASETS + os.getenv("READABILITY_DATASET", "readability.json")
 COLA_DATASET = DATASETS + os.getenv("COLA_DATASET", "summarization.json")
 MMLU_DATASET = DATASETS + os.getenv("MMLU_DATASET", "mmlu.json")
-CULTURAL_DATASET = DATASETS + os.getenv("CULTURAL_DATASET", "cultural.json")
+CULTURAL_ABCD_DATASET = DATASETS + os.getenv("CULTURAL_ABCD_DATASET", "cultural-abcd.json")
 CULTURAL_OPEN_DATASET = DATASETS + os.getenv("CULTURAL_OPEN_DATASET", "cultural-open.json")
 
 
@@ -38,9 +36,9 @@ METRIC_DATASETES = {
 }
 
 MMLU = "mmlu"
-CULTURAL = "cultural"
+CULTURAL_ABCD = "cultural-abcd"
 CULTURAL_OPEN = "cultural-open"
-NIH = "needle-in-haystack"
+NIH = "nih"
 SPELLING = "spelling"
 TRUTHFUL_QA = "truthfulqa"
 PROMPT_ALIGNMENT = "prompt-alignment"
@@ -50,23 +48,4 @@ METRICS = list(METRIC_DATASETES.keys())
 
 HUSPACY_MODEL_NAME = "hu_core_news_lg"
 
-MAX_NEW_TOKENS = {
-    MMLU: 20,
-    CULTURAL: 20,
-    CULTURAL_OPEN: 2048, # for thinking mode also
-    TRUTHFUL_QA: 20,
-    PROMPT_ALIGNMENT: 256,
-    READABILITY: 256
-}
-DEFAULT_MAX_NEW_TOKENS = 512
 OPENAI_PROVIDER_NAME = "openai"
-
-DEFAULT_CHAT_TEMPLATE_KWARGS = {
-    "tokenize": False,
-    "add_generation_prompt": True
-}
-
-# needle in haystack parameters
-MODEL_DTYPE = torch.float32 # may require torch.bfloat16 or torch.float16 depending on the model
-N_TURNS = os.getenv("N_TURNS")
-MODEL_CONTEXT_LEN = os.getenv("MODEL_CONTEXT_LEN")

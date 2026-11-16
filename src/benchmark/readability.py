@@ -1,13 +1,13 @@
-import re
 import random
-import logging
+import re
 from statistics import mean
-from tqdm import tqdm
-from textstat import textstat
 
-import helper
+from textstat import textstat
+from tqdm import tqdm
+
 import config
 import generation
+import helper
 
 
 def compute_metric(args, task_name: str):
@@ -46,10 +46,9 @@ def compute_scores(args, results):
         item["similarity_score"] = similarity_score
 
     if args.save_results:
-        helper.save_json(
-            results, config.RESULTS_DIR, f"{config.READABILITY}-{args.model_name}-{args.thinking}-eval-results.json"
-        )
-    logging.info(f"{config.READABILITY} benchmark results accuracy: {mean(similarity_scores)}")
+        model_name = helper.cleanup_model_name(args.model_name)
+        helper.save_json(results, config.RESULTS_DIR, f"{config.READABILITY}-{model_name}-eval-results.json")
+    print(f"{config.READABILITY} benchmark results accuracy: {mean(similarity_scores)}")
 
     return mean(similarity_scores)
 

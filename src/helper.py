@@ -1,38 +1,16 @@
-import os
-import re
-import gc
+from __future__ import annotations
+
 import json
-import random
-import logging
+import os
 import pathlib
+import re
+import zlib
 from collections import defaultdict
 
-import torch
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-
-def set_seeds(args) -> None:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
-
-
-def set_device(args) -> None:
-    use_cuda = args.use_cuda and torch.cuda.is_available()
-    if use_cuda:
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        # os.environ["CUDA_VISIBLE_DEVICES"] = ''.join(args.cuda_ids)
-        device = torch.device('cuda')
-    else:
-        device = torch.device("cpu")
-    logging.info(f"Using device: {device}")
-    args.device = device
-
-
-def cleanup():
-    gc.collect()
-    torch.cuda.empty_cache()
+from src import config
 
 
 def read_file(file_path, readlines: bool = False):
@@ -66,32 +44,29 @@ def save_json(data, dir_path, file_name: str) -> None:
         raise OSError(f"Could not save file: {file_path}") from e
 
 
-def split_sentences(text: str):
-    return [sentence.strip() for sentence in text.split('.') if sentence]
-
-
 def group_by_category(results: list, acc: float) -> dict:
     score_sums = defaultdict(float)
     counts = defaultdict(int)
-
     for entry in results:
         category = entry["category"]
         score_sums[category] += entry["score"]
         counts[category] += 1
-
     percentages = {}
     for category in score_sums:
         avg = score_sums[category] / counts[category] if counts[category] else 0
         percentages[category] = round(avg * 100, 2)
-
     percentages["total"] = round(acc * 100, 2)
-
     return percentages
 
 
 def clean_answer(answer):
     return re.sub(r"\D", "", str(answer))
 
+
+def grab_first_number(answer) -> str:
+    """return the first number in the model output, or an empty string if there is none."""
+    match = re.search(r"\d+", str(answer))
+    return match.group() if match else ""
 
 # pylint: disable=too-many-locals, too-many-arguments, too-many-statements, too-many-positional-arguments
 def plot_needle_in_haystack(
@@ -104,7 +79,7 @@ def plot_needle_in_haystack(
     dpi: int = 200,
 ) -> None:
     # sort x-axis numerically (context lengths stored as strings)
-    x_vals = sorted((int(k) for k in results.keys()))
+    x_vals = sorted(int(k) for k in results)
     x_labels = [str(x) for x in x_vals]
 
     # collect all fraction bins and sort by their numeric start (e.g. "0.1-0.2" -> 0.1)
@@ -159,16 +134,130 @@ def plot_needle_in_haystack(
     os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
     fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
-    logging.info(f"Saved figure to {save_path}")
+    print(f"Saved figure to {save_path}")
 
 
-def cleanup_model_name(args):
-    # extract model name from full repo name or local model path, necessary for saving results later, e.g.
-    # "/home/models/models/meta-llama-3.1-8B-instruct" -> meta-llama-3.1-8b-instruct
-    # "meta-llama/Meta-Llama-3.1-8B-Instruct" -> meta-llama-3.1-8b-instruct
-    print(f"Model orig name: {args.model_name}")
-    model_name_or_path = pathlib.Path(args.model_name)
-    args.model_name = model_name_or_path.name.lower()
-    print(f"Model name for saving results: {args.model_name}")
-    print(f"Model path: {model_name_or_path}")
-    return args
+def preprocess(dataset: list[dict]) -> list[dict]:
+    for entry in dataset:
+        entry["A"] = "A: " + str(entry["A"])
+        entry["B"] = "B: " + str(entry["B"])
+        entry["C"] = "C: " + str(entry["C"])
+        entry["D"] = "D: " + str(entry["D"])
+    return dataset
+
+
+def post_process_llama(output: str):
+    """
+    Cleans model outputs by extracting the final answer after the
+    'válasz' keyword (if present), removing leading explanation text
+    to ensure consistent comparison with target answers.
+    """
+    keyword = "válasz"
+    index = output.lower().find(keyword)
+
+    if index != -1:
+
+        if index + len(keyword) < len(output) and output[index + len(keyword)] == ":":
+            return output[index + len(keyword) + 1:].strip()
+        return output[index + len(keyword):].strip()
+    return output
+
+
+def remove_reasoning_traces(result: dict) -> dict: # if necessary
+    # every task's formatted_result contains an output key holding the generated text;
+    # for reasoning models the text between thinking tokens is not needed for eval,
+    # separate handling as vllm's suppressing reasoning output do not work
+    # https://docs.vllm.ai/en/latest/features/reasoning_outputs/?h=enable_thinking#suppressing-reasoning-output
+
+    # no reasoning traces to remove (thinking mode disabled / note exist)
+    if "<think>" not in result["output"]:
+        return result
+
+    if "</think>" not in result["output"]:
+        print(f"Missing closing </think> tag in output:\n'{result['output']}'\n")
+        result["thinking_output"] = result["output"]
+        result["output"] = ""
+        return result
+
+    # drop thinking block, preserve reasoning traces to check later if necessary
+    result["thinking_output"] = result["output"]
+    result["output"] = re.sub(r"<think>.*?</think>", "", result["output"], flags=re.DOTALL)
+    result["output"] = result["output"].strip()
+    return result
+
+
+def extract_abcd_answer(text: str) -> str:
+    # find answer letters, prefer the LAST occurrence
+    # matches: "C", "**C**", "C:", "(C)",
+    # "a helyes válasz: C", "válasz a **C**" etc.
+    for pattern in [
+        r"\*\*([ABCD])\*\*",
+        r"[Vv]álasz[^ABCD]{0,20}([ABCD])\b",
+        r"^\s*([ABCD])\s*[:.)]?\s*$",
+    ]:
+        m = re.findall(pattern, text, flags=re.MULTILINE)
+        if m:
+            return m[-1]
+
+    # fallback: any standalone A/B/C/D letter, but not part of a word (e.g., "A" article)
+    matches = re.findall(r"\b([ABCD])\b(?![\w-])", text)
+    if matches:
+        return matches[-1]
+
+    return ""
+
+
+def is_repetitive(
+    text: str,
+    ngram: int = 5,
+    min_words: int = 50,
+    unique_ratio_threshold: float = 0.35,
+    compression_threshold: float = 0.12,
+) -> bool:
+    """Flag outputs dominated by repetition.
+
+    Two independent signals, either of which suffices:
+      - low ratio of distinct n-grams to total n-grams
+      - high compressibility (zlib), which catches repetition at any scale
+    """
+    words = text.split()
+    if len(words) < min_words:
+        return False
+
+    grams = [" ".join(words[i:i + ngram]) for i in range(len(words) - ngram)]
+    if grams and len(set(grams)) / len(grams) < unique_ratio_threshold:
+        return True
+
+    data = text.encode("utf-8")
+    if len(data) > 500 and len(zlib.compress(data, 9)) / len(data) < compression_threshold:
+        return True
+
+    # unstructured numeric or token dump
+    numeric = sum(1 for w in words if w.strip(",.:;").isdigit())
+    return numeric / len(words) > 0.7
+
+
+def normalize_text(
+    text: str,
+    remove_punctuation: bool = False,
+) -> str:
+
+    text = str(text).strip().lower()
+    text = re.sub(r'\s+', ' ', text).strip()
+    if remove_punctuation:
+        text = re.sub(r'[.,;:!?\'"()[\]{}—–-]+', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
+def cleanup_model_name(model_name: str) -> str:
+    return model_name.replace('/', '_').lower()
+
+
+def save_results(results: list[dict], task_name: str, model_name: str, is_gen_results: bool = True) -> None:
+    if not results:
+        return
+    name = cleanup_model_name(model_name)
+    results_type = "generation" if is_gen_results else "eval"
+    save_json(results, config.RESULTS_DIR, f"{task_name}-{name}-{results_type}-results.json")
+    print(f"Saved {results_type} results to {config.RESULTS_DIR} directory.")

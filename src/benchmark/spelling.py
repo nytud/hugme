@@ -1,16 +1,17 @@
-from typing import List, Dict
-from functools import lru_cache
+from __future__ import annotations
 
 import os
-import string
 import random
-import logging
+import string
+from functools import lru_cache
+
 import requests
 from spellchecker import SpellChecker
 
 import config
-import helper
 import generation
+import helper
+
 
 @lru_cache(maxsize=1)
 def get_spellchecker() -> SpellChecker:
@@ -34,7 +35,7 @@ def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> d
     }
 
 
-def compute_score(args, results: List[Dict]):
+def compute_score(args, results: list[dict]):
     text_lens, misspelled_count = 0, 0
     spelling_results = []
     for i, entry in enumerate(results):
@@ -52,14 +53,11 @@ def compute_score(args, results: List[Dict]):
         misspelled_count += len(misspelled)
 
     if args.save_results:
-        helper.save_json(
-            spelling_results,
-            config.RESULTS_DIR,
-            f"{config.SPELLING}-{args.model_name}-{args.thinking}-eval-results.json"
-        )
+        model_name = helper.cleanup_model_name(args.model_name)
+        helper.save_json(spelling_results, config.RESULTS_DIR, f"{config.SPELLING}-{model_name}-eval-results.json")
     spelling_score = (1 - misspelled_count / text_lens) * 100
 
-    logging.info(f"Spell checking results score: {spelling_score}")
+    print(f"Spell checking results score: {spelling_score}")
     return {"score": spelling_score}
 
 
@@ -69,7 +67,10 @@ def check_spelling(text: str):
     texts = text.split()
     text_len = len(texts)
     misspelled = list(spell.unknown(texts))
-    correct_rate = 1 - len(misspelled) / text_len
+    try:
+        correct_rate = 1 - len(misspelled) / text_len
+    except ZeroDivisionError:
+        correct_rate = 0
     return text_len, misspelled, correct_rate
 
 

@@ -1,45 +1,28 @@
-import os
-import logging
 import argparse
 from pathlib import Path
 
-import helper
 import eval as evaluate
-
-
-__doc__ = """
-This script is designed as a starting point for evaluating your models using HuGME.
-"""
-
-log_level = int(os.getenv('LOG_LEVEL', logging.INFO))
-logging.basicConfig(level=log_level, format="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 
 def cli() -> None:
 
     parser = argparse.ArgumentParser(description='hugme cli tool')
 
-    parser.add_argument('--model-name', type=str, metavar='S', help='model name or path')
     parser.add_argument('--tasks', type=str, nargs="+", default=[], help='task name(s)')
-    parser.add_argument('--judge', type=str, default="gpt-4o", metavar='S', help='judge model name(s)')
-    parser.add_argument('--use-cuda', type=lambda x: x.lower()=='true', default=True, metavar='S', help='gpu use')
-    parser.add_argument('--cuda-ids', type=list, default=[0], metavar='S', help='gpu ids to use')
-    parser.add_argument('--seed', type=int, default=42, metavar='S', help='random seed')
-    parser.add_argument("--parameters", type=str, default=None, required=True, help="JSON config path for model params")
-    parser.add_argument("--chat-template", type=str, default=None, required=False,
-                            help="JSON config path for apply_chat_template funcion for HF models")
-    parser.add_argument("--save-results", type=lambda x: x.lower()=='true', default=True, help='save results')
+    parser.add_argument('--model-name', type=str, required=True, help='model name or path')
+    parser.add_argument('--model-url',  type=str, required=True, help='model URL')
+    parser.add_argument("--parameters", type=str, required=True, help="JSON config path for model params")
+
+    parser.add_argument("--save-results", action="store_true", help='save results')
     parser.add_argument("--use-gen-results", type=Path, default=None, help='use generation results from path')
-    parser.add_argument("--batch-size", type=int, default=2, help="batch size for generation")
-    parser.add_argument("--provider", type=str, default=None, choices=['openai'])
-    parser.add_argument("--thinking", type=lambda x: x.lower()=='true', default=False)
-    parser.add_argument("--use-alpaca-prompt", type=lambda x: x.lower()=='true', default=False)
+    parser.add_argument("--use-eval-results", type=Path, default=None, help='use evaluation results from path')
     parser.add_argument("--sample-size", type=float, default=1.0, help="sample size for evaluation")
+    parser.add_argument("--batch-size", type=int, default=8, help="batch size for generation")
+
+    parser.add_argument('--judge', type=str, default="gpt-4o", metavar='S', help='judge model name(s)')
+    parser.add_argument("--provider", type=str, default=None, choices=['openai'])
 
     args = parser.parse_args()
-
-    helper.set_seeds(args)
-    helper.set_device(args)
 
     evaluate.evaluate(args)
 
