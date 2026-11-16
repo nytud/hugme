@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hugme"
-version = "1.0.1"
+version = "1.0.2"
 description = "Library to evaluate models on HuGME benchmark."
 readme = "README.md"
 authors = [
     {name = "HUN-REN Research Center for Linguistics", email = "osvathm.matyas@nytud.hun-ren.hu"}
 ]
 keywords = ["models", "model-training", "fine-tuning", "natural-language-processing", "deep-learning", "evaluation", "benchmark"]
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
@@ -39,7 +39,8 @@ dependencies = [
     "torchvision",
     "huspacy",
     "spacy",
-    "openai"
+    "openai",
+    "matplotlib"
 ]
 
 [project.urls]

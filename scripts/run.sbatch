@@ -53,7 +53,7 @@ echo "Parameters Path: $PARAMETERS_PATH"
 
 export RUN_NUMBER=1
 echo "Run $RUN_NUMBER"
-export RESULTS_DIR="/home/osvathm/hugme/results/$SLURM_JOB_NAME/run_$RUN_NUMBER"
+export RESULTS_DIR="/home/username/hugme/results/$SLURM_JOB_NAME/run_$RUN_NUMBER"
 
 # note: some hugme eval can fail, e.g. due to judge model time out,
 # therefore, it is recommended (for now) to run evals separately,

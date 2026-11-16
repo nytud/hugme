@@ -1,4 +1,4 @@
-from src.helper import extract_abcd_answer, cleanup_model_name, is_repetitive
+from helper import extract_abcd_answer, cleanup_model_name, is_repetitive
 
 import pytest
 

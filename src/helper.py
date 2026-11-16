@@ -10,7 +10,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src import config
+import config
 
 
 def read_file(file_path, readlines: bool = False):
