@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import json
-import logging
 import os
 import pathlib
 import re
 import zlib
 from collections import defaultdict
-from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -79,7 +79,7 @@ def plot_needle_in_haystack(
     dpi: int = 200,
 ) -> None:
     # sort x-axis numerically (context lengths stored as strings)
-    x_vals = sorted(int(k) for k in results.keys())
+    x_vals = sorted(int(k) for k in results)
     x_labels = [str(x) for x in x_vals]
 
     # collect all fraction bins and sort by their numeric start (e.g. "0.1-0.2" -> 0.1)
@@ -134,10 +134,10 @@ def plot_needle_in_haystack(
     os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
     fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
-    logging.info(f"Saved figure to {save_path}")
+    print(f"Saved figure to {save_path}")
 
 
-def preprocess(dataset: List[Dict]) -> List[Dict]:
+def preprocess(dataset: list[dict]) -> list[dict]:
     for entry in dataset:
         entry["A"] = "A: " + str(entry["A"])
         entry["B"] = "B: " + str(entry["B"])
@@ -234,10 +234,7 @@ def is_repetitive(
 
     # unstructured numeric or token dump
     numeric = sum(1 for w in words if w.strip(",.:;").isdigit())
-    if numeric / len(words) > 0.7:
-        return True
-
-    return False
+    return numeric / len(words) > 0.7
 
 
 def normalize_text(
@@ -257,7 +254,7 @@ def cleanup_model_name(model_name: str) -> str:
     return model_name.replace('/', '_').lower()
 
 
-def save_results(results: List[Dict], task_name: str, model_name: str, is_gen_results: bool = True) -> None:
+def save_results(results: list[dict], task_name: str, model_name: str, is_gen_results: bool = True) -> None:
     if not results:
         return
     name = cleanup_model_name(model_name)

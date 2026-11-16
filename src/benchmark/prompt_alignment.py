@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import random
-from typing import Any, Dict, List
+from typing import Any
 
 from deepeval.metrics import PromptAlignmentMetric
 from deepeval.test_case import LLMTestCase
@@ -11,7 +13,7 @@ import helper
 THRESHOLD = 0.5
 
 
-def compute_metric(args, task_name: str) -> Dict:
+def compute_metric(args, task_name: str) -> dict:
     dataset = helper.read_json(config.PROMPT_ALIGNMENT_DATASET)
     sample_size = max(1, int(args.sample_size * len(dataset)))
     dataset = random.sample(dataset, sample_size)
@@ -29,7 +31,7 @@ def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> d
     }
 
 
-def compute_scores(args, results: List[Dict]) -> Dict:
+def compute_scores(args, results: list[dict]) -> dict:
     measurement_results = []
     model_name = helper.cleanup_model_name(args.model_name)
     filename = f"{config.PROMPT_ALIGNMENT}-{model_name}-eval-results.json"
@@ -50,7 +52,7 @@ def compute_scores(args, results: List[Dict]) -> Dict:
     return {"success_rate": passed / len(results), "average_score": total_score / len(results)}
 
 
-def compute_entry(args, entry: Dict, index: int) -> Dict[str, Any]:
+def compute_entry(args, entry: dict, index: int) -> dict[str, Any]:
     output = entry["output"]
     if not output.strip() or helper.is_repetitive(
         output, ngram=5, min_words=50, unique_ratio_threshold=0.35, compression_threshold=0.12

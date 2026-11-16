@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import random
-from typing import Any, Dict
+from typing import Any
 
 import openai
 from deepeval import metrics
@@ -32,7 +34,7 @@ def compute_metric(args, task_name: str) -> float:
     return score
 
 
-def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+def format_result(entry: dict[str, Any], prompt: Any, output: generation.ModelOutput) -> dict:
     return {
         "id": entry["id"],
         "prompt": prompt,
@@ -73,7 +75,7 @@ def load_precomputed_results(args) -> list:
     return loaded
 
 
-def evaluate_entry(i: int, entry: Dict[str, Any], metric, task_name: str) -> Dict[str, Any]:
+def evaluate_entry(i: int, entry: dict[str, Any], metric, task_name: str) -> dict[str, Any]:
     truncated, judge_error = False, None
 
     if is_degenerate(entry["output"]):
@@ -106,7 +108,7 @@ def is_degenerate(output: str) -> bool:
     return not output.strip() or helper.is_repetitive(output, **REPETITION_PARAMS)
 
 
-def run_metric(metric, entry: Dict[str, Any], task_name: str) -> bool:
+def run_metric(metric, entry: dict[str, Any], task_name: str) -> bool:
     """Measure the entry with the metric. Returns True if the output had to be truncated."""
     if task_name == "summarization":
         metric.assessment_questions = entry["questions"]
@@ -121,7 +123,7 @@ def run_metric(metric, entry: Dict[str, Any], task_name: str) -> bool:
         return True
 
 
-def build_test_case(entry: Dict[str, Any], actual_output: str) -> LLMTestCase:
+def build_test_case(entry: dict[str, Any], actual_output: str) -> LLMTestCase:
     return LLMTestCase(
         input=entry["input"],
         actual_output=actual_output,

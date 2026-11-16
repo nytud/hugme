@@ -1,9 +1,9 @@
-import logging
+from __future__ import annotations
+
 import os
 import random
 import string
 from functools import lru_cache
-from typing import Dict, List
 
 import requests
 from spellchecker import SpellChecker
@@ -35,7 +35,7 @@ def format_result(entry: dict, prompt: str, output: generation.ModelOutput) -> d
     }
 
 
-def compute_score(args, results: List[Dict]):
+def compute_score(args, results: list[dict]):
     text_lens, misspelled_count = 0, 0
     spelling_results = []
     for i, entry in enumerate(results):
@@ -57,7 +57,7 @@ def compute_score(args, results: List[Dict]):
         helper.save_json(spelling_results, config.RESULTS_DIR, f"{config.SPELLING}-{model_name}-eval-results.json")
     spelling_score = (1 - misspelled_count / text_lens) * 100
 
-    logging.info(f"Spell checking results score: {spelling_score}")
+    print(f"Spell checking results score: {spelling_score}")
     return {"score": spelling_score}
 
 

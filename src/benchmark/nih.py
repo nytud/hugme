@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import random
 from collections import defaultdict
 from statistics import mean
-from typing import Dict
 
 import config
 import generation
@@ -11,11 +12,10 @@ import template
 
 BAD_SOLUTION = 0.0
 GOOD_SOLUTION = 1.0
-N_TURNS = int(os.getenv("N_TURNS", 2))
+N_TURNS = int(os.getenv("N_TURNS", "2"))
 FRACTION_STEP = 0.1
 FRACTIONS = [i / 10 for i in range(10)]  # [0.0, 0.1, ..., 0.9]
-# MODEL_CONTEXT_LEN = int(os.getenv("MODEL_CONTEXT_LEN", 32_768))
-MODEL_CONTEXT_LEN = int(os.getenv("MODEL_CONTEXT_LEN", 2048))
+MODEL_CONTEXT_LEN = int(os.getenv("MODEL_CONTEXT_LEN", "32768"))
 # [1024,2048,...,MODEL_CONTEXT_LEN]
 CONTEXT_LENS = list(range(1024, MODEL_CONTEXT_LEN, 1024)) + [MODEL_CONTEXT_LEN]
 # estimate chat template around the message + space for generation
@@ -118,7 +118,7 @@ def create_message(args, prompt, haystack, needle, position: int):
     ]
 
 
-def format_result(context_len: int, fraction: float, position: int, output, data: dict) -> Dict:
+def format_result(context_len: int, fraction: float, position: int, output, data: dict) -> dict:
     answer = helper.grab_first_number(output.text)
     return {
         "context_len": context_len,

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import random
 import textwrap
 from enum import Enum
-from typing import Any, Tuple
+from typing import Any
 
 import openai
 from tqdm import tqdm
@@ -98,13 +100,13 @@ def compute_scores(args, results: list) -> dict:
     }
 
 
-def grade_entry(entry: dict, args) -> Tuple[str, float, str]:
+def grade_entry(entry: dict, args) -> tuple[str, float, str]:
     if entry["answer_type"] == AnswerType.ENTITY:
         return grade_entry_manually_with_entity_answer_type(entry)
     return grade_entry_by_judge(entry, args)
 
 
-def grade_entry_manually_with_entity_answer_type(entry: dict) -> Tuple[str, float, str]:
+def grade_entry_manually_with_entity_answer_type(entry: dict) -> tuple[str, float, str]:
 
     def grade_candidate(output_norm: str, candidate: str):
         if output_norm == candidate:
@@ -143,12 +145,12 @@ def grade_entry_manually_with_entity_answer_type(entry: dict) -> Tuple[str, floa
         print(f"Entry: {entry}")
         print(f"Candidates: {candidates}")
         print(f"Output normalized: {output_norm}")
-        raise e
+        raise
 
     return "incorrect", 0.0, "No match"
 
 
-def grade_entry_by_judge(entry: dict, args) -> Tuple[str, float, str]:
+def grade_entry_by_judge(entry: dict, args) -> tuple[str, float, str]:
     prompt = build_judge_prompt(entry)
     judge_client = load_judge_model(args)
     response = generation.generate(judge_client, prompt, args.judge, parameters={})
@@ -186,7 +188,7 @@ def build_judge_prompt(entry: dict) -> list:
     return [{"role": "user", "content": prompt_text}]
 
 
-def parse_judge_response(text: str) -> Tuple[str, float, str]:
+def parse_judge_response(text: str) -> tuple[str, float, str]:
     normalized = helper.normalize_text(text)
 
     # order matters: "correct" is a substring of "incorrect" and "partially_correct"

@@ -1,6 +1,7 @@
-import logging
+from __future__ import annotations
+
 import random
-from typing import Any, Dict
+from typing import Any
 
 from tqdm import tqdm
 
@@ -30,7 +31,7 @@ def post_process_llama(output: str):
     return output
 
 
-def format_result(entry: Dict[str, Any], prompt: Any, output: generation.ModelOutput) -> Dict:
+def format_result(entry: dict[str, Any], prompt: Any, output: generation.ModelOutput) -> dict:
     actual_output_text = post_process_llama(output.text)
     return {
         "prompt": prompt,
@@ -51,12 +52,9 @@ def compute_scores(args, results: list):
             entry['score'] = 0.0
     total_score = score / len(results)
 
-    logging.info(f"MMLU benchmark score: {round(total_score * 100, 2)}%")
+    print(f"MMLU benchmark score: {round(total_score * 100, 2)}%")
     if args.save_results:
-        helper.save_json(
-            results,
-            config.RESULTS_DIR,
-            f"{config.MMLU}-{args.model_name.replace('/', '_').lower()}-eval-results.json"
-        )
+        model_name = helper.cleanup_model_name(args.model_name)
+        helper.save_json(results, config.RESULTS_DIR, f"{config.MMLU}-{model_name}-eval-results.json")
 
     return helper.group_by_category(results, total_score)

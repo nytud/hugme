@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import os
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Iterator
 
 import openai
 import requests
@@ -14,15 +16,15 @@ import template
 @dataclass
 class ModelOutput:
     text: str
-    total_tokens: Optional[int] = None
+    total_tokens: int | None = None
 
 
 def generate_results(
         args,
         task_name: str,
-        dataset: List,
-        format_fn: Callable[[Dict, Any, ModelOutput], Dict]
-    ) -> List[Dict[str, Any]]:
+        dataset: list,
+        format_fn: Callable[[dict, Any, ModelOutput], dict]
+    ) -> list[dict[str, Any]]:
 
     if args.use_gen_results:
         print(f"Using generation results from path: {args.use_gen_results}")
@@ -45,7 +47,7 @@ def generate_results(
     return results
 
 
-def format_batch(batch, prompts, outputs, format_fn) -> List[Dict[str, Any]]:
+def format_batch(batch, prompts, outputs, format_fn) -> list[dict[str, Any]]:
     formatted = []
     for entry, prompt, output in zip(batch, prompts, outputs):
         result = format_fn(entry, prompt, output)
@@ -74,11 +76,11 @@ def load_parameters(args) -> dict:
     return parameters
 
 
-def tokenize(text: str, args) -> List[int]:
+def tokenize(text: str, args) -> list[int]:
     return _post_to_server(args, "tokenize", {"prompt": text, "add_special_tokens": False})["tokens"]
 
 
-def detokenize(tokens: List[int], args) -> str:
+def detokenize(tokens: list[int], args) -> str:
     return _post_to_server(args, "detokenize", {"tokens": tokens})["prompt"]
 
 
@@ -102,11 +104,11 @@ def generate(client: openai.OpenAI, messages: list, model_name: str, parameters:
         inappropriate_content_message = "Input data may contain inappropriate content."
         if e.status_code == 400 and e.code == "data_inspection_failed" and inappropriate_content_message in e.message:
             return ModelOutput(inappropriate_content_message)
-        raise e
+        raise
     return ModelOutput(completion.choices[0].message.content, completion.usage.total_tokens)
 
 
-def generate_batch(client: openai.OpenAI, messages: List, model_name: str, parameters: dict) -> List[ModelOutput]:
+def generate_batch(client: openai.OpenAI, messages: list, model_name: str, parameters: dict) -> list[ModelOutput]:
     # the OpenAI chat completions API takes one prompt per request, so a "batch" here means
     # firing the requests concurrently and letting vLLM's continuous batching do the actual work
     with ThreadPoolExecutor(max_workers=len(messages)) as executor:
@@ -118,6 +120,6 @@ def generate_batch(client: openai.OpenAI, messages: List, model_name: str, param
         )
 
 
-def batch_dataset(dataset: List[Dict], batch_size: int) -> Iterator[List[Dict]]:
+def batch_dataset(dataset: list[dict], batch_size: int) -> Iterator[list[dict]]:
     for i in range(0, len(dataset), batch_size):
         yield dataset[i:i + batch_size]

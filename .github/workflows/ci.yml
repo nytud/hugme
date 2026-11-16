@@ -29,7 +29,7 @@ jobs:
           pip install pylint ruff mypy types-requests pytest
 
       - name: Linter
-        run: ruff check src/ --ignore F401
+        run: ruff check src/ --ignore F401,EXE002
 
       - name: Static code checker
         run: |
