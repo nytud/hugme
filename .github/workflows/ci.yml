@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pylint ruff mypy types-requests pytest
+          pip install pylint ruff mypy types-requests pytest matplotlib numpy
 
       - name: Linter
         run: ruff check src/ --ignore F401,EXE002
