@@ -8,12 +8,19 @@
 #SBATCH --error=/home/username/hugme/logs/job.%J.err
 #SBATCH --output=/home/username/hugme/logs/job.%J.out
 
-export BERT_MODEL=""
-export BERT_MODEL=""
-export DATASETS=""
 
-export MODEL_API_KEY=""
+export DATASETS=""
+export BERT_MODEL=""
+
+export HF_TOKEN=""
 export OPENAI_API_KEY=""
+
+# for cultural open task
+export PROVIDER_URL=""
+export PROVIDER_API_KEY=""
+
+# for local model serving
+export MODEL_API_KEY="EMPTY"
 
 # increase the per-attempt timeout for deepeval
 # for longer texts (relevant for >32k context len)
@@ -22,8 +29,8 @@ export DEEPEVAL_PER_ATTEMPT_TIMEOUT_SECONDS_OVERRIDE=300
 
 echo "================ $SLURM_JOB_NAME ======================="
 
-export MODEL_NAME=""
-export MODEL_URL=""
+export MODEL_NAME="Qwen/Qwen3-4B"
+export MODEL_URL="http://localhost:8001/v1"
 export PARAMETERS_PATH="/home/username/hugme/parameters-model-name.json"
 cat > "$PARAMETERS_PATH" << 'EOF'
 {
@@ -46,22 +53,12 @@ echo "Parameters Path: $PARAMETERS_PATH"
 
 export RUN_NUMBER=1
 echo "Run $RUN_NUMBER"
-export RESULTS_DIR="/home/username/results/$SLURM_JOB_NAME/run_$RUN_NUMBER"
-export TASK="answer-relevancy"
+export RESULTS_DIR="/home/osvathm/hugme/results/$SLURM_JOB_NAME/run_$RUN_NUMBER"
 
-# note: some hugme eval can fail, e.g. due to judge model time out, therefore
-# it is recommended to run evals separately, so a fail in one does not affect the others' run
-hugme --model-name $MODEL_NAME --model-url $MODEL_URL --tasks $TASK --parameters $PARAMETERS_PATH --batch-size 16 --save-results
+# note: some hugme eval can fail, e.g. due to judge model time out,
+# therefore, it is recommended (for now) to run evals separately,
+# i.e. fail in one does not affect the others' run
+export TASK="mmlu"
+hugme --model-name $MODEL_NAME --model-url $MODEL_URL --tasks $TASK \
+        --parameters $PARAMETERS_PATH --save-results
 
-
-for RUN_NUMBER in {1..5}; do
-
-    export RUN_NUMBER
-    export RESULTS_DIR="/home/username/results/$SLURM_JOB_NAME/run_$RUN_NUMBER"
-
-    echo "=========== Run $RUN_NUMBER ==========="
-    echo "Results Directory: $RESULTS_DIR"
-
-    hugme --model-name $MODEL_NAME --model-url $MODEL_URL --tasks mmlu --parameters $PARAMETERS_PATH --batch-size 32 --save-results
-
-done
