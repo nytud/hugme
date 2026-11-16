@@ -22,7 +22,7 @@ def test_valasz_keyword():
     assert extract_abcd_answer("A válasz: B") == "B"
 
 def test_valasz_keyword_lowercase():
-    assert extract_abcd_answer("a helyes válasz a D") == "D"
+    assert extract_abcd_answer("a helyes válasz a d") == "D"
 
 def test_bare_letter_line():
     assert extract_abcd_answer("Indoklás blabla.\n\nC") == "C"
