@@ -20,7 +20,6 @@ def cli() -> None:
     parser.add_argument("--batch-size", type=int, default=8, help="batch size for generation")
 
     parser.add_argument('--judge', type=str, default="gpt-4o", metavar='S', help='judge model name(s)')
-    parser.add_argument("--provider", type=str, default=None, choices=['openai'])
 
     args = parser.parse_args()
 

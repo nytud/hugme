@@ -31,7 +31,6 @@ METRIC_DATASETES = {
     "toxicity": TOXICITY_DATASET,
     "faithfulness": FAITHFULNESS_DATASET,
     "summarization": SUMMARIZATION_DATASET,
-    "needle-in-haystack": HAYSTACK_DATASET,
     "answer-relevancy": ANSWER_RELEVANCY_DATASET,
 }
 
