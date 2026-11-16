@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Callable, Iterator
-
 
 import openai
 import requests
