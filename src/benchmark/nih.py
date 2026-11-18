@@ -109,8 +109,6 @@ def create_context_lens(parameters: dict) -> list[int]:
             f"in a {MODEL_CONTEXT_LEN}-token context window."
         )
     res =  list(range(CONTEXT_LEN_STEP, max_input_len, CONTEXT_LEN_STEP)) + [max_input_len]
-    print("hello")
-    print(res)
     return res
 
 
