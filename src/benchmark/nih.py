@@ -16,12 +16,9 @@ N_TURNS = int(os.getenv("N_TURNS", "2"))
 FRACTION_STEP = 0.1
 FRACTIONS = [i / 10 for i in range(10)]  # [0.0, 0.1, ..., 0.9]
 MODEL_CONTEXT_LEN = int(os.getenv("MODEL_CONTEXT_LEN", "32768"))
-# [1024,2048,...,MODEL_CONTEXT_LEN]
-CONTEXT_LENS = list(range(1024, MODEL_CONTEXT_LEN, 1024)) + [MODEL_CONTEXT_LEN]
-# estimate chat template around the message + space for generation
-# use non-thinking mode for this task
+CONTEXT_LEN_STEP = 1024
+# estimated tokens of the chat template around the message
 CHAT_TEMPLATE_TOKENS = 32
-
 
 
 def compute_metric(args, task_name: str | None = None):
@@ -83,12 +80,15 @@ def create_prompt(args, data):
 def _generate_results(args, client, parameters, data, prompt):
     # everything besides the haystack also has to fit into the context length
     reserved = len(prompt) + len(data["needle"]) + CHAT_TEMPLATE_TOKENS
-    reserved += parameters.get("max_completion_tokens", 0) # space for the answer
 
     results = []
-    for context_len in CONTEXT_LENS:
+    for context_len in create_context_lens(parameters):
         haystack = data["haystack"][:context_len - reserved]
-        assert len(haystack) == context_len - reserved, "Cannot build haystack for this context length."
+        if len(haystack) != context_len - reserved:
+            raise ValueError(
+                f"The haystack has {len(data['haystack'])} tokens, but context length "
+                f"{context_len} needs {context_len - reserved}. Use a longer text or lower MODEL_CONTEXT_LEN."
+            )
         for fraction in FRACTIONS:
             positions = create_insertion_positions(fraction, len(haystack), N_TURNS)
             messages = [create_message(args, prompt, haystack, data["needle"], position) for position in positions]
@@ -98,6 +98,20 @@ def _generate_results(args, client, parameters, data, prompt):
             )
             print(f"Evaluated context length: {context_len}, fraction: {fraction} with positions {positions}.")
     return results
+
+
+def create_context_lens(parameters: dict) -> list[int]:
+    """input lengths [1024, 2048, ..., N]; N leaves room for the generation in the window."""
+    max_input_len = MODEL_CONTEXT_LEN - parameters.get("max_completion_tokens", 0)
+    if max_input_len < CONTEXT_LEN_STEP:
+        raise ValueError(
+            f"max_completion_tokens leaves only {max_input_len} input tokens "
+            f"in a {MODEL_CONTEXT_LEN}-token context window."
+        )
+    res =  list(range(CONTEXT_LEN_STEP, max_input_len, CONTEXT_LEN_STEP)) + [max_input_len]
+    print("hello")
+    print(res)
+    return res
 
 
 def create_insertion_positions(fraction: float, haystack_len: int, n_turns: int) -> list[int]:
