@@ -1,8 +1,0 @@
-tqdm
-torch
-deepeval
-accelerate
-transformers
-sentencepiece
-pyspellchecker
-textstat
